@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HealthData [
+]>
+<HealthData locale="en_US">
+ <ExportDate value="2024-03-15 12:00:00 -0600"/>
+ <Me HKCharacteristicTypeIdentifierBiologicalSex="HKBiologicalSexFemale"/>
+ <Record type="HKQuantityTypeIdentifierStepCount"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="count" value="45"
+  startDate="2024-03-15 08:30:00 -0600"
+  endDate="2024-03-15 08:31:00 -0600"
+  creationDate="2024-03-15 08:31:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierStepCount"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="count" value="23"
+  startDate="2024-03-15 08:31:00 -0600"
+  endDate="2024-03-15 08:32:00 -0600"
+  creationDate="2024-03-15 08:32:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierHeartRate"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="count/min" value="72"
+  startDate="2024-03-15 08:30:00 -0600"
+  endDate="2024-03-15 08:30:00 -0600"
+  creationDate="2024-03-15 08:30:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierHeartRateVariabilitySDNN"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="ms" value="42.5"
+  startDate="2024-03-15 08:00:00 -0600"
+  endDate="2024-03-15 08:00:00 -0600"
+  creationDate="2024-03-15 08:00:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierVO2Max"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="mL/min·kg" value="38.2"
+  startDate="2024-03-15 09:00:00 -0600"
+  endDate="2024-03-15 09:00:00 -0600"
+  creationDate="2024-03-15 09:00:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierBodyMass"
+  sourceName="Health" sourceVersion="17.0"
+  unit="lb" value="155"
+  startDate="2024-03-15 07:00:00 -0600"
+  endDate="2024-03-15 07:00:00 -0600"
+  creationDate="2024-03-15 07:00:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierWalkingSpeed"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="mi/hr" value="3.2"
+  startDate="2024-03-15 08:30:00 -0600"
+  endDate="2024-03-15 08:31:00 -0600"
+  creationDate="2024-03-15 08:31:05 -0600"/>
+ <Record type="HKCategoryTypeIdentifierSleepAnalysis"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  value="HKCategoryValueSleepAnalysisAsleepDeep"
+  startDate="2024-03-14 23:30:00 -0600"
+  endDate="2024-03-15 00:15:00 -0600"
+  creationDate="2024-03-15 06:00:00 -0600"/>
+ <Record type="HKCategoryTypeIdentifierSleepAnalysis"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  value="HKCategoryValueSleepAnalysisAsleepREM"
+  startDate="2024-03-15 00:15:00 -0600"
+  endDate="2024-03-15 01:00:00 -0600"
+  creationDate="2024-03-15 06:00:00 -0600"/>
+ <Record type="HKQuantityTypeIdentifierRespiratoryRate"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="count/min" value="14.5"
+  startDate="2024-03-15 01:00:00 -0600"
+  endDate="2024-03-15 01:00:00 -0600"
+  creationDate="2024-03-15 06:00:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierOxygenSaturation"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="%" value="97"
+  startDate="2024-03-15 01:00:00 -0600"
+  endDate="2024-03-15 01:00:00 -0600"
+  creationDate="2024-03-15 06:00:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierActiveEnergyBurned"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="kcal" value="250"
+  startDate="2024-03-15 08:00:00 -0600"
+  endDate="2024-03-15 09:00:00 -0600"
+  creationDate="2024-03-15 09:00:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierBloodPressureSystolic"
+  sourceName="Omron" sourceVersion="1.0"
+  unit="mmHg" value="120"
+  startDate="2024-03-15 07:00:00 -0600"
+  endDate="2024-03-15 07:00:00 -0600"
+  creationDate="2024-03-15 07:00:05 -0600"/>
+ <Workout workoutActivityType="HKWorkoutActivityTypeRunning"
+  duration="30.5" durationUnit="min"
+  totalDistance="5.2" totalDistanceUnit="km"
+  totalEnergyBurned="320" totalEnergyBurnedUnit="kcal"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  startDate="2024-03-15 09:00:00 -0600"
+  endDate="2024-03-15 09:30:30 -0600"
+  creationDate="2024-03-15 09:31:00 -0600">
+ </Workout>
+ <ActivitySummary dateComponents="2024-03-15"
+  activeEnergyBurned="520.3" activeEnergyBurnedGoal="500"
+  appleExerciseTime="45" appleExerciseTimeGoal="30"
+  appleStandHours="12" appleStandHoursGoal="12"/>
+</HealthData>

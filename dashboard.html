@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mosaic - Longevity Dashboard</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<link rel="stylesheet" href="https://edwardtufte.github.io/et-book/et-book.css">
+<style>
+/* ── Base Typography & Layout ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "et-book", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #111;
+  background: #fffff8;
+  -webkit-font-smoothing: antialiased;
+}
+
+article {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem 1rem;
+}
+
+h1 {
+  font-weight: 400;
+  font-size: 2.4rem;
+  line-height: 1.2;
+  margin-bottom: 0.4rem;
+}
+
+h1 .subtitle {
+  display: block;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #666;
+  margin-top: 0.3rem;
+}
+
+h1 .subtitle.last-updated {
+  font-style: normal;
+  font-weight: 700;
+  margin-top: 1rem;
+}
+
+h2 {
+  font-variant: small-caps;
+  font-weight: 400;
+  font-size: 1.4rem;
+  letter-spacing: 0.05em;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  border-bottom: none;
+}
+
+h3 {
+  font-variant: small-caps;
+  font-weight: 400;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  color: #555;
+  margin-top: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+
+p { margin-bottom: 0.8rem; max-width: 600px; }
+p.wide { max-width: none; }
+
+/* ── Sidenotes ── */
+.content-with-sidenotes {
+  position: relative;
+}
+
+.sidenote {
+  float: right;
+  clear: right;
+  margin-right: -240px;
+  width: 210px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #666;
+  position: relative;
+}
+
+.sidenote::before {
+  content: attr(data-label);
+  font-size: 0.65rem;
+  vertical-align: super;
+  color: #999;
+  margin-right: 0.2em;
+}
+
+sup.sidenote-ref {
+  font-size: 0.7em;
+  color: #999;
+  cursor: default;
+}
+
+/* ── System Status Table ── */
+table.system-status {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+table.system-status th {
+  text-align: left;
+  font-weight: 400;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: #666;
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid #ccc;
+  font-size: 0.8rem;
+}
+
+table.system-status td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+table.system-status tr:last-child td {
+  border-bottom: 1px solid #ccc;
+}
+
+table.system-status td.metric-name {
+  font-variant: small-caps;
+  letter-spacing: 0.02em;
+  width: 140px;
+}
+
+table.system-status td.metric-value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  width: 80px;
+  font-weight: 600;
+}
+
+table.system-status td.metric-target {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  width: 60px;
+  color: #888;
+  font-size: 0.82rem;
+}
+
+table.system-status td.sparkline-cell {
+  width: 90px;
+  padding: 0.2rem 0.4rem;
+}
+
+table.system-status td.bullet-cell {
+  width: 200px;
+  padding: 0.2rem 0.6rem;
+}
+
+/* ── Bloodwork Table ── */
+table.bloodwork {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+table.bloodwork th {
+  text-align: left;
+  font-weight: 400;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: #666;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid #ccc;
+  font-size: 0.78rem;
+}
+
+table.bloodwork td {
+  padding: 0.22rem 0.5rem;
+  border-bottom: 1px solid #f0f0eb;
+  vertical-align: middle;
+}
+
+table.bloodwork td:nth-child(2),
+table.bloodwork td:nth-child(3) {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+table.bloodwork td:nth-child(4) {
+  text-align: center;
+  width: 24px;
+}
+
+table.bloodwork tr.group-header td {
+  font-variant: small-caps;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: #555;
+  padding-top: 0.7rem;
+  border-bottom: 1px solid #ddd;
+  background: none;
+}
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dot-green { background: #5b8a5e; }
+.dot-amber { background: #c49a2a; }
+.dot-red { background: #b44; }
+
+/* ── Small Multiples Grid ── */
+.small-multiples {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem 1.5rem;
+  margin: 1rem 0 2rem 0;
+}
+
+.small-multiple {
+  position: relative;
+}
+
+.small-multiple .chart-title {
+  font-size: 0.82rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #444;
+  margin-bottom: 0.15rem;
+}
+
+.small-multiple svg {
+  display: block;
+}
+
+/* ── Cardiovascular Section ── */
+.cardio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1rem 0 2rem 0;
+}
+
+.cardio-chart .chart-title {
+  font-size: 0.82rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #444;
+  margin-bottom: 0.15rem;
+}
+
+/* ── Sleep Architecture ── */
+.sleep-chart {
+  margin: 1rem 0 2rem 0;
+}
+
+.sleep-chart .chart-title {
+  font-size: 0.82rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #444;
+  margin-bottom: 0.15rem;
+}
+
+/* ── Tufte Axis Styles ── */
+.axis-label {
+  font-family: "et-book", Georgia, serif;
+  font-size: 9px;
+  fill: #888;
+}
+
+.axis-label-right {
+  text-anchor: end;
+}
+
+.target-line {
+  stroke: #999;
+  stroke-width: 0.8;
+  stroke-dasharray: 3,3;
+}
+
+.data-line {
+  fill: none;
+  stroke: #333;
+  stroke-width: 1.3;
+}
+
+.data-area {
+  fill: #333;
+  opacity: 0.06;
+}
+
+.annotation-text {
+  font-family: "et-book", Georgia, serif;
+  font-size: 9px;
+  fill: #666;
+}
+
+.endpoint-dot {
+  fill: #333;
+  r: 2;
+}
+
+.range-frame line {
+  stroke: #999;
+  stroke-width: 0.7;
+}
+
+/* ── Print optimization ── */
+@media print {
+  body { font-size: 10pt; }
+  article { max-width: none; padding: 0; }
+  .sidenote { margin-right: -180px; width: 160px; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .sidenote {
+    float: none;
+    display: block;
+    margin: 0.4rem 0 0.8rem 1rem;
+    width: auto;
+    max-width: 500px;
+    padding: 0.4rem 0.6rem;
+    border-left: 2px solid #eee;
+  }
+}
+
+@media (max-width: 720px) {
+  .small-multiples { grid-template-columns: repeat(2, 1fr); }
+  .cardio-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<article>
+
+<h1>Mosaic
+  <span class="subtitle">A longevity dashboard that combines lifestyle and clinical biomarkers into a single view to drive life-changing health outcomes.</span>
+  <span class="subtitle last-updated" id="last-updated"></span>
+</h1>
+
+<!-- ═══════════ SECTION 1: System Status ═══════════ -->
+<h2>Protocol Scorecard</h2>
+<div id="system-status"></div>
+
+<!-- ═══════════ SECTION 2: Bloodwork ═══════════ -->
+<h2 id="biomarkers-heading">Clinical Biomarkers</h2>
+<div class="content-with-sidenotes" id="bloodwork-section"></div>
+
+<!-- ═══════════ SECTION 3: Small Multiples ═══════════ -->
+<h2>Trends</h2>
+<p class="wide">Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds. Data spans November 2025 through February 2026.</p>
+<div class="small-multiples" id="small-multiples"></div>
+
+<!-- ═══════════ SECTION 4: Cardiovascular Detail ═══════════ -->
+<h2>Cardiovascular Detail</h2>
+<div class="cardio-grid" id="cardio-detail"></div>
+
+<!-- ═══════════ SECTION 5: Sleep Architecture ═══════════ -->
+<h2>Sleep Architecture</h2>
+<div class="sleep-chart" id="sleep-architecture"></div>
+
+</article>
+
+<script type="module">
+// ── Utilities ──
+const parseDate = d3.timeParse("%Y-%m-%d");
+const fmt = d3.format(",");
+const fmt1 = d3.format(".1f");
+const fmtPct = d3.format(".0f");
+
+function rollingAvg(arr, key, n) {
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    const window = arr.slice(Math.max(0, i - n + 1), i + 1).filter(d => d[key] > 0);
+    if (window.length > 0) {
+      result.push({ d: arr[i].d, v: d3.mean(window, d => d[key]) });
+    }
+  }
+  return result;
+}
+
+// ── Tufte-style axis: just min/max endpoint labels ──
+function tufteYAxis(g, yScale, width, format) {
+  const domain = yScale.domain();
+  const range = yScale.range();
+  // Left endpoint labels
+  g.append("text").attr("class", "axis-label")
+    .attr("x", -4).attr("y", range[1]).attr("dy", "0.35em").attr("text-anchor", "end")
+    .text(format(domain[0]));
+  g.append("text").attr("class", "axis-label")
+    .attr("x", -4).attr("y", range[0]).attr("dy", "0.35em").attr("text-anchor", "end")
+    .text(format(domain[1]));
+  // Small range-frame ticks
+  g.append("line").attr("class", "range-frame")
+    .attr("x1", 0).attr("x2", 0).attr("y1", range[0]).attr("y2", range[0] + 4)
+    .attr("stroke", "#999").attr("stroke-width", 0.7);
+  g.append("line").attr("class", "range-frame")
+    .attr("x1", 0).attr("x2", 0).attr("y1", range[1] - 4).attr("y2", range[1])
+    .attr("stroke", "#999").attr("stroke-width", 0.7);
+}
+
+function tufteXAxis(g, xScale, height, dateFormat) {
+  const domain = xScale.domain();
+  const range = xScale.range();
+  const dfmt = d3.timeFormat(dateFormat || "%b %d");
+  g.append("text").attr("class", "axis-label")
+    .attr("x", range[0]).attr("y", height + 12).attr("text-anchor", "start")
+    .text(dfmt(domain[0]));
+  g.append("text").attr("class", "axis-label")
+    .attr("x", range[1]).attr("y", height + 12).attr("text-anchor", "end")
+    .text(dfmt(domain[1]));
+}
+
+// ── Sparkline generator (inline SVG) ──
+function sparklineSVG(data, w, h) {
+  if (!data || data.length < 2) return "";
+  const x = d3.scaleLinear().domain([0, data.length - 1]).range([1, w - 1]);
+  const ext = d3.extent(data);
+  const pad = (ext[1] - ext[0]) * 0.1 || 1;
+  const y = d3.scaleLinear().domain([ext[0] - pad, ext[1] + pad]).range([h - 1, 1]);
+  const line = d3.line().x((d, i) => x(i)).y(d => y(d));
+  let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
+  svg += `<path d="${line(data)}" fill="none" stroke="#333" stroke-width="1"/>`;
+  // endpoint dot
+  svg += `<circle cx="${x(data.length - 1)}" cy="${y(data[data.length - 1])}" r="1.5" fill="#333"/>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+// ── Bullet chart (thin horizontal bar) ──
+function bulletSVG(value, target, min, max, lowerBetter) {
+  const w = 180, h = 14;
+  const x = d3.scaleLinear().domain([min, max]).range([0, w]).clamp(true);
+
+  let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
+
+  // Background: full range (light gray)
+  svg += `<rect x="0" y="${h/2-2}" width="${w}" height="4" fill="#e8e8e0" rx="1"/>`;
+
+  // Target marker (thin vertical line)
+  const tx = x(target);
+  svg += `<line x1="${tx}" x2="${tx}" y1="${h/2-6}" y2="${h/2+6}" stroke="#999" stroke-width="1" stroke-dasharray="2,1"/>`;
+
+  // Value marker
+  const vx = x(value);
+  const isGood = lowerBetter ? value <= target : value >= target;
+  const color = isGood ? "#5b8a5e" : "#b44";
+  svg += `<line x1="${vx}" x2="${vx}" y1="${h/2-5}" y2="${h/2+5}" stroke="${color}" stroke-width="2.5"/>`;
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ── DuckDB-WASM ──
+import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
+
+async function initDB() {
+  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+  const worker = new Worker(bundle.mainWorker);
+  const logger = new duckdb.ConsoleLogger();
+  const db = new duckdb.AsyncDuckDB(logger, worker);
+  await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+  const response = await fetch("data/health.duckdb");
+  const buffer = new Uint8Array(await response.arrayBuffer());
+  await db.registerFileBuffer("health.duckdb", buffer);
+
+  const conn = await db.connect();
+  await conn.query("ATTACH 'health.duckdb' AS health (READ_ONLY)");
+  await conn.query("USE health");
+  return conn;
+}
+
+async function query(conn, sql) {
+  const result = await conn.query(sql);
+  return result.toArray().map(row => {
+    const obj = {};
+    for (const [key, value] of Object.entries(row.toJSON())) {
+      if (typeof value === "bigint") obj[key] = Number(value);
+      else if (value instanceof Date) obj[key] = value.toISOString().slice(0, 10);
+      else obj[key] = value;
+    }
+    return obj;
+  });
+}
+
+async function loadFromDuckDB(conn) {
+  const [steps, sleep, rhr, hrv, spo2, vo2, bodyfat, weight, exercise, hrzones, scorecard, labs] =
+    await Promise.all([
+      query(conn, "SELECT date AS d, total_steps AS v, r7, r30 FROM dashboard_steps"),
+      query(conn, "SELECT date AS d, total, deep, rem FROM dashboard_sleep"),
+      query(conn, "SELECT date AS d, v FROM dashboard_rhr"),
+      query(conn, "SELECT date AS d, v, r7, r30 FROM dashboard_hrv"),
+      query(conn, "SELECT date AS d, min, avg FROM dashboard_spo2"),
+      query(conn, "SELECT date AS d, v FROM dashboard_vo2"),
+      query(conn, "SELECT date AS d, v FROM dashboard_bodyfat"),
+      query(conn, "SELECT date AS d, v FROM dashboard_weight"),
+      query(conn, "SELECT date AS d, v FROM dashboard_exercise"),
+      query(conn, "SELECT date AS d, z2, z4 FROM dashboard_hrzones"),
+      query(conn, "SELECT date AS d, steps, sleep, deep, rem, hr, hrv, spo2_min, spo2_avg FROM dashboard_scorecard"),
+      query(conn, "SELECT date, test, value, unit, longevity_target, optimal FROM dashboard_labs"),
+    ]);
+  return { steps, sleep, rhr, hrv, spo2, vo2, bodyfat, weight, exercise, hrzones, scorecard, labs };
+}
+
+function transformLabs(labRows) {
+  if (!labRows || !labRows.length) return { date: "", source: "", groups: {} };
+  const date = labRows[0].date;
+  const groups = {};
+  const groupMap = {
+    "Glucose": "Metabolic Panel", "ALT": "Metabolic Panel", "AST": "Metabolic Panel",
+    "Albumin": "Metabolic Panel", "Alkaline phosphatase": "Metabolic Panel",
+    "BUN": "Metabolic Panel", "Creatinine": "Metabolic Panel",
+    "Total bilirubin": "Metabolic Panel", "Potassium": "Metabolic Panel",
+    "Sodium": "Metabolic Panel", "eGFR creat (CKD-EPI 2021)": "Metabolic Panel",
+    "Cholesterol, total": "Lipid Panel", "HDL cholesterol": "Lipid Panel",
+    "LDL cholesterol calculated": "Lipid Panel", "Non-HDL cholesterol": "Lipid Panel",
+    "Triglycerides": "Lipid Panel", "Cholesterol/HDL ratio": "Lipid Panel",
+    "WBC": "Hematology", "HGB": "Hematology", "HCT": "Hematology",
+    "Platelet count": "Hematology", "Hemoglobin A1C": "Hematology",
+    "TSH": "Thyroid",
+  };
+  for (const row of labRows) {
+    const group = groupMap[row.test] || "Other";
+    if (!groups[group]) groups[group] = [];
+    const status = computeLabStatus(row);
+    groups[group].push({ test: row.test, value: row.value, unit: row.unit, optimal: row.optimal, status });
+  }
+  return { date, source: "", groups };
+}
+
+function computeLabStatus(row) {
+  const v = row.value;
+  const opt = row.optimal;
+  if (!opt || opt === "--") return "green";
+  if (opt.startsWith("<")) {
+    const t = parseFloat(opt.slice(1));
+    return v <= t ? "green" : v <= t * 1.2 ? "amber" : "red";
+  }
+  if (opt.startsWith(">")) {
+    const t = parseFloat(opt.slice(1));
+    return v >= t ? "green" : v >= t * 0.8 ? "amber" : "red";
+  }
+  const parts = opt.split("-").map(Number);
+  if (parts.length === 2) {
+    const [lo, hi] = parts;
+    if (v >= lo && v <= hi) return "green";
+    const margin = (hi - lo) * 0.2;
+    return (v >= lo - margin && v <= hi + margin) ? "amber" : "red";
+  }
+  return "green";
+}
+
+// ── Main data load ──
+(async () => {
+  try {
+    let data;
+    try {
+      const conn = await initDB();
+      data = await loadFromDuckDB(conn);
+      data.labs = transformLabs(data.labs);
+    } catch (dbErr) {
+      console.warn("DuckDB-WASM load failed, falling back to JSON:", dbErr.message);
+      const resp = await fetch("data/embedded_data.json");
+      data = await resp.json();
+    }
+
+    let maxDate = "";
+    for (const key of Object.keys(data)) {
+      if (!Array.isArray(data[key])) continue;
+      for (const row of data[key]) {
+        if (row.d && row.d > maxDate) maxDate = row.d;
+      }
+    }
+    document.getElementById("last-updated").textContent = "Last Updated " + maxDate;
+
+    buildSystemStatus(data);
+    buildBloodwork(data);
+    buildSmallMultiples(data);
+    buildCardioDetail(data);
+    buildSleepArchitecture(data);
+  } catch (err) {
+    document.getElementById("system-status").innerHTML =
+      `<p style="color:#b44">Error loading data: ${err.message}</p>`;
+  }
+})();
+
+// ═══════════════════════════════════════════
+// SECTION 1: System Status
+// ═══════════════════════════════════════════
+function buildSystemStatus(data) {
+  const sc = data.scorecard;
+  const last30 = sc.slice(-30);
+  const validSleep = last30.filter(d => d.sleep > 0.5);
+  const validHR = last30.filter(d => d.hr > 0);
+  const validHRV = last30.filter(d => d.hrv > 0);
+
+  // Compute averages
+  const stepsAvg = d3.mean(last30, d => d.steps);
+  const sleepAvg = d3.mean(validSleep, d => d.sleep);
+  const deepAvg = d3.mean(validSleep, d => d.deep);
+  const remAvg = d3.mean(validSleep, d => d.rem);
+  const rhrAvg = d3.mean(data.rhr.slice(-30), d => d.v);
+  const hrvAvg = d3.mean(data.hrv.slice(-30), d => d.v);
+  const vo2Last = data.vo2.length > 0 ? data.vo2[data.vo2.length - 1].v : null;
+  const bfLast = data.bodyfat.length > 0 ? data.bodyfat[data.bodyfat.length - 1].v : null;
+  const exLast4 = data.exercise.slice(-4);
+  const exAvg = d3.mean(exLast4, d => d.v);
+  const spo2Last30 = data.spo2.slice(-30);
+  const spo2Min = d3.min(spo2Last30, d => d.min);
+  const spo2AvgMin = d3.mean(spo2Last30, d => d.min);
+
+  const metrics = [
+    { name: "Daily Steps", value: fmt(Math.round(stepsAvg)), numVal: stepsAvg, target: 10000, targetStr: "10,000",
+      sparkData: last30.map(d => d.steps), min: 0, max: 20000, lowerBetter: false },
+    { name: "Sleep", value: fmt1(sleepAvg) + " hrs", numVal: sleepAvg, target: 7.5, targetStr: "7.5 hrs",
+      sparkData: validSleep.map(d => d.sleep), min: 4, max: 10, lowerBetter: false },
+    { name: "Deep Sleep", value: fmt1(deepAvg) + " hrs", numVal: deepAvg, target: 1.5, targetStr: "1.5 hrs",
+      sparkData: validSleep.map(d => d.deep), min: 0, max: 2.5, lowerBetter: false },
+    { name: "REM Sleep", value: fmt1(remAvg) + " hrs", numVal: remAvg, target: 1.5, targetStr: "1.5 hrs",
+      sparkData: validSleep.map(d => d.rem), min: 0, max: 2.5, lowerBetter: false },
+    { name: "Resting HR", value: fmt1(rhrAvg) + " bpm", numVal: rhrAvg, target: 65, targetStr: "65 bpm",
+      sparkData: data.rhr.slice(-30).map(d => d.v), min: 55, max: 85, lowerBetter: true },
+    { name: "HRV", value: fmt1(hrvAvg) + " ms", numVal: hrvAvg, target: 50, targetStr: "50 ms",
+      sparkData: data.hrv.slice(-30).map(d => d.v), min: 20, max: 60, lowerBetter: false },
+    { name: "VO2 Max", value: vo2Last ? fmt1(vo2Last) : "—", numVal: vo2Last || 0, target: 40, targetStr: "40",
+      sparkData: data.vo2.map(d => d.v), min: 20, max: 50, lowerBetter: false },
+    { name: "Body Fat", value: bfLast ? fmt1(bfLast) + "%" : "—", numVal: bfLast || 0, target: 25, targetStr: "25%",
+      sparkData: data.bodyfat.map(d => d.v), min: 15, max: 45, lowerBetter: true },
+    { name: "Exercise", value: Math.round(exAvg) + " min/wk", numVal: exAvg, target: 150, targetStr: "150 min",
+      sparkData: data.exercise.map(d => d.v), min: 0, max: 200, lowerBetter: false },
+    { name: "SpO2 Min", value: fmtPct(spo2AvgMin) + "%", numVal: spo2AvgMin, target: 90, targetStr: "90%",
+      sparkData: spo2Last30.map(d => d.min), min: 82, max: 100, lowerBetter: false },
+  ];
+
+  let html = `<table class="system-status">
+    <thead><tr>
+      <th>Metric</th><th style="text-align:right">30d Avg</th><th style="text-align:right">Target</th>
+      <th>Trend</th><th>vs. Target</th>
+    </tr></thead><tbody>`;
+
+  for (const m of metrics) {
+    html += `<tr>
+      <td class="metric-name">${m.name}</td>
+      <td class="metric-value">${m.value}</td>
+      <td class="metric-target">${m.targetStr}</td>
+      <td class="sparkline-cell">${sparklineSVG(m.sparkData, 80, 20)}</td>
+      <td class="bullet-cell">${bulletSVG(m.numVal, m.target, m.min, m.max, m.lowerBetter)}</td>
+    </tr>`;
+  }
+
+  html += `</tbody></table>`;
+  document.getElementById("system-status").innerHTML = html;
+}
+
+// ═══════════════════════════════════════════
+// SECTION 2: Bloodwork
+// ═══════════════════════════════════════════
+function buildBloodwork(data) {
+  const labs = data.labs;
+  const labDate = labs.date;
+  const labSource = labs.source || "";
+
+  // Update section heading with date and source
+  const heading = document.getElementById("biomarkers-heading");
+  if (heading) {
+    heading.textContent = `Clinical Biomarkers — ${labDate}`;
+    if (labSource) {
+      heading.innerHTML += ` <span style="font-size:0.7em;color:#888;font-variant:normal;letter-spacing:0">${labSource}</span>`;
+    }
+  }
+
+  let html = `<table class="bloodwork">
+    <thead><tr><th>Test</th><th style="text-align:right">Value</th><th style="text-align:right">Optimal</th><th></th></tr></thead>
+    <tbody>`;
+
+  for (const [group, tests] of Object.entries(labs.groups)) {
+    html += `<tr class="group-header"><td colspan="4">${group}</td></tr>`;
+    for (const t of tests) {
+      html += `<tr>
+        <td>${t.test}</td>
+        <td style="text-align:right">${t.value}${t.unit ? ' <span style="color:#999;font-size:0.8em">' + t.unit + '</span>' : ''}</td>
+        <td style="text-align:right;color:#888">${t.optimal}</td>
+        <td><span class="dot dot-${t.status}"></span></td>
+      </tr>`;
+    }
+  }
+
+  html += `</tbody></table>`;
+
+  document.getElementById("bloodwork-section").innerHTML = html;
+}
+
+// ═══════════════════════════════════════════
+// SECTION 3: Small Multiples
+// ═══════════════════════════════════════════
+function buildSmallMultiples(data) {
+  const container = document.getElementById("small-multiples");
+  const w = 280, h = 110;
+  const margin = { top: 6, right: 40, bottom: 18, left: 32 };
+  const iw = w - margin.left - margin.right;
+  const ih = h - margin.top - margin.bottom;
+
+  const charts = [
+    { title: "Steps (30d rolling avg)", data: data.steps.map(d => ({ d: parseDate(d.d), v: d.r30 })),
+      target: 10000, yFmt: d3.format(",.0f") },
+    { title: "Sleep (hours)", data: data.sleep.filter(d => d.total > 0.5).map(d => ({ d: parseDate(d.d), v: d.total })),
+      target: 7.5, yFmt: d3.format(".1f") },
+    { title: "Resting Heart Rate (bpm)", data: data.rhr.map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: 65, yFmt: d3.format(".0f"), lowerBetter: true },
+    { title: "HRV 30d avg (ms)", data: data.hrv.map(d => ({ d: parseDate(d.d), v: d.r30 })),
+      target: 50, yFmt: d3.format(".0f") },
+    { title: "SpO2 nightly min (%)", data: data.spo2.map(d => ({ d: parseDate(d.d), v: d.min })),
+      target: 90, dangerThreshold: 88, yFmt: d3.format(".0f") },
+    { title: "Exercise (min/week, 4wk avg)", data: data.exercise.map((d, i, arr) => {
+        const win = arr.slice(Math.max(0, i - 3), i + 1);
+        return { d: parseDate(d.d), v: d3.mean(win, w => w.v) };
+      }),
+      target: 150, yFmt: d3.format(".0f") },
+    { title: "Body Fat (%)", data: data.bodyfat.map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: 25, yFmt: d3.format(".1f"), lowerBetter: true },
+    { title: "Weight (lbs)", data: data.weight.map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: null, yFmt: d3.format(".0f") },
+  ];
+
+  for (const ch of charts) {
+    if (ch.data.length < 2) continue;
+
+    const div = document.createElement("div");
+    div.className = "small-multiple";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "chart-title";
+    titleEl.textContent = ch.title;
+    div.appendChild(titleEl);
+
+    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const xExt = d3.extent(ch.data, d => d.d);
+    const yExt = d3.extent(ch.data, d => d.v);
+    // Include target and danger threshold in y domain (if present)
+    let yMin = yExt[0], yMax = yExt[1];
+    if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
+    if (ch.dangerThreshold != null) { yMin = Math.min(yMin, ch.dangerThreshold); }
+    yMin *= 0.95; yMax *= 1.05;
+
+    const x = d3.scaleTime().domain(xExt).range([0, iw]);
+    const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
+
+    // Subtle area fill under line
+    const area = d3.area()
+      .x(d => x(d.d)).y0(ih).y1(d => y(d.v))
+      .curve(d3.curveMonotoneX);
+    g.append("path").attr("class", "data-area").attr("d", area(ch.data));
+
+    // Data line
+    const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
+    g.append("path").attr("class", "data-line").attr("d", line(ch.data));
+
+    // Target line
+    if (ch.target != null) {
+      g.append("line").attr("class", "target-line")
+        .attr("x1", 0).attr("x2", iw)
+        .attr("y1", y(ch.target)).attr("y2", y(ch.target));
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y(ch.target)).attr("dy", "0.35em")
+        .text(ch.yFmt(ch.target));
+    }
+
+    // Danger threshold (e.g., SpO2 88%)
+    if (ch.dangerThreshold != null) {
+      g.append("line")
+        .attr("x1", 0).attr("x2", iw)
+        .attr("y1", y(ch.dangerThreshold)).attr("y2", y(ch.dangerThreshold))
+        .attr("stroke", "#b44").attr("stroke-width", 0.8).attr("stroke-dasharray", "2,2");
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y(ch.dangerThreshold)).attr("dy", "0.35em")
+        .style("fill", "#b44")
+        .text(ch.yFmt(ch.dangerThreshold));
+    }
+
+    // Endpoint dot + value annotation
+    const last = ch.data[ch.data.length - 1];
+    g.append("circle").attr("class", "endpoint-dot")
+      .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
+    g.append("text").attr("class", "annotation-text")
+      .attr("x", x(last.d)).attr("y", y(last.v) - 6).attr("text-anchor", "end")
+      .style("font-weight", "600").style("fill", "#333")
+      .text(ch.yFmt(last.v));
+
+    // Tufte axes
+    tufteYAxis(g, y, iw, ch.yFmt);
+    tufteXAxis(g, x, ih, "%b %d");
+
+    container.appendChild(div);
+  }
+}
+
+// ═══════════════════════════════════════════
+// SECTION 4: Cardiovascular Detail
+// ═══════════════════════════════════════════
+function buildCardioDetail(data) {
+  const container = document.getElementById("cardio-detail");
+  const w = 440, h = 180;
+  const margin = { top: 8, right: 50, bottom: 22, left: 36 };
+  const iw = w - margin.left - margin.right;
+  const ih = h - margin.top - margin.bottom;
+
+  // ── VO2 Max Chart ──
+  const vo2Div = document.createElement("div");
+  vo2Div.className = "cardio-chart";
+  const vo2Title = document.createElement("div");
+  vo2Title.className = "chart-title";
+  vo2Title.textContent = "VO2 Max over time";
+  vo2Div.appendChild(vo2Title);
+
+  const vo2Data = data.vo2.map(d => ({ d: parseDate(d.d), v: d.v }));
+
+  if (vo2Data.length >= 2) {
+    const svg1 = d3.select(vo2Div).append("svg").attr("width", w).attr("height", h);
+    const g1 = svg1.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Extend x-axis to Dec 2026 to show projection
+    const dataEnd = d3.max(vo2Data, d => d.d);
+    const projEnd = new Date(2026, 11, 31);
+    const x1 = d3.scaleTime()
+      .domain([d3.min(vo2Data, d => d.d), projEnd])
+      .range([0, iw]);
+    const y1 = d3.scaleLinear().domain([24, 45]).range([ih, 0]);
+
+    // Data points (scatter since sparse)
+    g1.selectAll("circle.vo2dot").data(vo2Data).join("circle")
+      .attr("cx", d => x1(d.d)).attr("cy", d => y1(d.v))
+      .attr("r", 3).attr("fill", "#333");
+
+    // Connect with line
+    const line1 = d3.line().x(d => x1(d.d)).y(d => y1(d.v));
+    g1.append("path").attr("d", line1(vo2Data))
+      .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1);
+
+    // Projection line: last data point → Year 1 target (35) by Dec 2026
+    const lastVo2 = vo2Data[vo2Data.length - 1];
+    g1.append("line")
+      .attr("x1", x1(lastVo2.d)).attr("y1", y1(lastVo2.v))
+      .attr("x2", x1(projEnd)).attr("y2", y1(35))
+      .attr("stroke", "#5b8a5e").attr("stroke-width", 1.2)
+      .attr("stroke-dasharray", "4,3")
+      .attr("opacity", 0.7);
+
+    // Target lines
+    [{ v: 35, label: "Year 1 target" }, { v: 40, label: "Longevity target" }].forEach(t => {
+      g1.append("line").attr("class", "target-line")
+        .attr("x1", 0).attr("x2", iw).attr("y1", y1(t.v)).attr("y2", y1(t.v));
+      g1.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y1(t.v)).attr("dy", "0.35em")
+        .text(t.v + " " + t.label);
+    });
+
+    // Last value annotation
+    g1.append("text").attr("class", "annotation-text")
+      .attr("x", x1(lastVo2.d)).attr("y", y1(lastVo2.v) - 8).attr("text-anchor", "middle")
+      .style("font-weight", "600").style("fill", "#333")
+      .text(fmt1(lastVo2.v));
+
+    // Projection label
+    g1.append("text").attr("class", "annotation-text")
+      .attr("x", x1(projEnd)).attr("y", y1(35) + 12).attr("text-anchor", "end")
+      .style("fill", "#5b8a5e")
+      .text("Dec '26");
+
+    tufteYAxis(g1, y1, iw, d3.format(".0f"));
+    tufteXAxis(g1, x1, ih, "%b '%y");
+  }
+
+  container.appendChild(vo2Div);
+
+  // ── HR Zone Distribution ──
+  const hrDiv = document.createElement("div");
+  hrDiv.className = "cardio-chart";
+  const hrTitle = document.createElement("div");
+  hrTitle.className = "chart-title";
+  hrTitle.textContent = "Heart rate zone 2+ minutes per week";
+  hrDiv.appendChild(hrTitle);
+
+  const hrData = data.hrzones.map(d => ({
+    d: parseDate(d.d),
+    z2: d.z2,
+    z4: d.z4,
+    other: Math.max(0, (data.exercise.find(e => e.d === d.d)?.v || 0) - d.z2 - d.z4)
+  }));
+
+  if (hrData.length >= 2) {
+    const svg2 = d3.select(hrDiv).append("svg").attr("width", w).attr("height", h);
+    const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x2 = d3.scaleBand()
+      .domain(hrData.map(d => d.d))
+      .range([0, iw])
+      .padding(0.3);
+
+    const maxY = d3.max(hrData, d => d.z2 + d.z4 + d.other) || 30;
+    const y2 = d3.scaleLinear().domain([0, Math.max(maxY * 1.1, 30)]).range([ih, 0]);
+
+    // Stacked bars
+    hrData.forEach(d => {
+      const barW = x2.bandwidth();
+      const xPos = x2(d.d);
+      let yPos = ih;
+
+      // Other (light gray)
+      if (d.other > 0) {
+        const barH = ih - y2(d.other);
+        yPos -= barH;
+        g2.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
+          .attr("fill", "#ccc");
+      }
+
+      // Z2 (medium gray)
+      if (d.z2 > 0) {
+        const barH = ih - y2(d.z2);
+        yPos -= barH;
+        g2.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
+          .attr("fill", "#777");
+      }
+
+      // Z4 (dark)
+      if (d.z4 > 0) {
+        const barH = ih - y2(d.z4);
+        yPos -= barH;
+        g2.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
+          .attr("fill", "#333");
+      }
+
+      // Total label on top
+      const total = d.z2 + d.z4 + d.other;
+      if (total > 0) {
+        g2.append("text").attr("class", "annotation-text")
+          .attr("x", xPos + barW / 2).attr("y", y2(total) - 3)
+          .attr("text-anchor", "middle").style("font-size", "8px")
+          .text(Math.round(total));
+      }
+    });
+
+    // Legend (inline, Tufte-style)
+    const leg = g2.append("g").attr("transform", `translate(${iw - 100}, 0)`);
+    [{ label: "Zone 2", color: "#777" }, { label: "Other", color: "#ccc" }].forEach((l, i) => {
+      leg.append("rect").attr("x", 0).attr("y", i * 13).attr("width", 10).attr("height", 8).attr("fill", l.color);
+      leg.append("text").attr("class", "annotation-text").attr("x", 14).attr("y", i * 13 + 7).text(l.label);
+    });
+
+    tufteYAxis(g2, y2, iw, d3.format(".0f"));
+
+    // X axis: first and last week label
+    const dfmt = d3.timeFormat("%b %d");
+    g2.append("text").attr("class", "axis-label")
+      .attr("x", 0).attr("y", ih + 14).attr("text-anchor", "start")
+      .text(dfmt(hrData[0].d));
+    g2.append("text").attr("class", "axis-label")
+      .attr("x", iw).attr("y", ih + 14).attr("text-anchor", "end")
+      .text(dfmt(hrData[hrData.length - 1].d));
+  }
+
+  container.appendChild(hrDiv);
+}
+
+// ═══════════════════════════════════════════
+// SECTION 5: Sleep Architecture
+// ═══════════════════════════════════════════
+function buildSleepArchitecture(data) {
+  const container = document.getElementById("sleep-architecture");
+  const fullW = 920, fullH = 200;
+  const margin = { top: 10, right: 50, bottom: 22, left: 36 };
+  const iw = fullW - margin.left - margin.right;
+  const ih = fullH - margin.top - margin.bottom;
+
+  const sleepData = data.sleep.filter(d => d.total > 0.5).map(d => ({
+    d: parseDate(d.d),
+    deep: d.deep,
+    rem: d.rem,
+    light: Math.max(0, d.total - d.deep - d.rem),
+    total: d.total
+  }));
+
+  if (sleepData.length < 2) return;
+
+  const titleEl = document.createElement("div");
+  titleEl.className = "chart-title";
+  titleEl.textContent = "Nightly sleep composition: deep, REM, and light sleep";
+  container.appendChild(titleEl);
+
+  const svg = d3.select(container).append("svg")
+    .attr("width", fullW).attr("height", fullH)
+    .attr("viewBox", `0 0 ${fullW} ${fullH}`)
+    .style("max-width", "100%");
+
+  const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleBand()
+    .domain(sleepData.map(d => d.d))
+    .range([0, iw])
+    .padding(0.15);
+
+  const y = d3.scaleLinear().domain([0, 10]).range([ih, 0]);
+
+  // Stacked bars
+  sleepData.forEach(d => {
+    const barW = x.bandwidth();
+    const xPos = x(d.d);
+
+    // Light sleep (lightest)
+    const lightH = ih - y(d.light);
+    const lightY = y(d.light + d.rem + d.deep);
+    g.append("rect").attr("x", xPos).attr("y", lightY).attr("width", barW).attr("height", lightH)
+      .attr("fill", "#c8c8be");
+
+    // REM (medium)
+    const remH = ih - y(d.rem);
+    const remY = y(d.rem + d.deep);
+    g.append("rect").attr("x", xPos).attr("y", remY).attr("width", barW).attr("height", remH)
+      .attr("fill", "#888");
+
+    // Deep (darkest)
+    const deepH = ih - y(d.deep);
+    const deepY = y(d.deep);
+    g.append("rect").attr("x", xPos).attr("y", deepY).attr("width", barW).attr("height", deepH)
+      .attr("fill", "#444");
+  });
+
+  // Target line at 7.5 hours
+  g.append("line").attr("class", "target-line")
+    .attr("x1", 0).attr("x2", iw)
+    .attr("y1", y(7.5)).attr("y2", y(7.5));
+  g.append("text").attr("class", "annotation-text")
+    .attr("x", iw + 3).attr("y", y(7.5)).attr("dy", "0.35em")
+    .text("7.5 target");
+
+  // Legend (inline)
+  const leg = g.append("g").attr("transform", `translate(${iw - 180}, ${ih - 40})`);
+  [{ label: "Deep", color: "#444" }, { label: "REM", color: "#888" }, { label: "Light", color: "#c8c8be" }].forEach((l, i) => {
+    leg.append("rect").attr("x", i * 60).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
+    leg.append("text").attr("class", "annotation-text").attr("x", i * 60 + 14).attr("y", 7).text(l.label);
+  });
+
+  tufteYAxis(g, y, iw, d3.format(".0f"));
+  tufteXAxis(g, d3.scaleTime()
+    .domain(d3.extent(sleepData, d => d.d))
+    .range([0, iw]), ih, "%b %d");
+
+  // ── SpO2 Companion Chart ──
+  const spo2Data = data.spo2.map(d => ({ d: parseDate(d.d), min: d.min, avg: d.avg }));
+  if (spo2Data.length >= 2) {
+    const spo2H = 130;
+    const spo2Title = document.createElement("div");
+    spo2Title.className = "chart-title";
+    spo2Title.style.marginTop = "1.5rem";
+    spo2Title.textContent = "Nightly SpO2: minimum and average oxygen saturation";
+    container.appendChild(spo2Title);
+
+    const svg2 = d3.select(container).append("svg")
+      .attr("width", fullW).attr("height", spo2H)
+      .attr("viewBox", `0 0 ${fullW} ${spo2H}`)
+      .style("max-width", "100%");
+
+    const spo2Margin = { top: 8, right: 50, bottom: 22, left: 36 };
+    const siw = fullW - spo2Margin.left - spo2Margin.right;
+    const sih = spo2H - spo2Margin.top - spo2Margin.bottom;
+
+    const g2 = svg2.append("g").attr("transform", `translate(${spo2Margin.left},${spo2Margin.top})`);
+
+    const x2 = d3.scaleTime().domain(d3.extent(spo2Data, d => d.d)).range([0, siw]);
+    const y2 = d3.scaleLinear().domain([82, 100]).range([sih, 0]);
+
+    // Average line (lighter)
+    const avgLine = d3.line().x(d => x2(d.d)).y(d => y2(d.avg)).curve(d3.curveMonotoneX);
+    g2.append("path").attr("d", avgLine(spo2Data))
+      .attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
+
+    // Min line (darker, bolder)
+    const minLine = d3.line().x(d => x2(d.d)).y(d => y2(d.min)).curve(d3.curveMonotoneX);
+    g2.append("path").attr("d", minLine(spo2Data))
+      .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1.3);
+
+    // Area between avg and min
+    const areaBetween = d3.area()
+      .x(d => x2(d.d)).y0(d => y2(d.avg)).y1(d => y2(d.min))
+      .curve(d3.curveMonotoneX);
+    g2.append("path").attr("d", areaBetween(spo2Data))
+      .attr("fill", "#333").attr("opacity", 0.05);
+
+    // Target line at 90%
+    g2.append("line").attr("class", "target-line")
+      .attr("x1", 0).attr("x2", siw)
+      .attr("y1", y2(90)).attr("y2", y2(90));
+    g2.append("text").attr("class", "annotation-text")
+      .attr("x", siw + 3).attr("y", y2(90)).attr("dy", "0.35em")
+      .text("90% target");
+
+    // Danger threshold at 88%
+    g2.append("line")
+      .attr("x1", 0).attr("x2", siw)
+      .attr("y1", y2(88)).attr("y2", y2(88))
+      .attr("stroke", "#b44").attr("stroke-width", 0.8).attr("stroke-dasharray", "2,2");
+    g2.append("text").attr("class", "annotation-text")
+      .attr("x", siw + 3).attr("y", y2(88)).attr("dy", "0.35em")
+      .style("fill", "#b44")
+      .text("88% danger");
+
+    // Mark lowest point
+    const lowestSpo2 = spo2Data.reduce((a, b) => a.min < b.min ? a : b);
+    g2.append("circle")
+      .attr("cx", x2(lowestSpo2.d)).attr("cy", y2(lowestSpo2.min))
+      .attr("r", 3).attr("fill", "#b44");
+    g2.append("text").attr("class", "annotation-text")
+      .attr("x", x2(lowestSpo2.d)).attr("y", y2(lowestSpo2.min) + 12)
+      .attr("text-anchor", "middle").style("fill", "#b44").style("font-weight", "600")
+      .text(lowestSpo2.min + "%");
+
+    // Legend
+    const sLeg = g2.append("g").attr("transform", `translate(${siw - 120}, 0)`);
+    [{ label: "Min", color: "#333" }, { label: "Avg", color: "#999" }].forEach((l, i) => {
+      sLeg.append("line").attr("x1", 0).attr("x2", 12).attr("y1", i * 13 + 4).attr("y2", i * 13 + 4)
+        .attr("stroke", l.color).attr("stroke-width", l.color === "#333" ? 1.3 : 0.8);
+      sLeg.append("text").attr("class", "annotation-text").attr("x", 16).attr("y", i * 13 + 7).text(l.label);
+    });
+
+    tufteYAxis(g2, y2, siw, d3.format(".0f"));
+    tufteXAxis(g2, x2, sih, "%b %d");
+  }
+}
+</script>
+</body>
+</html>

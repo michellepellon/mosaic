@@ -1,0 +1,44 @@
+services:
+  # One-shot: parses export.xml into data/health.duckdb
+  parser:
+    build:
+      context: .
+      target: parser
+    volumes:
+      - ./data:/data
+    command: >
+      /data/export.xml
+      --output /data/health.duckdb
+      --labs /data/labs.csv
+      --force
+    profiles: [parse]
+
+  # Static file server for the dashboard
+  dashboard:
+    image: nginx:alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./dashboard.html:/usr/share/nginx/html/dashboard.html:ro
+      - ./data:/usr/share/nginx/html/data:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      parser:
+        condition: service_completed_successfully
+        required: false
+
+  # MCP server for AI agent access
+  mcp:
+    build:
+      context: .
+      target: mcp
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data:ro
+    environment:
+      - MOSAIC_DB=/data/health.duckdb
+    depends_on:
+      parser:
+        condition: service_completed_successfully
+        required: false

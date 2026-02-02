@@ -1,0 +1,14 @@
+.git
+.venv
+__pycache__
+*.pyc
+*.duckdb
+*.duckdb.wal
+data/
+export/
+apple_health_export/
+.DS_Store
+.pytest_cache
+dist/
+build/
+*.egg-info

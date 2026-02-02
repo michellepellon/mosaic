@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# Apple Health data (personal / PHI)
+apple_health_export/
+export/
+data/*
+!data/sample_data.json
+
+# OS
+.DS_Store

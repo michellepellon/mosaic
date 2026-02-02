@@ -1,0 +1,40 @@
+[project]
+name = "mosaic"
+version = "0.1.0"
+description = "Parse Apple Health Data exports into DuckDB"
+requires-python = ">=3.14"
+dependencies = [
+    "duckdb>=1.2.0",
+    "fastmcp>=2.14.4",
+    "pyarrow>=18.0.0",
+]
+
+[project.scripts]
+mosaic = "mosaic.cli:main"
+mosaic-server = "mosaic.server:mcp.run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "PT", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pyarrow-stubs>=20.0.0.20251215",
+    "pyright>=1.1.408",
+    "pytest>=9.0.2",
+    "ruff>=0.14.14",
+]
