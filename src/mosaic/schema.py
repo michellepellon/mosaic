@@ -169,18 +169,18 @@ def truncate_tables(conn: duckdb.DuckDBPyConnection) -> None:
 
 _VIEW_SQL: list[str] = [
     """CREATE OR REPLACE VIEW daily_steps AS
-    SELECT start_date::DATE AS date, SUM(value) AS total_steps
+    SELECT start_date::TIMESTAMP::DATE AS date, SUM(value) AS total_steps
     FROM step_counts GROUP BY 1""",
 
     """CREATE OR REPLACE VIEW daily_heart_rate AS
-    SELECT start_date::DATE AS date,
+    SELECT start_date::TIMESTAMP::DATE AS date,
            MIN(value) AS min_bpm, AVG(value) AS avg_bpm, MAX(value) AS max_bpm,
            COUNT(*) AS sample_count
     FROM heart_rate_samples GROUP BY 1""",
 
     """CREATE OR REPLACE VIEW hrv_trends AS
     WITH daily AS (
-        SELECT start_date::DATE AS date, AVG(value) AS daily_avg_ms
+        SELECT start_date::TIMESTAMP::DATE AS date, AVG(value) AS daily_avg_ms
         FROM hrv_samples GROUP BY 1
     )
     SELECT date, daily_avg_ms,
@@ -194,45 +194,45 @@ _VIEW_SQL: list[str] = [
 
     """CREATE OR REPLACE VIEW sleep_sessions_summary AS
     SELECT
-        MIN(start_date)::DATE AS night_of,
+        MIN(start_date::TIMESTAMP)::DATE AS night_of,
         MIN(start_date) AS sleep_onset,
         MAX(end_date) AS wake_time,
-        SUM(EXTRACT(EPOCH FROM (end_date - start_date)))
+        SUM(EXTRACT(EPOCH FROM (end_date::TIMESTAMP - start_date::TIMESTAMP)))
             FILTER (WHERE stage != 'in_bed') AS total_sleep_seconds,
-        SUM(EXTRACT(EPOCH FROM (end_date - start_date)))
+        SUM(EXTRACT(EPOCH FROM (end_date::TIMESTAMP - start_date::TIMESTAMP)))
             FILTER (WHERE stage = 'in_bed') AS total_in_bed_seconds,
-        SUM(EXTRACT(EPOCH FROM (end_date - start_date)))
+        SUM(EXTRACT(EPOCH FROM (end_date::TIMESTAMP - start_date::TIMESTAMP)))
             FILTER (WHERE stage = 'deep') AS deep_seconds,
-        SUM(EXTRACT(EPOCH FROM (end_date - start_date)))
+        SUM(EXTRACT(EPOCH FROM (end_date::TIMESTAMP - start_date::TIMESTAMP)))
             FILTER (WHERE stage = 'rem') AS rem_seconds
     FROM sleep_sessions
-    GROUP BY start_date::DATE""",
+    GROUP BY start_date::TIMESTAMP::DATE""",
 
     """CREATE OR REPLACE VIEW daily_sleep AS
-    SELECT start_date::DATE AS date, stage,
-        SUM(EXTRACT(EPOCH FROM (end_date - start_date))) AS total_seconds
+    SELECT start_date::TIMESTAMP::DATE AS date, stage,
+        SUM(EXTRACT(EPOCH FROM (end_date::TIMESTAMP - start_date::TIMESTAMP))) AS total_seconds
     FROM sleep_sessions GROUP BY 1, 2""",
 
     """CREATE OR REPLACE VIEW daily_energy AS
     SELECT COALESCE(a.date, b.date) AS date,
         a.total_kcal AS active_kcal, b.total_kcal AS basal_kcal
-    FROM (SELECT start_date::DATE AS date, SUM(value) AS total_kcal FROM active_energy GROUP BY 1) a
+    FROM (SELECT start_date::TIMESTAMP::DATE AS date, SUM(value) AS total_kcal FROM active_energy GROUP BY 1) a
     FULL OUTER JOIN
-        (SELECT start_date::DATE AS date, SUM(value) AS total_kcal FROM basal_energy GROUP BY 1) b
+        (SELECT start_date::TIMESTAMP::DATE AS date, SUM(value) AS total_kcal FROM basal_energy GROUP BY 1) b
     ON a.date = b.date""",
 
     """CREATE OR REPLACE VIEW daily_distance AS
-    SELECT start_date::DATE AS date, SUM(value) AS total_distance, MIN(unit) AS unit
+    SELECT start_date::TIMESTAMP::DATE AS date, SUM(value) AS total_distance, MIN(unit) AS unit
     FROM distance_walking_running GROUP BY 1""",
 
     """CREATE OR REPLACE VIEW vo2_max_trend AS
-    SELECT start_date::DATE AS date, value AS vo2_max
+    SELECT start_date::TIMESTAMP::DATE AS date, value AS vo2_max
     FROM vo2_max ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW body_composition_trend AS
-    SELECT start_date::DATE AS date, measurement, value,
+    SELECT start_date::TIMESTAMP::DATE AS date, measurement, value,
         AVG(value) OVER (
-            PARTITION BY measurement ORDER BY start_date::DATE
+            PARTITION BY measurement ORDER BY start_date::TIMESTAMP::DATE
             ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
         ) AS rolling_7d_avg
     FROM body_measurements""",
@@ -241,7 +241,7 @@ _VIEW_SQL: list[str] = [
 
     """CREATE OR REPLACE VIEW dashboard_steps AS
     WITH daily AS (
-        SELECT start_date::DATE AS date, SUM(value) AS total_steps
+        SELECT start_date::TIMESTAMP::DATE AS date, SUM(value) AS total_steps
         FROM step_counts GROUP BY 1
     )
     SELECT date, total_steps,
@@ -258,7 +258,7 @@ _VIEW_SQL: list[str] = [
     FROM sleep_sessions_summary ORDER BY night_of""",
 
     """CREATE OR REPLACE VIEW dashboard_rhr AS
-    SELECT start_date::DATE AS date, MIN(value) AS v
+    SELECT start_date::TIMESTAMP::DATE AS date, MIN(value) AS v
     FROM resting_heart_rate GROUP BY 1 ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_hrv AS
@@ -266,7 +266,7 @@ _VIEW_SQL: list[str] = [
     FROM hrv_trends ORDER BY date""",
 
     """CREATE OR REPLACE VIEW dashboard_spo2 AS
-    SELECT start_date::DATE AS date,
+    SELECT start_date::TIMESTAMP::DATE AS date,
         MIN(value * 100) AS min,
         AVG(value * 100) AS avg
     FROM oxygen_saturation GROUP BY 1 ORDER BY 1""",
@@ -275,11 +275,11 @@ _VIEW_SQL: list[str] = [
     SELECT date, vo2_max AS v FROM vo2_max_trend ORDER BY date""",
 
     """CREATE OR REPLACE VIEW dashboard_bodyfat AS
-    SELECT start_date::DATE AS date, value AS v
+    SELECT start_date::TIMESTAMP::DATE AS date, value AS v
     FROM body_measurements WHERE measurement = 'body_fat' ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_weight AS
-    SELECT start_date::DATE AS date,
+    SELECT start_date::TIMESTAMP::DATE AS date,
         CASE WHEN unit = 'kg' THEN value * 2.20462 ELSE value END AS v
     FROM body_measurements WHERE measurement = 'body_mass' ORDER BY 1""",
 
@@ -289,7 +289,7 @@ _VIEW_SQL: list[str] = [
     FROM activity_summary GROUP BY 1 ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_hrzones AS
-    SELECT DATE_TRUNC('week', start_date)::DATE AS date,
+    SELECT DATE_TRUNC('week', start_date::TIMESTAMP)::DATE AS date,
         SUM(duration / 60.0 * 0.4) AS z2,
         SUM(duration / 60.0 * 0.1) AS z4
     FROM workouts GROUP BY 1 ORDER BY 1""",
@@ -315,17 +315,17 @@ _VIEW_SQL: list[str] = [
     FROM clinical_labs ORDER BY date DESC, test""",
 
     """CREATE OR REPLACE VIEW dashboard_walking_speed AS
-    SELECT start_date::DATE AS date, AVG(value) AS v
+    SELECT start_date::TIMESTAMP::DATE AS date, AVG(value) AS v
     FROM walking_metrics WHERE metric = 'speed'
     GROUP BY 1 ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_walking_asymmetry AS
-    SELECT start_date::DATE AS date, AVG(value) AS v
+    SELECT start_date::TIMESTAMP::DATE AS date, AVG(value) AS v
     FROM walking_metrics WHERE metric = 'asymmetry'
     GROUP BY 1 ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_respiratory_rate AS
-    SELECT start_date::DATE AS date, AVG(value) AS v
+    SELECT start_date::TIMESTAMP::DATE AS date, AVG(value) AS v
     FROM respiratory_rate GROUP BY 1 ORDER BY 1""",
 ]
 
