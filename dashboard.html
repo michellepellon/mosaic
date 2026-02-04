@@ -584,7 +584,8 @@ async function query(conn, sql) {
 }
 
 async function loadFromDuckDB(conn) {
-  const [steps, sleep, rhr, hrv, spo2, vo2, bodyfat, weight, exercise, hrzones, scorecard, labs] =
+  const [steps, sleep, rhr, hrv, spo2, vo2, bodyfat, weight, exercise, hrzones, scorecard, labs,
+         walking_speed, walking_asymmetry, respiratory_rate] =
     await Promise.all([
       query(conn, "SELECT date AS d, total_steps AS v, r7, r30 FROM dashboard_steps"),
       query(conn, "SELECT date AS d, total, deep, rem FROM dashboard_sleep"),
@@ -598,8 +599,12 @@ async function loadFromDuckDB(conn) {
       query(conn, "SELECT date AS d, z2, z4 FROM dashboard_hrzones"),
       query(conn, "SELECT date AS d, steps, sleep, deep, rem, hr, hrv, spo2_min, spo2_avg FROM dashboard_scorecard"),
       query(conn, "SELECT date, test, value, unit, longevity_target, optimal FROM dashboard_labs"),
+      query(conn, "SELECT date AS d, v FROM dashboard_walking_speed ORDER BY date"),
+      query(conn, "SELECT date AS d, v FROM dashboard_walking_asymmetry ORDER BY date"),
+      query(conn, "SELECT date AS d, v FROM dashboard_respiratory_rate ORDER BY date"),
     ]);
-  return { steps, sleep, rhr, hrv, spo2, vo2, bodyfat, weight, exercise, hrzones, scorecard, labs };
+  return { steps, sleep, rhr, hrv, spo2, vo2, bodyfat, weight, exercise, hrzones, scorecard, labs,
+           walking_speed, walking_asymmetry, respiratory_rate };
 }
 
 function transformLabs(labRows) {
@@ -678,6 +683,7 @@ function renderAll(days) {
   buildSystemStatus(filtered, periodLabel);
   buildBloodwork(filtered);
   buildSmallMultiples(filtered, startDate, endDate);
+  buildGaitSection(filtered, startDate, endDate);
   buildCardioDetail(filtered);
   buildSleepArchitecture(filtered);
 }
@@ -901,6 +907,8 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
       target: 25, yFmt: d3.format(".1f"), lowerBetter: true },
     { title: "Weight (lbs)", data: data.weight.map(d => ({ d: parseDate(d.d), v: d.v })),
       target: null, yFmt: d3.format(".0f") },
+    { title: "Respiratory Rate (br/min)", data: (data.respiratory_rate || []).map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: null, yFmt: d3.format(".1f") },
   ];
 
   for (const ch of charts) {
@@ -1017,6 +1025,85 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
     // Tooltip
     addLineTooltip(g, ch.data, x, y, ch.yFmt, iw, ih);
 
+    container.appendChild(div);
+  }
+}
+
+function buildGaitSection(data, rangeStart, rangeEnd) {
+  const container = document.getElementById("gait-section");
+  if (!container) return;
+  const w = 280, h = 110;
+  const margin = { top: 6, right: 40, bottom: 18, left: 32 };
+  const iw = w - margin.left - margin.right;
+  const ih = h - margin.top - margin.bottom;
+
+  const charts = [
+    { title: "Walking Speed (mph)", data: (data.walking_speed || []).map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: 3.0, yFmt: d3.format(".1f") },
+    { title: "Walking Asymmetry (%)", data: (data.walking_asymmetry || []).map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: 10, yFmt: d3.format(".1f"), lowerBetter: true },
+  ];
+
+  for (const ch of charts) {
+    const div = document.createElement("div");
+    div.className = "small-multiple";
+    const titleEl = document.createElement("div");
+    titleEl.className = "chart-title";
+    titleEl.textContent = ch.title;
+    div.appendChild(titleEl);
+
+    if (ch.data.length < 3) {
+      const msg = document.createElement("div");
+      msg.style.cssText = "color:#888;font-size:0.82rem;font-style:italic;padding:0.5rem 0";
+      msg.textContent = ch.data.length === 0
+        ? "No data in this range."
+        : `${ch.data.length} data point${ch.data.length > 1 ? "s" : ""} \u2014 collecting data.`;
+      div.appendChild(msg);
+      container.appendChild(div);
+      continue;
+    }
+
+    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const xExt = d3.extent(ch.data, d => d.d);
+    const yExt = d3.extent(ch.data, d => d.v);
+    let yMin = yExt[0], yMax = yExt[1];
+    if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
+    yMin *= 0.95; yMax *= 1.05;
+    const xDomain = (rangeStart && rangeEnd) ? [parseDate(rangeStart), parseDate(rangeEnd)] : xExt;
+    const x = d3.scaleTime().domain(xDomain).range([0, iw]);
+    const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
+
+    if (ch.data.length < 20) {
+      const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
+      g.append("path").attr("d", line(ch.data)).attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
+      g.selectAll("circle.scatter").data(ch.data).join("circle")
+        .attr("cx", d => x(d.d)).attr("cy", d => y(d.v)).attr("r", 3).attr("fill", "#333");
+    } else {
+      const area = d3.area().x(d => x(d.d)).y0(ih).y1(d => y(d.v)).curve(d3.curveMonotoneX);
+      g.append("path").attr("class", "data-area").attr("d", area(ch.data));
+      const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
+      g.append("path").attr("class", "data-line").attr("d", line(ch.data));
+    }
+
+    if (ch.target != null) {
+      g.append("line").attr("class", "target-line")
+        .attr("x1", 0).attr("x2", iw).attr("y1", y(ch.target)).attr("y2", y(ch.target));
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y(ch.target)).attr("dy", "0.35em").text(ch.yFmt(ch.target));
+    }
+
+    const last = ch.data[ch.data.length - 1];
+    g.append("circle").attr("class", "endpoint-dot")
+      .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
+    g.append("text").attr("class", "annotation-text")
+      .attr("x", x(last.d)).attr("y", y(last.v) - 6).attr("text-anchor", "end")
+      .style("font-weight", "600").style("fill", "#333").text(ch.yFmt(last.v));
+
+    tufteYAxis(g, y, iw, ch.yFmt);
+    tufteXAxis(g, x, ih, "%b %d");
+    addLineTooltip(g, ch.data, x, y, ch.yFmt, iw, ih);
     container.appendChild(div);
   }
 }
