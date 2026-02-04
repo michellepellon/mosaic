@@ -883,8 +883,6 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
   ];
 
   for (const ch of charts) {
-    if (ch.data.length < 2) continue;
-
     const div = document.createElement("div");
     div.className = "small-multiple";
 
@@ -893,12 +891,23 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
     titleEl.textContent = ch.title;
     div.appendChild(titleEl);
 
+    // Adaptive: <3 = text, 3-19 = scatter+trend, 20+ = area+line
+    if (ch.data.length < 3) {
+      const msg = document.createElement("div");
+      msg.style.cssText = "color:#888;font-size:0.82rem;font-style:italic;padding:0.5rem 0";
+      msg.textContent = ch.data.length === 0
+        ? "No data in this range."
+        : `${ch.data.length} data point${ch.data.length > 1 ? "s" : ""} \u2014 collecting data.`;
+      div.appendChild(msg);
+      container.appendChild(div);
+      continue;
+    }
+
     const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
     const xExt = d3.extent(ch.data, d => d.d);
     const yExt = d3.extent(ch.data, d => d.v);
-    // Include target and danger threshold in y domain (if present)
     let yMin = yExt[0], yMax = yExt[1];
     if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
     if (ch.dangerThreshold != null) { yMin = Math.min(yMin, ch.dangerThreshold); }
@@ -910,15 +919,45 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
     const x = d3.scaleTime().domain(xDomain).range([0, iw]);
     const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
 
-    // Subtle area fill under line
-    const area = d3.area()
-      .x(d => x(d.d)).y0(ih).y1(d => y(d.v))
-      .curve(d3.curveMonotoneX);
-    g.append("path").attr("class", "data-area").attr("d", area(ch.data));
+    if (ch.data.length < 20) {
+      // Scatter + connecting line + trend
+      const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
+      g.append("path").attr("d", line(ch.data))
+        .attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
+      g.selectAll("circle.scatter").data(ch.data).join("circle")
+        .attr("cx", d => x(d.d)).attr("cy", d => y(d.v))
+        .attr("r", 3).attr("fill", "#333");
 
-    // Data line
-    const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
-    g.append("path").attr("class", "data-line").attr("d", line(ch.data));
+      // Linear trend line (least squares)
+      const n = ch.data.length;
+      const xVals = ch.data.map(d => d.d.getTime());
+      const yVals = ch.data.map(d => d.v);
+      const xMean = d3.mean(xVals), yMean = d3.mean(yVals);
+      let num = 0, den = 0;
+      for (let i = 0; i < n; i++) {
+        num += (xVals[i] - xMean) * (yVals[i] - yMean);
+        den += (xVals[i] - xMean) ** 2;
+      }
+      if (den > 0) {
+        const slope = num / den;
+        const intercept = yMean - slope * xMean;
+        const trendY = t => slope * t + intercept;
+        const x0 = xVals[0], x1 = xVals[n - 1];
+        g.append("line")
+          .attr("x1", x(ch.data[0].d)).attr("y1", y(trendY(x0)))
+          .attr("x2", x(ch.data[n - 1].d)).attr("y2", y(trendY(x1)))
+          .attr("stroke", "#5b8a5e").attr("stroke-width", 1)
+          .attr("stroke-dasharray", "4,3").attr("opacity", 0.6);
+      }
+    } else {
+      // Dense: area + line (existing behavior)
+      const area = d3.area()
+        .x(d => x(d.d)).y0(ih).y1(d => y(d.v))
+        .curve(d3.curveMonotoneX);
+      g.append("path").attr("class", "data-area").attr("d", area(ch.data));
+      const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
+      g.append("path").attr("class", "data-line").attr("d", line(ch.data));
+    }
 
     // Target line
     if (ch.target != null) {
@@ -930,7 +969,7 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
         .text(ch.yFmt(ch.target));
     }
 
-    // Danger threshold (e.g., SpO2 88%)
+    // Danger threshold
     if (ch.dangerThreshold != null) {
       g.append("line")
         .attr("x1", 0).attr("x2", iw)
@@ -942,7 +981,7 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
         .text(ch.yFmt(ch.dangerThreshold));
     }
 
-    // Endpoint dot + value annotation
+    // Endpoint dot + value
     const last = ch.data[ch.data.length - 1];
     g.append("circle").attr("class", "endpoint-dot")
       .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
@@ -951,7 +990,6 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
       .style("font-weight", "600").style("fill", "#333")
       .text(ch.yFmt(last.v));
 
-    // Tufte axes
     tufteYAxis(g, y, iw, ch.yFmt);
     tufteXAxis(g, x, ih, "%b %d");
 
