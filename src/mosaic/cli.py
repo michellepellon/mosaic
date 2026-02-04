@@ -10,6 +10,7 @@ from pathlib import Path
 
 import duckdb
 
+from mosaic.export import export_json
 from mosaic.parser import parse_export
 from mosaic.schema import TABLE_NAMES, create_tables, create_views, truncate_tables
 
@@ -77,6 +78,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--labs", type=Path, default=None, help="Path to CSV with lab results"
     )
+    parser.add_argument(
+        "--json", type=Path, default=None, help="Export dashboard data to JSON file"
+    )
 
     args = parser.parse_args(argv)
 
@@ -127,6 +131,11 @@ def main(argv: list[str] | None = None) -> None:
                 "INSERT INTO clinical_labs SELECT * FROM read_csv_auto(?)",
                 params=[str(args.labs)],
             )
+
+        # Export JSON if requested
+        if args.json:
+            export_json(conn, args.json)
+            print(f"  json: {args.json}", file=sys.stderr)
 
         elapsed = time.monotonic() - start_time
 

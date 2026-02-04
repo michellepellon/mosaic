@@ -96,3 +96,42 @@ class TestMainEndToEnd:
         db_path = tmp_path / "test.duckdb"
         with pytest.raises(SystemExit):
             main([str(xml_path), "--output", str(db_path), "--labs", "/nonexistent/labs.csv"])
+
+    def test_json_export(self, tmp_path: Path) -> None:
+        import json
+
+        xml_path = FIXTURE_DIR / "sample_export.xml"
+        db_path = tmp_path / "test.duckdb"
+        json_path = tmp_path / "out.json"
+        main([
+            str(xml_path),
+            "--output", str(db_path),
+            "--json", str(json_path),
+        ])
+        assert json_path.exists()
+        data = json.loads(json_path.read_text())
+        assert "scorecard" in data
+        assert "steps" in data
+        assert "labs" in data
+        assert len(data["steps"]) == 1  # 2 raw step records aggregate to 1 daily row
+
+    def test_json_export_with_labs(self, tmp_path: Path) -> None:
+        import json
+
+        xml_path = FIXTURE_DIR / "sample_export.xml"
+        db_path = tmp_path / "test.duckdb"
+        json_path = tmp_path / "out.json"
+        labs_csv = tmp_path / "labs.csv"
+        labs_csv.write_text(
+            "date,test,value,unit,ref_low,ref_high,longevity_target,optimal\n"
+            "2024-01-30,Glucose,79,mg/dL,70,99,<90,72-85\n"
+        )
+        main([
+            str(xml_path),
+            "--output", str(db_path),
+            "--labs", str(labs_csv),
+            "--json", str(json_path),
+        ])
+        data = json.loads(json_path.read_text())
+        assert isinstance(data["labs"], dict)
+        assert "groups" in data["labs"]
