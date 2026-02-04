@@ -313,6 +313,20 @@ _VIEW_SQL: list[str] = [
     """CREATE OR REPLACE VIEW dashboard_labs AS
     SELECT date, test, value, unit, longevity_target, optimal
     FROM clinical_labs ORDER BY date DESC, test""",
+
+    """CREATE OR REPLACE VIEW dashboard_walking_speed AS
+    SELECT start_date::DATE AS date, AVG(value) AS v
+    FROM walking_metrics WHERE metric = 'speed'
+    GROUP BY 1 ORDER BY 1""",
+
+    """CREATE OR REPLACE VIEW dashboard_walking_asymmetry AS
+    SELECT start_date::DATE AS date, AVG(value) AS v
+    FROM walking_metrics WHERE metric = 'asymmetry'
+    GROUP BY 1 ORDER BY 1""",
+
+    """CREATE OR REPLACE VIEW dashboard_respiratory_rate AS
+    SELECT start_date::DATE AS date, AVG(value) AS v
+    FROM respiratory_rate GROUP BY 1 ORDER BY 1""",
 ]
 
 

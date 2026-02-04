@@ -158,6 +158,8 @@ class TestCreateViews:
             "dashboard_hrv", "dashboard_spo2", "dashboard_vo2",
             "dashboard_bodyfat", "dashboard_weight", "dashboard_exercise",
             "dashboard_hrzones", "dashboard_scorecard", "dashboard_labs",
+            "dashboard_walking_speed", "dashboard_walking_asymmetry",
+            "dashboard_respiratory_rate",
         ]:
             db.sql(f"SELECT * FROM {view_name} LIMIT 0")  # should not raise
 
@@ -233,3 +235,39 @@ class TestDashboardViews:
         rows = db.sql("SELECT * FROM dashboard_labs").fetchall()
         assert len(rows) == 1
         assert rows[0][1] == "Glucose"
+
+    def test_dashboard_walking_speed_columns(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        create_views(db)
+        cols = [c[0] for c in db.sql("SELECT * FROM dashboard_walking_speed LIMIT 0").description]
+        assert set(cols) == {"date", "v"}
+
+    def test_dashboard_walking_asymmetry_columns(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        create_views(db)
+        desc = db.sql("SELECT * FROM dashboard_walking_asymmetry LIMIT 0").description
+        cols = [c[0] for c in desc]
+        assert set(cols) == {"date", "v"}
+
+    def test_dashboard_respiratory_rate_columns(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        create_views(db)
+        desc = db.sql("SELECT * FROM dashboard_respiratory_rate LIMIT 0").description
+        cols = [c[0] for c in desc]
+        assert set(cols) == {"date", "v"}
+
+    def test_dashboard_walking_speed_with_data(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        db.sql("""
+            INSERT INTO walking_metrics VALUES
+            ('Watch', '10', 'speed', 'mi/hr', 3.2,
+             '2024-01-01 08:00:00-06', '2024-01-01 08:01:00-06',
+             '2024-01-01 08:01:00-06'),
+            ('Watch', '10', 'speed', 'mi/hr', 3.4,
+             '2024-01-01 09:00:00-06', '2024-01-01 09:01:00-06',
+             '2024-01-01 09:01:00-06')
+        """)
+        create_views(db)
+        rows = db.sql("SELECT * FROM dashboard_walking_speed").fetchall()
+        assert len(rows) == 1  # grouped by date
+        assert 3.2 < rows[0][1] < 3.5  # avg of 3.2 and 3.4
