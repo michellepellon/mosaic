@@ -769,32 +769,52 @@ function buildSystemStatus(data, periodLabel) {
   const spo2Min = d3.min(spo2Last30, d => d.min);
   const spo2AvgMin = d3.mean(spo2Last30, d => d.min);
 
+  // Trend arrows: compare current period vs prior period
+  function computeTrend(arr, key, lowerBetter) {
+    if (arr.length < 4) return { arrow: "\u2014", color: "#888" };
+    const half = Math.floor(arr.length / 2);
+    const current = arr.slice(half);
+    const prior = arr.slice(0, half);
+    const curAvg = d3.mean(current, d => d[key]);
+    const priorAvg = d3.mean(prior, d => d[key]);
+    if (priorAvg == null || curAvg == null || priorAvg === 0) return { arrow: "\u2014", color: "#888" };
+    const delta = (curAvg - priorAvg) / Math.abs(priorAvg) * 100;
+    if (Math.abs(delta) < 5) return { arrow: "\u2014", color: "#888" };
+    const improving = lowerBetter ? delta < 0 : delta > 0;
+    return {
+      arrow: improving ? "\u25B2" : "\u25BC",
+      color: improving ? "#5b8a5e" : "#b44"
+    };
+  }
+
   const metrics = [
     { name: "Daily Steps", value: fmt(Math.round(stepsAvg)), numVal: stepsAvg, target: 10000, targetStr: "10,000",
-      sparkData: last30.map(d => d.steps), min: 0, max: 20000, lowerBetter: false },
+      sparkData: last30.map(d => d.steps), min: 0, max: 20000, lowerBetter: false, trend: computeTrend(sc, "steps", false) },
     { name: "Sleep", value: fmt1(sleepAvg) + " hrs", numVal: sleepAvg, target: 7.5, targetStr: "7.5 hrs",
-      sparkData: validSleep.map(d => d.sleep), min: 4, max: 10, lowerBetter: false },
+      sparkData: validSleep.map(d => d.sleep), min: 4, max: 10, lowerBetter: false, trend: computeTrend(data.sleep.filter(d => d.total > 0.5), "total", false) },
     { name: "Deep Sleep", value: fmt1(deepAvg) + " hrs", numVal: deepAvg, target: 1.5, targetStr: "1.5 hrs",
-      sparkData: validSleep.map(d => d.deep), min: 0, max: 2.5, lowerBetter: false },
+      sparkData: validSleep.map(d => d.deep), min: 0, max: 2.5, lowerBetter: false, trend: computeTrend(data.sleep.filter(d => d.total > 0.5), "deep", false) },
     { name: "REM Sleep", value: fmt1(remAvg) + " hrs", numVal: remAvg, target: 1.5, targetStr: "1.5 hrs",
-      sparkData: validSleep.map(d => d.rem), min: 0, max: 2.5, lowerBetter: false },
+      sparkData: validSleep.map(d => d.rem), min: 0, max: 2.5, lowerBetter: false, trend: computeTrend(data.sleep.filter(d => d.total > 0.5), "rem", false) },
     { name: "Resting HR", value: fmt1(rhrAvg) + " bpm", numVal: rhrAvg, target: 65, targetStr: "65 bpm",
-      sparkData: data.rhr.slice(-30).map(d => d.v), min: 55, max: 85, lowerBetter: true },
+      sparkData: data.rhr.slice(-30).map(d => d.v), min: 55, max: 85, lowerBetter: true, trend: computeTrend(data.rhr, "v", true) },
     { name: "HRV", value: fmt1(hrvAvg) + " ms", numVal: hrvAvg, target: 50, targetStr: "50 ms",
-      sparkData: data.hrv.slice(-30).map(d => d.v), min: 20, max: 60, lowerBetter: false },
+      sparkData: data.hrv.slice(-30).map(d => d.v), min: 20, max: 60, lowerBetter: false, trend: computeTrend(data.hrv, "v", false) },
     { name: "VO2 Max", value: vo2Last ? fmt1(vo2Last) : "—", numVal: vo2Last || 0, target: 40, targetStr: "40",
-      sparkData: data.vo2.map(d => d.v), min: 20, max: 50, lowerBetter: false },
+      sparkData: data.vo2.map(d => d.v), min: 20, max: 50, lowerBetter: false, trend: { arrow: "\u2014", color: "#888" } },
     { name: "Body Fat", value: bfLast ? fmt1(bfLast) + "%" : "—", numVal: bfLast || 0, target: 25, targetStr: "25%",
-      sparkData: data.bodyfat.map(d => d.v), min: 15, max: 45, lowerBetter: true },
+      sparkData: data.bodyfat.map(d => d.v), min: 15, max: 45, lowerBetter: true, trend: { arrow: "\u2014", color: "#888" } },
     { name: "Exercise", value: Math.round(exAvg) + " min/wk", numVal: exAvg, target: 150, targetStr: "150 min",
-      sparkData: data.exercise.map(d => d.v), min: 0, max: 200, lowerBetter: false },
+      sparkData: data.exercise.map(d => d.v), min: 0, max: 200, lowerBetter: false, trend: computeTrend(data.exercise, "v", false) },
     { name: "SpO2 Min", value: fmtPct(spo2AvgMin) + "%", numVal: spo2AvgMin, target: 90, targetStr: "90%",
-      sparkData: spo2Last30.map(d => d.min), min: 82, max: 100, lowerBetter: false },
+      sparkData: spo2Last30.map(d => d.min), min: 82, max: 100, lowerBetter: false, trend: computeTrend(data.spo2, "min", false) },
   ];
 
   let html = `<table class="system-status">
     <thead><tr>
-      <th>Metric</th><th style="text-align:right">${periodLabel}</th><th style="text-align:right">Target</th>
+      <th>Metric</th><th style="text-align:right">${periodLabel}</th>
+      <th style="text-align:center;width:30px">\u0394</th>
+      <th style="text-align:right">Target</th>
       <th>Trend</th><th>vs. Target</th>
     </tr></thead><tbody>`;
 
@@ -802,6 +822,7 @@ function buildSystemStatus(data, periodLabel) {
     html += `<tr>
       <td class="metric-name">${m.name}</td>
       <td class="metric-value">${m.value}</td>
+      <td style="text-align:center;font-size:0.75rem;color:${m.trend.color}">${m.trend.arrow}</td>
       <td class="metric-target">${m.targetStr}</td>
       <td class="sparkline-cell">${sparklineSVG(m.sparkData, 80, 20)}</td>
       <td class="bullet-cell">${bulletSVG(m.numVal, m.target, m.min, m.max, m.lowerBetter)}</td>
