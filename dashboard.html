@@ -313,6 +313,21 @@ table.bloodwork tr.group-header td {
   stroke-width: 0.7;
 }
 
+.mosaic-tooltip {
+  position: absolute;
+  display: none;
+  font-family: "et-book", Georgia, serif;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #333;
+  background: #fffff8;
+  border: 1px solid #ccc;
+  padding: 3px 7px;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+}
+
 /* ── Print optimization ── */
 @media print {
   body { font-size: 10pt; }
@@ -485,6 +500,53 @@ function bulletSVG(value, target, min, max, lowerBetter) {
 
   svg += `</svg>`;
   return svg;
+}
+
+// ── Tooltip ──
+const tooltip = (() => {
+  const el = document.createElement("div");
+  el.className = "mosaic-tooltip";
+  document.body.appendChild(el);
+  return {
+    show(x, y, text) {
+      el.textContent = text;
+      el.style.display = "block";
+      el.style.left = (x + 12) + "px";
+      el.style.top = (y - 8) + "px";
+    },
+    hide() { el.style.display = "none"; }
+  };
+})();
+
+function addLineTooltip(g, data, x, y, yFmt, w, h) {
+  const bisect = d3.bisector(d => d.d).left;
+  const overlay = g.append("rect")
+    .attr("width", w).attr("height", h)
+    .attr("fill", "none").attr("pointer-events", "all");
+  const vline = g.append("line")
+    .attr("y1", 0).attr("y2", h)
+    .attr("stroke", "#999").attr("stroke-width", 0.5)
+    .attr("stroke-dasharray", "2,2")
+    .style("display", "none");
+  const dot = g.append("circle").attr("r", 3).attr("fill", "#333").style("display", "none");
+
+  overlay.on("mousemove", function(event) {
+    const [mx] = d3.pointer(event);
+    const x0 = x.invert(mx);
+    const i = Math.min(bisect(data, x0, 1), data.length - 1);
+    const d0 = data[i - 1], d1 = data[i];
+    const d = (!d0 || (x0 - d0.d > d1.d - x0)) ? d1 : d0;
+    const px = x(d.d), py = y(d.v);
+    vline.attr("x1", px).attr("x2", px).style("display", null);
+    dot.attr("cx", px).attr("cy", py).style("display", null);
+    const label = d3.timeFormat("%b %d")(d.d) + "  " + yFmt(d.v);
+    const rect = overlay.node().closest("svg").getBoundingClientRect();
+    tooltip.show(rect.left + px + 36, rect.top + py, label);
+  }).on("mouseleave", function() {
+    vline.style("display", "none");
+    dot.style("display", "none");
+    tooltip.hide();
+  });
 }
 
 // ── DuckDB-WASM ──
@@ -892,6 +954,9 @@ function buildSmallMultiples(data, rangeStart, rangeEnd) {
     // Tufte axes
     tufteYAxis(g, y, iw, ch.yFmt);
     tufteXAxis(g, x, ih, "%b %d");
+
+    // Tooltip
+    addLineTooltip(g, ch.data, x, y, ch.yFmt, iw, ih);
 
     container.appendChild(div);
   }
