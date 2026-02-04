@@ -347,6 +347,10 @@ table.bloodwork tr.group-header td {
   <span class="subtitle last-updated" id="last-updated"></span>
 </h1>
 
+<div style="margin-top:1.2rem;font-variant:small-caps;font-size:0.95rem;letter-spacing:0.04em">
+  <span id="range-toggle"></span>
+</div>
+
 <!-- ═══════════ SECTION 1: System Status ═══════════ -->
 <h2>Protocol Scorecard</h2>
 <div id="system-status"></div>
@@ -359,6 +363,10 @@ table.bloodwork tr.group-header td {
 <h2>Trends</h2>
 <p class="wide" id="data-span">Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds.</p>
 <div class="small-multiples" id="small-multiples"></div>
+
+<!-- ═══════════ SECTION 3b: Gait & Mobility ═══════════ -->
+<h2>Gait &amp; Mobility</h2>
+<div class="small-multiples" id="gait-section"></div>
 
 <!-- ═══════════ SECTION 4: Cardiovascular Detail ═══════════ -->
 <h2>Cardiovascular Detail</h2>
@@ -386,6 +394,25 @@ function rollingAvg(arr, key, n) {
     }
   }
   return result;
+}
+
+function filterByRange(data, days) {
+  if (days == null) return { filtered: data, startDate: null, endDate: null };
+  const today = new Date();
+  const cutoff = new Date(today);
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const todayStr = today.toISOString().slice(0, 10);
+
+  const filtered = {};
+  for (const [key, val] of Object.entries(data)) {
+    if (Array.isArray(val)) {
+      filtered[key] = val.filter(r => !r.d || r.d >= cutoffStr);
+    } else {
+      filtered[key] = val; // labs object, pass through
+    }
+  }
+  return { filtered, startDate: cutoffStr, endDate: todayStr };
 }
 
 // ── Tufte-style axis: just min/max endpoint labels ──
@@ -562,25 +589,54 @@ function computeLabStatus(row) {
 }
 
 // ── Main data load ──
+let rawData = null;
+let dataSource = "json";
+let currentRange = 365; // default to 1 year
+
+function renderAll(days) {
+  currentRange = days;
+  const { filtered, startDate, endDate } = filterByRange(rawData, days);
+
+  // Update toggle styling
+  document.querySelectorAll("#range-toggle a").forEach(a => {
+    a.style.fontWeight = a.dataset.days == String(days ?? "all") ? "700" : "400";
+  });
+
+  // Update scorecard period label
+  const periodLabel = days == null ? "All-time Avg"
+    : days <= 30 ? "30d Avg" : days <= 90 ? "90d Avg" : "1y Avg";
+
+  // Clear dynamic sections
+  for (const id of ["system-status", "bloodwork-section", "small-multiples",
+                     "cardio-detail", "sleep-architecture", "gait-section"]) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = "";
+  }
+
+  buildSystemStatus(filtered, periodLabel);
+  buildBloodwork(filtered);
+  buildSmallMultiples(filtered, startDate, endDate);
+  buildCardioDetail(filtered);
+  buildSleepArchitecture(filtered);
+}
+
 (async () => {
   try {
-    let data;
-    let dataSource = "json";
     try {
       const conn = await initDB();
-      data = await loadFromDuckDB(conn);
-      data.labs = transformLabs(data.labs);
+      rawData = await loadFromDuckDB(conn);
+      rawData.labs = transformLabs(rawData.labs);
       dataSource = "duckdb";
     } catch (dbErr) {
       console.warn("DuckDB-WASM load failed, falling back to JSON:", dbErr.message);
       const resp = await fetch("data/embedded_data.json");
-      data = await resp.json();
+      rawData = await resp.json();
     }
 
     let maxDate = "", minDate = "9999";
-    for (const key of Object.keys(data)) {
-      if (!Array.isArray(data[key])) continue;
-      for (const row of data[key]) {
+    for (const key of Object.keys(rawData)) {
+      if (!Array.isArray(rawData[key])) continue;
+      for (const row of rawData[key]) {
         if (row.d && row.d > maxDate) maxDate = row.d;
         if (row.d && row.d < minDate) minDate = row.d;
       }
@@ -589,7 +645,6 @@ function computeLabStatus(row) {
     document.getElementById("last-updated").textContent =
       `Last Updated ${maxDate} \u00b7 ${sourceLabel}`;
 
-    // Dynamic date span
     const fmtMonth = d => {
       const dt = new Date(d + "T00:00:00");
       return dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -599,11 +654,28 @@ function computeLabStatus(row) {
         `Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds. Data spans ${fmtMonth(minDate)} through ${fmtMonth(maxDate)}.`;
     }
 
-    buildSystemStatus(data);
-    buildBloodwork(data);
-    buildSmallMultiples(data);
-    buildCardioDetail(data);
-    buildSleepArchitecture(data);
+    // Build toggle
+    const toggleEl = document.getElementById("range-toggle");
+    const ranges = [
+      { label: "30 days", days: 30 },
+      { label: "90 days", days: 90 },
+      { label: "1 year", days: 365 },
+      { label: "All", days: null },
+    ];
+    toggleEl.innerHTML = ranges.map(r => {
+      const key = r.days ?? "all";
+      const bold = r.days === currentRange ? "font-weight:700" : "";
+      return `<a href="#" data-days="${key}" style="color:#333;text-decoration:none;${bold}">${r.label}</a>`;
+    }).join(" \u00b7 ");
+    toggleEl.addEventListener("click", e => {
+      e.preventDefault();
+      const a = e.target.closest("a");
+      if (!a) return;
+      const d = a.dataset.days === "all" ? null : parseInt(a.dataset.days);
+      renderAll(d);
+    });
+
+    renderAll(currentRange);
   } catch (err) {
     document.getElementById("system-status").innerHTML =
       `<p style="color:#b44">Error loading data: ${err.message}</p>`;
@@ -613,7 +685,7 @@ function computeLabStatus(row) {
 // ═══════════════════════════════════════════
 // SECTION 1: System Status
 // ═══════════════════════════════════════════
-function buildSystemStatus(data) {
+function buildSystemStatus(data, periodLabel) {
   const sc = data.scorecard;
   const last30 = sc.slice(-30);
   const validSleep = last30.filter(d => d.sleep > 0.5);
@@ -660,7 +732,7 @@ function buildSystemStatus(data) {
 
   let html = `<table class="system-status">
     <thead><tr>
-      <th>Metric</th><th style="text-align:right">30d Avg</th><th style="text-align:right">Target</th>
+      <th>Metric</th><th style="text-align:right">${periodLabel}</th><th style="text-align:right">Target</th>
       <th>Trend</th><th>vs. Target</th>
     </tr></thead><tbody>`;
 
@@ -719,7 +791,7 @@ function buildBloodwork(data) {
 // ═══════════════════════════════════════════
 // SECTION 3: Small Multiples
 // ═══════════════════════════════════════════
-function buildSmallMultiples(data) {
+function buildSmallMultiples(data, rangeStart, rangeEnd) {
   const container = document.getElementById("small-multiples");
   const w = 280, h = 110;
   const margin = { top: 6, right: 40, bottom: 18, left: 32 };
@@ -770,7 +842,10 @@ function buildSmallMultiples(data) {
     if (ch.dangerThreshold != null) { yMin = Math.min(yMin, ch.dangerThreshold); }
     yMin *= 0.95; yMax *= 1.05;
 
-    const x = d3.scaleTime().domain(xExt).range([0, iw]);
+    const xDomain = (rangeStart && rangeEnd)
+      ? [parseDate(rangeStart), parseDate(rangeEnd)]
+      : xExt;
+    const x = d3.scaleTime().domain(xDomain).range([0, iw]);
     const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
 
     // Subtle area fill under line
