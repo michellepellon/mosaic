@@ -357,7 +357,7 @@ table.bloodwork tr.group-header td {
 
 <!-- ═══════════ SECTION 3: Small Multiples ═══════════ -->
 <h2>Trends</h2>
-<p class="wide">Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds. Data spans November 2025 through February 2026.</p>
+<p class="wide" id="data-span">Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds.</p>
 <div class="small-multiples" id="small-multiples"></div>
 
 <!-- ═══════════ SECTION 4: Cardiovascular Detail ═══════════ -->
@@ -565,24 +565,39 @@ function computeLabStatus(row) {
 (async () => {
   try {
     let data;
+    let dataSource = "json";
     try {
       const conn = await initDB();
       data = await loadFromDuckDB(conn);
       data.labs = transformLabs(data.labs);
+      dataSource = "duckdb";
     } catch (dbErr) {
       console.warn("DuckDB-WASM load failed, falling back to JSON:", dbErr.message);
       const resp = await fetch("data/embedded_data.json");
       data = await resp.json();
     }
 
-    let maxDate = "";
+    let maxDate = "", minDate = "9999";
     for (const key of Object.keys(data)) {
       if (!Array.isArray(data[key])) continue;
       for (const row of data[key]) {
         if (row.d && row.d > maxDate) maxDate = row.d;
+        if (row.d && row.d < minDate) minDate = row.d;
       }
     }
-    document.getElementById("last-updated").textContent = "Last Updated " + maxDate;
+    const sourceLabel = dataSource === "duckdb" ? "via DuckDB" : "from snapshot";
+    document.getElementById("last-updated").textContent =
+      `Last Updated ${maxDate} \u00b7 ${sourceLabel}`;
+
+    // Dynamic date span
+    const fmtMonth = d => {
+      const dt = new Date(d + "T00:00:00");
+      return dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+    if (minDate < "9999") {
+      document.getElementById("data-span").textContent =
+        `Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds. Data spans ${fmtMonth(minDate)} through ${fmtMonth(maxDate)}.`;
+    }
 
     buildSystemStatus(data);
     buildBloodwork(data);
