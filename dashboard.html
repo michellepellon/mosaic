@@ -834,6 +834,75 @@ let rawData = null;
 let dataSource = "json";
 let currentRange = 365; // default to 1 year
 
+// ── Sidebar state ──
+let sidebarSection = null;
+
+function openSidebar(section) {
+  const sidebar = document.getElementById("sidebar");
+  const titleEl = document.getElementById("sidebar-title");
+  const contentEl = document.getElementById("sidebar-content");
+
+  document.querySelectorAll("h2.sidebar-active").forEach(el => el.classList.remove("sidebar-active"));
+
+  const heading = document.querySelector(`h2[data-section="${section}"]`);
+  if (heading) heading.classList.add("sidebar-active");
+
+  const { filtered } = filterByRange(rawData, currentRange);
+
+  const titles = {
+    scorecard: "Protocol Scorecard",
+    biomarkers: "Clinical Biomarkers",
+    trends: "Trends",
+    gait: "Gait & Mobility",
+    cardio: "Cardiovascular",
+    sleep: "Sleep",
+  };
+  titleEl.textContent = titles[section] || section;
+  contentEl.textContent = "";
+
+  const builders = {
+    scorecard: () => buildSidebarScorecard(contentEl, filtered),
+    biomarkers: () => buildSidebarBiomarkers(contentEl, filtered),
+    trends: () => buildSidebarTrends(contentEl, filtered),
+    gait: () => buildSidebarGait(contentEl, filtered),
+    cardio: () => buildSidebarCardio(contentEl, filtered),
+    sleep: () => buildSidebarSleep(contentEl, filtered),
+  };
+
+  if (builders[section]) builders[section]();
+
+  sidebar.classList.add("open");
+  sidebarSection = section;
+}
+
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.querySelectorAll("h2.sidebar-active").forEach(el => el.classList.remove("sidebar-active"));
+  sidebarSection = null;
+}
+
+function refreshSidebar() {
+  if (sidebarSection) openSidebar(sidebarSection);
+}
+
+// ── Sidebar event listeners ──
+document.querySelector("article").addEventListener("click", e => {
+  const heading = e.target.closest("h2[data-section]");
+  if (!heading) return;
+  const section = heading.dataset.section;
+  if (sidebarSection === section) {
+    closeSidebar();
+  } else {
+    openSidebar(section);
+  }
+});
+
+document.getElementById("sidebar-close").addEventListener("click", closeSidebar);
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && sidebarSection) closeSidebar();
+});
+
 function renderAll(days) {
   currentRange = days;
   const { filtered, startDate, endDate } = filterByRange(rawData, days);
@@ -860,6 +929,7 @@ function renderAll(days) {
   buildGaitSection(filtered, startDate, endDate);
   buildCardioDetail(filtered);
   buildSleepArchitecture(filtered);
+  refreshSidebar();
 }
 
 (async () => {
@@ -1612,6 +1682,44 @@ function buildSleepArchitecture(data) {
     tufteYAxis(g2, y2, siw, d3.format(".0f"));
     tufteXAxis(g2, x2, sih, "%b %d");
   }
+}
+
+// ── Sidebar builders (stubs) ──
+function buildSidebarScorecard(el, data) {
+  const p = document.createElement("p");
+  p.style.cssText = "color:#888;font-style:italic";
+  p.textContent = "Scorecard detail coming soon.";
+  el.appendChild(p);
+}
+function buildSidebarBiomarkers(el, data) {
+  const p = document.createElement("p");
+  p.style.cssText = "color:#888;font-style:italic";
+  p.textContent = "Biomarker detail coming soon.";
+  el.appendChild(p);
+}
+function buildSidebarTrends(el, data) {
+  const p = document.createElement("p");
+  p.style.cssText = "color:#888;font-style:italic";
+  p.textContent = "Trend detail coming soon.";
+  el.appendChild(p);
+}
+function buildSidebarGait(el, data) {
+  const p = document.createElement("p");
+  p.style.cssText = "color:#888;font-style:italic";
+  p.textContent = "Gait detail coming soon.";
+  el.appendChild(p);
+}
+function buildSidebarCardio(el, data) {
+  const p = document.createElement("p");
+  p.style.cssText = "color:#888;font-style:italic";
+  p.textContent = "Cardiovascular detail coming soon.";
+  el.appendChild(p);
+}
+function buildSidebarSleep(el, data) {
+  const p = document.createElement("p");
+  p.style.cssText = "color:#888;font-style:italic";
+  p.textContent = "Sleep detail coming soon.";
+  el.appendChild(p);
 }
 </script>
 </body>
