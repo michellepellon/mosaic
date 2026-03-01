@@ -1757,10 +1757,67 @@ function buildSidebarScorecard(el, data) {
   }
 }
 function buildSidebarBiomarkers(el, data) {
-  const p = document.createElement("p");
-  p.style.cssText = "color:#888;font-style:italic";
-  p.textContent = "Biomarker detail coming soon.";
-  el.appendChild(p);
+  const labs = data.labs;
+  if (!labs || !labs.groups || Object.keys(labs.groups).length === 0) {
+    const p = document.createElement("p");
+    p.style.cssText = "color:#888;font-style:italic";
+    p.textContent = "No lab data available.";
+    el.appendChild(p);
+    return;
+  }
+
+  const dateDiv = document.createElement("div");
+  dateDiv.style.cssText = "font-size:0.82rem;color:#888;margin-bottom:1rem";
+  dateDiv.textContent = "Last panel: " + labs.date;
+  el.appendChild(dateDiv);
+
+  for (const [group, tests] of Object.entries(labs.groups)) {
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "sidebar-chart";
+
+    const title = document.createElement("div");
+    title.className = "sidebar-section-title";
+    title.textContent = group;
+    groupDiv.appendChild(title);
+
+    const counts = { green: 0, amber: 0, red: 0 };
+    for (const t of tests) counts[t.status]++;
+
+    const summary = document.createElement("div");
+    summary.style.cssText = "font-size:0.78rem;margin-bottom:0.5rem;color:#888";
+    const parts = [];
+    if (counts.green > 0) parts.push(counts.green + " optimal");
+    if (counts.amber > 0) parts.push(counts.amber + " borderline");
+    if (counts.red > 0) parts.push(counts.red + " out of range");
+    summary.textContent = parts.join(", ");
+    groupDiv.appendChild(summary);
+
+    for (const t of tests) {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:0.15rem 0;font-size:0.82rem;border-bottom:1px solid #f5f5f0";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = t.test;
+      nameSpan.style.color = "#444";
+
+      const valContainer = document.createElement("span");
+      valContainer.style.cssText = "font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:0.4rem";
+
+      const valText = document.createElement("span");
+      valText.textContent = t.value + (t.unit ? " " + t.unit : "");
+      valContainer.appendChild(valText);
+
+      const dot = document.createElement("span");
+      dot.className = "dot dot-" + t.status;
+      valContainer.appendChild(dot);
+
+      row.appendChild(nameSpan);
+      row.appendChild(valContainer);
+      groupDiv.appendChild(row);
+    }
+
+    el.appendChild(groupDiv);
+  }
 }
 function buildSidebarTrends(el, data) {
   const p = document.createElement("p");
