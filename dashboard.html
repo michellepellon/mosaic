@@ -1920,10 +1920,79 @@ function buildSidebarTrends(el, data) {
   }
 }
 function buildSidebarGait(el, data) {
-  const p = document.createElement("p");
-  p.style.cssText = "color:#888;font-style:italic";
-  p.textContent = "Gait detail coming soon.";
-  el.appendChild(p);
+  const w = 340, h = 140;
+  const margin = { top: 8, right: 40, bottom: 20, left: 34 };
+  const iw = w - margin.left - margin.right;
+  const ih = h - margin.top - margin.bottom;
+
+  const charts = [
+    { title: "Walking Speed", data: (data.walking_speed || []).map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: 3.0, yFmt: d3.format(".2f") },
+    { title: "Walking Asymmetry", data: (data.walking_asymmetry || []).map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: 10, yFmt: d3.format(".1f"), lowerBetter: true },
+    { title: "Daily Steps", data: data.steps.map(d => ({ d: parseDate(d.d), v: d.v })),
+      target: 10000, yFmt: d3.format(",.0f") },
+  ];
+
+  for (const ch of charts) {
+    const chartData = ch.data.filter(d => d.d && d.v != null);
+    if (chartData.length < 2) continue;
+
+    const div = document.createElement("div");
+    div.className = "sidebar-chart";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "chart-title";
+    titleEl.textContent = ch.title;
+    div.appendChild(titleEl);
+
+    const values = chartData.map(d => d.v);
+    const statsDiv = document.createElement("div");
+    statsDiv.style.cssText = "font-size:0.78rem;color:#888;margin-bottom:0.3rem;font-variant-numeric:tabular-nums";
+    statsDiv.textContent = "min " + ch.yFmt(d3.min(values)) + "  max " + ch.yFmt(d3.max(values)) + "  avg " + ch.yFmt(d3.mean(values));
+    div.appendChild(statsDiv);
+
+    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const xExt = d3.extent(chartData, d => d.d);
+    const yExt = d3.extent(chartData, d => d.v);
+    let yMin = yExt[0], yMax = yExt[1];
+    if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
+    yMin *= 0.95; yMax *= 1.05;
+
+    const x = d3.scaleTime().domain(xExt).range([0, iw]);
+    const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
+
+    if (chartData.length < 20) {
+      const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
+      g.append("path").attr("d", line(chartData)).attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
+      g.selectAll("circle.scatter").data(chartData).join("circle")
+        .attr("cx", d => x(d.d)).attr("cy", d => y(d.v)).attr("r", 3).attr("fill", "#333");
+    } else {
+      const area = d3.area().x(d => x(d.d)).y0(ih).y1(d => y(d.v)).curve(d3.curveMonotoneX);
+      g.append("path").attr("class", "data-area").attr("d", area(chartData));
+      const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
+      g.append("path").attr("class", "data-line").attr("d", line(chartData));
+    }
+
+    if (ch.target != null) {
+      g.append("line").attr("class", "target-line")
+        .attr("x1", 0).attr("x2", iw).attr("y1", y(ch.target)).attr("y2", y(ch.target));
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y(ch.target)).attr("dy", "0.35em")
+        .text(ch.yFmt(ch.target));
+    }
+
+    const last = chartData[chartData.length - 1];
+    g.append("circle").attr("class", "endpoint-dot")
+      .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
+
+    tufteYAxis(g, y, iw, ch.yFmt);
+    tufteXAxis(g, x, ih, "%b '%y");
+    addLineTooltip(g, chartData, x, y, ch.yFmt, iw, ih);
+    el.appendChild(div);
+  }
 }
 function buildSidebarCardio(el, data) {
   const p = document.createElement("p");
