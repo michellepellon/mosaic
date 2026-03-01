@@ -1686,10 +1686,75 @@ function buildSleepArchitecture(data) {
 
 // ── Sidebar builders (stubs) ──
 function buildSidebarScorecard(el, data) {
-  const p = document.createElement("p");
-  p.style.cssText = "color:#888;font-style:italic";
-  p.textContent = "Scorecard detail coming soon.";
-  el.appendChild(p);
+  const sc = data.scorecard;
+
+  const metrics = [
+    { name: "Daily Steps", unit: "", fmt: d3.format(","),
+      arr: sc, arrKey: "steps", target: "10,000" },
+    { name: "Total Sleep", unit: " hrs", fmt: d3.format(".1f"),
+      arr: data.sleep.filter(d => d.total > 0.5), arrKey: "total", target: "7.5 hrs" },
+    { name: "Deep Sleep", unit: " hrs", fmt: d3.format(".1f"),
+      arr: data.sleep.filter(d => d.total > 0.5), arrKey: "deep", target: "1.5 hrs" },
+    { name: "REM Sleep", unit: " hrs", fmt: d3.format(".1f"),
+      arr: data.sleep.filter(d => d.total > 0.5), arrKey: "rem", target: "1.5 hrs" },
+    { name: "Resting HR", unit: " bpm", fmt: d3.format(".0f"),
+      arr: data.rhr, arrKey: "v", target: "65 bpm" },
+    { name: "HRV", unit: " ms", fmt: d3.format(".0f"),
+      arr: data.hrv, arrKey: "v", target: "50 ms" },
+    { name: "SpO2 Min", unit: "%", fmt: d3.format(".0f"),
+      arr: data.spo2, arrKey: "min", target: "90%" },
+    { name: "VO2 Max", unit: "", fmt: d3.format(".1f"),
+      arr: data.vo2, arrKey: "v", target: "40" },
+    { name: "Body Fat", unit: "%", fmt: d3.format(".1f"),
+      arr: data.bodyfat, arrKey: "v", target: "25%" },
+    { name: "Exercise", unit: " min/wk", fmt: d3.format(".0f"),
+      arr: data.exercise, arrKey: "v", target: "150 min" },
+  ];
+
+  for (const m of metrics) {
+    const values = m.arr.map(d => d[m.arrKey]).filter(v => v != null && v > 0);
+    if (values.length === 0) continue;
+
+    const current = values[values.length - 1];
+    const avg7 = d3.mean(values.slice(-7)) ?? current;
+    const avg30 = d3.mean(values.slice(-30)) ?? current;
+
+    const div = document.createElement("div");
+    div.className = "sidebar-metric";
+
+    const label = document.createElement("div");
+    label.className = "metric-label";
+    label.textContent = m.name;
+    div.appendChild(label);
+
+    const sparkContainer = document.createElement("div");
+    sparkContainer.innerHTML = sparklineSVG(values.slice(-90), 200, 40);
+    div.appendChild(sparkContainer);
+
+    const stats = document.createElement("div");
+    stats.className = "metric-stats";
+
+    const curSpan = document.createElement("span");
+    curSpan.className = "current";
+    curSpan.textContent = m.fmt(current) + m.unit;
+    stats.appendChild(curSpan);
+
+    const avg7Span = document.createElement("span");
+    avg7Span.textContent = "7d: " + m.fmt(avg7);
+    stats.appendChild(avg7Span);
+
+    const avg30Span = document.createElement("span");
+    avg30Span.textContent = "30d: " + m.fmt(avg30);
+    stats.appendChild(avg30Span);
+
+    const targetSpan = document.createElement("span");
+    targetSpan.style.color = "#999";
+    targetSpan.textContent = "target: " + m.target;
+    stats.appendChild(targetSpan);
+
+    div.appendChild(stats);
+    el.appendChild(div);
+  }
 }
 function buildSidebarBiomarkers(el, data) {
   const p = document.createElement("p");
