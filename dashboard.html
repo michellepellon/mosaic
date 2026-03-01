@@ -2150,10 +2150,124 @@ function buildSidebarCardio(el, data) {
   }
 }
 function buildSidebarSleep(el, data) {
-  const p = document.createElement("p");
-  p.style.cssText = "color:#888;font-style:italic";
-  p.textContent = "Sleep detail coming soon.";
-  el.appendChild(p);
+  const w = 340, h = 160;
+  const margin = { top: 8, right: 40, bottom: 20, left: 34 };
+  const iw = w - margin.left - margin.right;
+  const ih = h - margin.top - margin.bottom;
+
+  const sleepData = data.sleep.filter(d => d.total > 0.5).map(d => ({
+    d: parseDate(d.d),
+    deep: d.deep ?? 0,
+    rem: d.rem ?? 0,
+    light: Math.max(0, d.total - (d.deep ?? 0) - (d.rem ?? 0)),
+    total: d.total
+  }));
+
+  if (sleepData.length < 2) {
+    const p = document.createElement("p");
+    p.style.cssText = "color:#888;font-style:italic";
+    p.textContent = "Not enough sleep data.";
+    el.appendChild(p);
+    return;
+  }
+
+  // ── Sleep stage percentages over time ──
+  const div1 = document.createElement("div");
+  div1.className = "sidebar-chart";
+
+  const title1 = document.createElement("div");
+  title1.className = "chart-title";
+  title1.textContent = "Sleep stage % (7-day rolling)";
+  div1.appendChild(title1);
+
+  const pctData = [];
+  for (let i = 0; i < sleepData.length; i++) {
+    const win = sleepData.slice(Math.max(0, i - 6), i + 1);
+    const avgDeep = d3.mean(win, d => d.deep / d.total * 100);
+    const avgRem = d3.mean(win, d => d.rem / d.total * 100);
+    const avgLight = d3.mean(win, d => d.light / d.total * 100);
+    pctData.push({ d: sleepData[i].d, deep: avgDeep, rem: avgRem, light: avgLight });
+  }
+
+  const svg1 = d3.select(div1).append("svg").attr("width", w).attr("height", h);
+  const g1 = svg1.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const x1 = d3.scaleTime().domain(d3.extent(pctData, d => d.d)).range([0, iw]);
+  const y1 = d3.scaleLinear().domain([0, 60]).range([ih, 0]);
+
+  const stages = [
+    { key: "deep", color: "#444", label: "Deep" },
+    { key: "rem", color: "#888", label: "REM" },
+    { key: "light", color: "#c8c8be", label: "Light" },
+  ];
+
+  for (const stage of stages) {
+    const line = d3.line()
+      .x(d => x1(d.d)).y(d => y1(d[stage.key]))
+      .curve(d3.curveMonotoneX);
+    g1.append("path").attr("d", line(pctData))
+      .attr("fill", "none").attr("stroke", stage.color).attr("stroke-width", 1.3);
+
+    const last = pctData[pctData.length - 1];
+    g1.append("text").attr("class", "annotation-text")
+      .attr("x", iw + 3).attr("y", y1(last[stage.key])).attr("dy", "0.35em")
+      .text(d3.format(".0f")(last[stage.key]) + "% " + stage.label);
+  }
+
+  tufteYAxis(g1, y1, iw, d => d + "%");
+  tufteXAxis(g1, x1, ih, "%b '%y");
+  el.appendChild(div1);
+
+  // ── Total sleep trend ──
+  const div2 = document.createElement("div");
+  div2.className = "sidebar-chart";
+
+  const title2 = document.createElement("div");
+  title2.className = "chart-title";
+  title2.textContent = "Total sleep (hours)";
+  div2.appendChild(title2);
+
+  const svg2 = d3.select(div2).append("svg").attr("width", w).attr("height", 120);
+  const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+  const ih2 = 120 - margin.top - margin.bottom;
+
+  const x2 = d3.scaleTime().domain(d3.extent(sleepData, d => d.d)).range([0, iw]);
+  const y2 = d3.scaleLinear().domain([4, 10]).range([ih2, 0]);
+
+  const area2 = d3.area().x(d => x2(d.d)).y0(ih2).y1(d => y2(d.total)).curve(d3.curveMonotoneX);
+  g2.append("path").attr("class", "data-area").attr("d", area2(sleepData));
+  const line2 = d3.line().x(d => x2(d.d)).y(d => y2(d.total)).curve(d3.curveMonotoneX);
+  g2.append("path").attr("class", "data-line").attr("d", line2(sleepData));
+
+  g2.append("line").attr("class", "target-line")
+    .attr("x1", 0).attr("x2", iw).attr("y1", y2(7.5)).attr("y2", y2(7.5));
+  g2.append("text").attr("class", "annotation-text")
+    .attr("x", iw + 3).attr("y", y2(7.5)).attr("dy", "0.35em").text("7.5 target");
+
+  tufteYAxis(g2, y2, iw, d3.format(".1f"));
+  tufteXAxis(g2, x2, ih2, "%b '%y");
+  addLineTooltip(g2, sleepData.map(d => ({ d: d.d, v: d.total })), x2, y2, d3.format(".1f"), iw, ih2);
+  el.appendChild(div2);
+
+  // ── Summary stats ──
+  const statsDiv = document.createElement("div");
+  statsDiv.style.cssText = "font-size:0.82rem;color:#666;margin-top:0.5rem;line-height:1.6";
+  const avgTotal = d3.mean(sleepData, d => d.total);
+  const avgDeep = d3.mean(sleepData, d => d.deep);
+  const avgRem = d3.mean(sleepData, d => d.rem);
+  const avgDeepPct = d3.mean(sleepData, d => d.deep / d.total * 100);
+  const avgRemPct = d3.mean(sleepData, d => d.rem / d.total * 100);
+
+  const strong = document.createElement("strong");
+  strong.textContent = "Period averages:";
+  statsDiv.appendChild(strong);
+  statsDiv.appendChild(document.createElement("br"));
+  statsDiv.appendChild(document.createTextNode(
+    "Total: " + d3.format(".1f")(avgTotal) + " hrs \u00b7 " +
+    "Deep: " + d3.format(".1f")(avgDeep) + " hrs (" + d3.format(".0f")(avgDeepPct) + "%) \u00b7 " +
+    "REM: " + d3.format(".1f")(avgRem) + " hrs (" + d3.format(".0f")(avgRemPct) + "%)"
+  ));
+  el.appendChild(statsDiv);
 }
 </script>
 </body>
