@@ -352,6 +352,162 @@ table.bloodwork tr.group-header td {
   .small-multiples { grid-template-columns: repeat(2, 1fr); }
   .cardio-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  height: 100vh;
+  background: #fffff8;
+  border-left: 1px solid #ddd;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 200;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.sidebar-header h2 {
+  font-variant: small-caps;
+  font-weight: 400;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.sidebar-header button {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #888;
+  cursor: pointer;
+  padding: 0 0.3rem;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.sidebar-header button:hover {
+  color: #333;
+}
+
+h2[data-section] {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+h2[data-section]::after {
+  content: " \203A";
+  opacity: 0;
+  transition: opacity 0.15s;
+  color: #999;
+}
+
+h2[data-section]:hover::after {
+  opacity: 1;
+}
+
+h2[data-section].sidebar-active {
+  color: #333;
+}
+
+h2[data-section].sidebar-active::after {
+  opacity: 1;
+  color: #333;
+}
+
+.sidebar-metric {
+  margin-bottom: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #f0f0eb;
+}
+
+.sidebar-metric:last-child {
+  border-bottom: none;
+}
+
+.sidebar-metric .metric-label {
+  font-variant: small-caps;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  color: #555;
+  margin-bottom: 0.2rem;
+}
+
+.sidebar-metric .metric-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.3rem;
+  color: #666;
+}
+
+.sidebar-metric .metric-stats .current {
+  font-weight: 600;
+  color: #333;
+}
+
+.sidebar-section-title {
+  font-variant: small-caps;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: #555;
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-chart {
+  margin-bottom: 1.2rem;
+}
+
+.sidebar-chart .chart-title {
+  font-size: 0.78rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: #555;
+  margin-bottom: 0.15rem;
+}
+
+.sidebar-chart svg {
+  display: block;
+}
+
+@media (max-width: 720px) {
+  .sidebar {
+    width: 100%;
+    height: 60vh;
+    top: auto;
+    bottom: 0;
+    transform: translateY(100%);
+    border-left: none;
+    border-top: 1px solid #ddd;
+    border-radius: 12px 12px 0 0;
+  }
+  .sidebar.open {
+    transform: translateY(0);
+  }
+}
+
+@media print {
+  .sidebar { display: none; }
+  h2[data-section]::after { display: none; }
+  h2[data-section] { cursor: default; }
+}
 </style>
 </head>
 <body>
@@ -367,31 +523,40 @@ table.bloodwork tr.group-header td {
 </div>
 
 <!-- ═══════════ SECTION 1: System Status ═══════════ -->
-<h2>Protocol Scorecard</h2>
+<h2 data-section="scorecard">Protocol Scorecard</h2>
 <div id="system-status"></div>
 
 <!-- ═══════════ SECTION 2: Bloodwork ═══════════ -->
-<h2 id="biomarkers-heading">Clinical Biomarkers</h2>
+<h2 data-section="biomarkers" id="biomarkers-heading">Clinical Biomarkers</h2>
 <div class="content-with-sidenotes" id="bloodwork-section"></div>
 
 <!-- ═══════════ SECTION 3: Small Multiples ═══════════ -->
-<h2>Trends</h2>
+<h2 data-section="trends">Trends</h2>
 <p class="wide" id="data-span">Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds.</p>
 <div class="small-multiples" id="small-multiples"></div>
 
 <!-- ═══════════ SECTION 3b: Gait & Mobility ═══════════ -->
-<h2>Gait &amp; Mobility</h2>
+<h2 data-section="gait">Gait &amp; Mobility</h2>
 <div class="small-multiples" id="gait-section"></div>
 
 <!-- ═══════════ SECTION 4: Cardiovascular Detail ═══════════ -->
-<h2>Cardiovascular Detail</h2>
+<h2 data-section="cardio">Cardiovascular Detail</h2>
 <div class="cardio-grid" id="cardio-detail"></div>
 
 <!-- ═══════════ SECTION 5: Sleep Architecture ═══════════ -->
-<h2>Sleep Architecture</h2>
+<h2 data-section="sleep">Sleep Architecture</h2>
 <div class="sleep-chart" id="sleep-architecture"></div>
 
 </article>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h2 id="sidebar-title"></h2>
+    <button id="sidebar-close" aria-label="Close">&times;</button>
+  </div>
+  <div id="sidebar-content"></div>
+</aside>
 
 <script type="module">
 // ── Utilities ──
@@ -464,16 +629,17 @@ function tufteXAxis(g, xScale, height, dateFormat) {
 
 // ── Sparkline generator (inline SVG) ──
 function sparklineSVG(data, w, h) {
-  if (!data || data.length < 2) return "";
-  const x = d3.scaleLinear().domain([0, data.length - 1]).range([1, w - 1]);
-  const ext = d3.extent(data);
+  const valid = (data || []).filter(d => d != null && !isNaN(d));
+  if (valid.length < 2) return "";
+  const x = d3.scaleLinear().domain([0, valid.length - 1]).range([1, w - 1]);
+  const ext = d3.extent(valid);
   const pad = (ext[1] - ext[0]) * 0.1 || 1;
   const y = d3.scaleLinear().domain([ext[0] - pad, ext[1] + pad]).range([h - 1, 1]);
   const line = d3.line().x((d, i) => x(i)).y(d => y(d));
   let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
-  svg += `<path d="${line(data)}" fill="none" stroke="#333" stroke-width="1"/>`;
+  svg += `<path d="${line(valid)}" fill="none" stroke="#333" stroke-width="1"/>`;
   // endpoint dot
-  svg += `<circle cx="${x(data.length - 1)}" cy="${y(data[data.length - 1])}" r="1.5" fill="#333"/>`;
+  svg += `<circle cx="${x(valid.length - 1)}" cy="${y(valid[valid.length - 1])}" r="1.5" fill="#333"/>`;
   svg += `</svg>`;
   return svg;
 }
@@ -481,6 +647,7 @@ function sparklineSVG(data, w, h) {
 // ── Bullet chart (thin horizontal bar) ──
 function bulletSVG(value, target, min, max, lowerBetter) {
   const w = 180, h = 14;
+  if (value == null || isNaN(value)) return `<svg width="${w}" height="${h}" style="vertical-align:middle"></svg>`;
   const x = d3.scaleLinear().domain([min, max]).range([0, w]).clamp(true);
 
   let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
@@ -580,7 +747,11 @@ async function query(conn, sql) {
     for (const [key, value] of Object.entries(row.toJSON())) {
       if (typeof value === "bigint") obj[key] = Number(value);
       else if (value instanceof Date) obj[key] = value.toISOString().slice(0, 10);
-      else obj[key] = value;
+      else if (typeof value === "number" && (key === "d" || key === "date")) {
+        // DuckDB-WASM returns DATE as epoch-day int32 via Arrow Date32
+        const ms = value < 100000 ? value * 86400000 : value;
+        obj[key] = new Date(ms).toISOString().slice(0, 10);
+      } else obj[key] = value;
     }
     return obj;
   });
@@ -1290,9 +1461,9 @@ function buildSleepArchitecture(data) {
 
   const sleepData = data.sleep.filter(d => d.total > 0.5).map(d => ({
     d: parseDate(d.d),
-    deep: d.deep,
-    rem: d.rem,
-    light: Math.max(0, d.total - d.deep - d.rem),
+    deep: d.deep ?? 0,
+    rem: d.rem ?? 0,
+    light: Math.max(0, d.total - (d.deep ?? 0) - (d.rem ?? 0)),
     total: d.total
   }));
 
