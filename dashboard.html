@@ -1995,10 +1995,159 @@ function buildSidebarGait(el, data) {
   }
 }
 function buildSidebarCardio(el, data) {
-  const p = document.createElement("p");
-  p.style.cssText = "color:#888;font-style:italic";
-  p.textContent = "Cardiovascular detail coming soon.";
-  el.appendChild(p);
+  const w = 340, h = 180;
+  const margin = { top: 8, right: 12, bottom: 24, left: 34 };
+  const iw = w - margin.left - margin.right;
+  const ih = h - margin.top - margin.bottom;
+
+  // ── RHR vs HRV Scatter ──
+  const rhrMap = new Map(data.rhr.map(d => [d.d, d.v]));
+  const hrvMap = new Map(data.hrv.map(d => [d.d, d.v]));
+
+  const scatterData = [];
+  for (const [dateStr, rhr] of rhrMap) {
+    const hrv = hrvMap.get(dateStr);
+    if (rhr && hrv && rhr > 0 && hrv > 0) {
+      scatterData.push({ d: parseDate(dateStr), rhr, hrv });
+    }
+  }
+
+  if (scatterData.length >= 3) {
+    const div = document.createElement("div");
+    div.className = "sidebar-chart";
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "chart-title";
+    titleEl.textContent = "Resting HR vs HRV (daily)";
+    div.appendChild(titleEl);
+
+    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const xExt = d3.extent(scatterData, d => d.rhr);
+    const yExt = d3.extent(scatterData, d => d.hrv);
+    const x = d3.scaleLinear().domain([xExt[0] * 0.95, xExt[1] * 1.05]).range([0, iw]);
+    const y = d3.scaleLinear().domain([yExt[0] * 0.9, yExt[1] * 1.1]).range([ih, 0]);
+
+    const dateExt = d3.extent(scatterData, d => d.d);
+    const colorScale = d3.scaleLinear()
+      .domain([dateExt[0], dateExt[1]])
+      .range([0.15, 0.8]);
+
+    g.selectAll("circle").data(scatterData).join("circle")
+      .attr("cx", d => x(d.rhr))
+      .attr("cy", d => y(d.hrv))
+      .attr("r", 2.5)
+      .attr("fill", "#333")
+      .attr("opacity", d => colorScale(d.d));
+
+    g.append("text").attr("class", "axis-label")
+      .attr("x", iw / 2).attr("y", ih + 16).attr("text-anchor", "middle")
+      .text("Resting HR (bpm)");
+    g.append("text").attr("class", "axis-label")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -ih / 2).attr("y", -24).attr("text-anchor", "middle")
+      .text("HRV (ms)");
+
+    tufteYAxis(g, y, iw, d3.format(".0f"));
+
+    g.append("text").attr("class", "axis-label")
+      .attr("x", 0).attr("y", ih + 16).attr("text-anchor", "start")
+      .text(d3.format(".0f")(x.domain()[0]));
+    g.append("text").attr("class", "axis-label")
+      .attr("x", iw).attr("y", ih + 16).attr("text-anchor", "end")
+      .text(d3.format(".0f")(x.domain()[1]));
+
+    el.appendChild(div);
+  }
+
+  // ── HR Zone weekly breakdown ──
+  const hrData = data.hrzones.map(d => ({
+    d: parseDate(d.d),
+    z2: d.z2,
+    z4: d.z4,
+  }));
+
+  if (hrData.length >= 2) {
+    const div2 = document.createElement("div");
+    div2.className = "sidebar-chart";
+
+    const titleEl2 = document.createElement("div");
+    titleEl2.className = "chart-title";
+    titleEl2.textContent = "Weekly HR zone minutes";
+    div2.appendChild(titleEl2);
+
+    const svg2 = d3.select(div2).append("svg").attr("width", w).attr("height", 140);
+    const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    const ih2 = 140 - margin.top - margin.bottom;
+
+    const x2 = d3.scaleBand().domain(hrData.map(d => d.d)).range([0, iw]).padding(0.3);
+    const maxY = d3.max(hrData, d => d.z2 + d.z4) || 30;
+    const y2 = d3.scaleLinear().domain([0, Math.max(maxY * 1.1, 30)]).range([ih2, 0]);
+
+    hrData.forEach(d => {
+      const barW = x2.bandwidth();
+      const xPos = x2(d.d);
+      if (d.z2 > 0) {
+        g2.append("rect").attr("x", xPos).attr("y", y2(d.z2)).attr("width", barW)
+          .attr("height", ih2 - y2(d.z2)).attr("fill", "#777");
+      }
+      if (d.z4 > 0) {
+        g2.append("rect").attr("x", xPos).attr("y", y2(d.z2 + d.z4)).attr("width", barW)
+          .attr("height", ih2 - y2(d.z4)).attr("fill", "#333");
+      }
+    });
+
+    tufteYAxis(g2, y2, iw, d3.format(".0f"));
+    const dfmt = d3.timeFormat("%b %d");
+    g2.append("text").attr("class", "axis-label")
+      .attr("x", 0).attr("y", ih2 + 14).attr("text-anchor", "start").text(dfmt(hrData[0].d));
+    g2.append("text").attr("class", "axis-label")
+      .attr("x", iw).attr("y", ih2 + 14).attr("text-anchor", "end").text(dfmt(hrData[hrData.length - 1].d));
+
+    const leg = g2.append("g").attr("transform", `translate(${iw - 80}, 0)`);
+    [{ label: "Zone 2", color: "#777" }, { label: "Zone 4+", color: "#333" }].forEach((l, i) => {
+      leg.append("rect").attr("x", 0).attr("y", i * 13).attr("width", 10).attr("height", 8).attr("fill", l.color);
+      leg.append("text").attr("class", "annotation-text").attr("x", 14).attr("y", i * 13 + 7).text(l.label);
+    });
+
+    el.appendChild(div2);
+  }
+
+  // ── VO2 Max trend ──
+  const vo2Data = data.vo2.map(d => ({ d: parseDate(d.d), v: d.v }));
+  if (vo2Data.length >= 2) {
+    const div3 = document.createElement("div");
+    div3.className = "sidebar-chart";
+
+    const titleEl3 = document.createElement("div");
+    titleEl3.className = "chart-title";
+    titleEl3.textContent = "VO2 Max trend";
+    div3.appendChild(titleEl3);
+
+    const svg3 = d3.select(div3).append("svg").attr("width", w).attr("height", 120);
+    const g3 = svg3.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    const ih3 = 120 - margin.top - margin.bottom;
+
+    const x3 = d3.scaleTime().domain(d3.extent(vo2Data, d => d.d)).range([0, iw]);
+    const y3 = d3.scaleLinear().domain([24, 45]).range([ih3, 0]);
+
+    g3.selectAll("circle").data(vo2Data).join("circle")
+      .attr("cx", d => x3(d.d)).attr("cy", d => y3(d.v)).attr("r", 3).attr("fill", "#333");
+    const line3 = d3.line().x(d => x3(d.d)).y(d => y3(d.v));
+    g3.append("path").attr("d", line3(vo2Data)).attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1);
+
+    [35, 40].forEach(t => {
+      g3.append("line").attr("class", "target-line")
+        .attr("x1", 0).attr("x2", iw).attr("y1", y3(t)).attr("y2", y3(t));
+      g3.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y3(t)).attr("dy", "0.35em").text(t);
+    });
+
+    tufteYAxis(g3, y3, iw, d3.format(".0f"));
+    tufteXAxis(g3, x3, ih3, "%b '%y");
+    el.appendChild(div3);
+  }
 }
 function buildSidebarSleep(el, data) {
   const p = document.createElement("p");
