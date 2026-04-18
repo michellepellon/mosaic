@@ -151,16 +151,71 @@ _TABLE_DDL: dict[str, str] = {
         stand_goal          DOUBLE
     )""",
     "clinical_labs": """CREATE TABLE IF NOT EXISTS clinical_labs (
-        date              DATE NOT NULL,
-        test              VARCHAR NOT NULL,
-        value             DOUBLE NOT NULL,
-        unit              VARCHAR,
-        ref_low           DOUBLE,
-        ref_high          DOUBLE,
-        longevity_target  VARCHAR,
-        optimal           VARCHAR
+        draw_date     DATE NOT NULL,
+        test          VARCHAR NOT NULL,
+        loinc_code    VARCHAR,
+        value         DOUBLE NOT NULL,
+        unit          VARCHAR,
+        ref_low       DOUBLE,
+        ref_high      DOUBLE,
+        source        VARCHAR,
+        UNIQUE(draw_date, loinc_code)
     )""",
 }
+
+
+LONGEVITY_THRESHOLDS: dict[str, dict[str, str]] = {
+    # Metabolic Panel
+    "2345-7": {"panel": "Metabolic Panel", "display": "Glucose", "optimal": "<90"},
+    "1742-6": {"panel": "Metabolic Panel", "display": "ALT", "optimal": "<30"},
+    "1920-8": {"panel": "Metabolic Panel", "display": "AST", "optimal": "<30"},
+    "1751-7": {"panel": "Metabolic Panel", "display": "Albumin", "optimal": "4.0-5.0"},
+    "6768-6": {"panel": "Metabolic Panel", "display": "Alkaline Phosphatase", "optimal": "40-100"},
+    "3094-0": {"panel": "Metabolic Panel", "display": "BUN", "optimal": "7-20"},
+    "2160-0": {"panel": "Metabolic Panel", "display": "Creatinine", "optimal": "0.6-1.2"},
+    "1975-2": {"panel": "Metabolic Panel", "display": "Total Bilirubin", "optimal": "0.1-1.2"},
+    "2823-3": {"panel": "Metabolic Panel", "display": "Potassium", "optimal": "3.5-5.0"},
+    "2951-2": {"panel": "Metabolic Panel", "display": "Sodium", "optimal": "136-145"},
+    "62238-1": {"panel": "Metabolic Panel", "display": "eGFR", "optimal": ">90"},
+    # Lipid Panel
+    "2093-3": {"panel": "Lipid Panel", "display": "Total Cholesterol", "optimal": "<200"},
+    "2085-9": {"panel": "Lipid Panel", "display": "HDL Cholesterol", "optimal": ">50"},
+    "13457-7": {"panel": "Lipid Panel", "display": "LDL Cholesterol", "optimal": "<100"},
+    "43396-1": {"panel": "Lipid Panel", "display": "Non-HDL Cholesterol", "optimal": "<130"},
+    "2571-8": {"panel": "Lipid Panel", "display": "Triglycerides", "optimal": "<100"},
+    "9830-1": {"panel": "Lipid Panel", "display": "Cholesterol/HDL Ratio", "optimal": "<3.5"},
+    # Hematology
+    "6690-2": {"panel": "Hematology", "display": "WBC", "optimal": "3.5-10.5"},
+    "718-7": {"panel": "Hematology", "display": "Hemoglobin", "optimal": "12.0-16.0"},
+    "4544-3": {"panel": "Hematology", "display": "Hematocrit", "optimal": "36-46"},
+    "777-3": {"panel": "Hematology", "display": "Platelet Count", "optimal": "150-400"},
+    "4548-4": {"panel": "Hematology", "display": "Hemoglobin A1C", "optimal": "<5.4"},
+    # Thyroid
+    "3016-3": {"panel": "Thyroid", "display": "TSH", "optimal": "0.5-2.5"},
+}
+
+
+def compute_lab_status(value: float, optimal: str) -> str:
+    """Compute green/amber/red status for a lab result vs its optimal range."""
+    if not optimal or optimal == "--" or optimal == "None":
+        return "green"
+    if optimal.startswith("<"):
+        t = float(optimal[1:])
+        return "green" if value <= t else ("amber" if value <= t * 1.2 else "red")
+    if optimal.startswith(">"):
+        t = float(optimal[1:])
+        return "green" if value >= t else ("amber" if value >= t * 0.8 else "red")
+    parts = optimal.split("-")
+    if len(parts) == 2:
+        try:
+            lo, hi = float(parts[0]), float(parts[1])
+        except ValueError:
+            return "green"
+        if lo <= value <= hi:
+            return "green"
+        margin = (hi - lo) * 0.2
+        return "amber" if (lo - margin <= value <= hi + margin) else "red"
+    return "green"
 
 
 def create_tables(conn: duckdb.DuckDBPyConnection) -> None:
@@ -320,8 +375,13 @@ _VIEW_SQL: list[str] = [
     ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_labs AS
-    SELECT date, test, value, unit, longevity_target, optimal
-    FROM clinical_labs ORDER BY date DESC, test""",
+    SELECT draw_date, test, loinc_code, value, unit, ref_low, ref_high, source
+    FROM clinical_labs ORDER BY draw_date DESC, test""",
+
+    """CREATE OR REPLACE VIEW dashboard_lab_trends AS
+    SELECT test, loinc_code, draw_date, value, unit, ref_low, ref_high
+    FROM clinical_labs
+    ORDER BY test, draw_date""",
 
     """CREATE OR REPLACE VIEW dashboard_walking_speed AS
     SELECT start_date::TIMESTAMP::DATE AS date, AVG(value) AS v

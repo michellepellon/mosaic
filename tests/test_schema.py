@@ -4,10 +4,12 @@ import duckdb
 
 from mosaic.schema import (
     BODY_MEASUREMENT_TYPES,
+    LONGEVITY_THRESHOLDS,
     SLEEP_STAGES,
     TABLE_NAMES,
     TYPE_REGISTRY,
     WALKING_METRIC_TYPES,
+    compute_lab_status,
     create_tables,
     create_views,
     table_for_record_type,
@@ -158,6 +160,7 @@ class TestCreateViews:
             "dashboard_hrv", "dashboard_spo2", "dashboard_vo2",
             "dashboard_bodyfat", "dashboard_weight", "dashboard_exercise",
             "dashboard_hrzones", "dashboard_scorecard", "dashboard_labs",
+            "dashboard_lab_trends",
             "dashboard_walking_speed", "dashboard_walking_asymmetry",
             "dashboard_respiratory_rate",
         ]:
@@ -185,17 +188,70 @@ class TestWorkoutHrZonesTable:
 
 
 class TestClinicalLabsTable:
-    def test_creates_clinical_labs_table(self, db: duckdb.DuckDBPyConnection) -> None:
+    def test_clinical_labs_in_table_names(self) -> None:
+        assert "clinical_labs" in TABLE_NAMES
+
+
+class TestExpandedClinicalLabsTable:
+    def test_has_new_columns(self, db: duckdb.DuckDBPyConnection) -> None:
         create_tables(db)
         result = db.sql("SELECT * FROM clinical_labs LIMIT 0").description
         col_names = [col[0] for col in result]
-        assert "date" in col_names
-        assert "test" in col_names
-        assert "value" in col_names
-        assert "optimal" in col_names
+        assert "draw_date" in col_names
+        assert "loinc_code" in col_names
+        assert "source" in col_names
+        # Old columns should be gone
+        assert "date" not in col_names
+        assert "longevity_target" not in col_names
+        assert "optimal" not in col_names
 
-    def test_clinical_labs_in_table_names(self) -> None:
-        assert "clinical_labs" in TABLE_NAMES
+    def test_unique_constraint(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        db.sql("""
+            INSERT INTO clinical_labs VALUES
+            ('2024-01-30', 'Glucose', '2345-7', 79.0, 'mg/dL',
+             70, 99, 'Labcorp')
+        """)
+        # Duplicate should be rejected
+        try:
+            db.sql("""
+                INSERT INTO clinical_labs VALUES
+                ('2024-01-30', 'Glucose', '2345-7', 79.0, 'mg/dL',
+                 70, 99, 'Labcorp')
+            """)
+            assert False, "Should have raised on duplicate"
+        except Exception:
+            pass  # Expected
+
+
+class TestLongevityThresholds:
+    def test_glucose_has_entry(self) -> None:
+        entry = LONGEVITY_THRESHOLDS.get("2345-7")
+        assert entry is not None
+        assert entry["panel"] == "Metabolic Panel"
+        assert "optimal" in entry
+
+    def test_compute_lab_status_green(self) -> None:
+        assert compute_lab_status(79.0, "<90") == "green"
+
+    def test_compute_lab_status_amber(self) -> None:
+        assert compute_lab_status(100.0, "<90") == "amber"
+
+    def test_compute_lab_status_red(self) -> None:
+        assert compute_lab_status(120.0, "<90") == "red"
+
+    def test_compute_lab_status_range(self) -> None:
+        assert compute_lab_status(80.0, "72-85") == "green"
+        assert compute_lab_status(70.0, "72-85") == "amber"
+        assert compute_lab_status(60.0, "72-85") == "red"
+
+    def test_compute_lab_status_greater_than(self) -> None:
+        assert compute_lab_status(50.0, ">40") == "green"
+        assert compute_lab_status(35.0, ">40") == "amber"
+
+    def test_compute_lab_status_missing_optimal(self) -> None:
+        assert compute_lab_status(100.0, "") == "green"
+        assert compute_lab_status(100.0, "--") == "green"
 
 
 class TestDashboardViews:
@@ -244,7 +300,7 @@ class TestDashboardViews:
         create_tables(db)
         db.sql("""
             INSERT INTO clinical_labs VALUES
-            ('2024-01-30', 'Glucose', 79.0, 'mg/dL', 70, 99, '<90', '72-85')
+            ('2024-01-30', 'Glucose', '2345-7', 79.0, 'mg/dL', 70, 99, 'Labcorp')
         """)
         create_views(db)
         rows = db.sql("SELECT * FROM dashboard_labs").fetchall()
