@@ -7,6 +7,7 @@ import duckdb
 
 from mosaic.parser import (
     classify_and_extract,
+    compute_hr_zones,
     extract_body_measurement,
     extract_quantity_record,
     extract_sleep_record,
@@ -320,3 +321,83 @@ class TestExtractDateOfBirth:
         )
         stats, dob = parse_export(db, xml)
         assert dob is None
+
+
+class TestComputeHrZones:
+    def test_classifies_samples_into_zones(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        # Insert a workout from 09:00 to 09:30
+        db.sql("""
+            INSERT INTO workouts VALUES
+            ('running', 'Watch', '10', 30.0, 5000.0, 300.0,
+             '2024-03-15 09:00:00-06', '2024-03-15 09:30:00-06', NULL)
+        """)
+        # Insert HR samples during the workout
+        # Max HR = 200 -> Z1 <120, Z2 120-140, Z3 140-160, Z4 160-180, Z5 180+
+        db.sql("""
+            INSERT INTO heart_rate_samples VALUES
+            ('Watch', '10', 'count/min', 110, '2024-03-15 09:00:00-06', '2024-03-15 09:05:00-06', NULL),
+            ('Watch', '10', 'count/min', 130, '2024-03-15 09:05:00-06', '2024-03-15 09:15:00-06', NULL),
+            ('Watch', '10', 'count/min', 155, '2024-03-15 09:15:00-06', '2024-03-15 09:25:00-06', NULL),
+            ('Watch', '10', 'count/min', 175, '2024-03-15 09:25:00-06', '2024-03-15 09:30:00-06', NULL)
+        """)
+        compute_hr_zones(db, max_hr=200)
+        rows = db.sql("""
+            SELECT zone, seconds FROM workout_hr_zones
+            ORDER BY zone
+        """).fetchall()
+        zones = {zone: secs for zone, secs in rows}
+        assert zones[1] == 300.0   # 5 min = 300s (HR 110, Z1)
+        assert zones[2] == 600.0   # 10 min = 600s (HR 130, Z2)
+        assert zones[3] == 600.0   # 10 min = 600s (HR 155, Z3)
+        assert zones[4] == 300.0   # 5 min = 300s (HR 175, Z4)
+
+    def test_no_overlapping_samples_produces_no_rows(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        db.sql("""
+            INSERT INTO workouts VALUES
+            ('running', 'Watch', '10', 30.0, NULL, NULL,
+             '2024-03-15 09:00:00-06', '2024-03-15 09:30:00-06', NULL)
+        """)
+        # HR sample is outside workout window
+        db.sql("""
+            INSERT INTO heart_rate_samples VALUES
+            ('Watch', '10', 'count/min', 72, '2024-03-15 08:00:00-06', '2024-03-15 08:00:00-06', NULL)
+        """)
+        compute_hr_zones(db, max_hr=200)
+        count = db.sql("SELECT COUNT(*) FROM workout_hr_zones").fetchone()[0]
+        assert count == 0
+
+    def test_uses_estimated_max_hr_when_none(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        db.sql("""
+            INSERT INTO workouts VALUES
+            ('running', 'Watch', '10', 30.0, NULL, NULL,
+             '2024-03-15 09:00:00-06', '2024-03-15 09:30:00-06', NULL)
+        """)
+        # HR of 130 with max_hr=None and dob="1990-05-15"
+        # Age at 2024-03-15 = 33, Tanaka: 208 - 0.7*33 = 184.9 -> 184
+        # Z2 = 60-70% of 184 = 110.4-128.8 -> HR 130 is Z3
+        db.sql("""
+            INSERT INTO heart_rate_samples VALUES
+            ('Watch', '10', 'count/min', 130, '2024-03-15 09:00:00-06', '2024-03-15 09:10:00-06', NULL)
+        """)
+        compute_hr_zones(db, max_hr=None, date_of_birth="1990-05-15")
+        zone = db.sql("SELECT zone FROM workout_hr_zones").fetchone()[0]
+        assert zone == 3  # 130 / 184 = 70.6% -> Z3
+
+    def test_raises_without_max_hr_or_dob(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        db.sql("""
+            INSERT INTO workouts VALUES
+            ('running', 'Watch', '10', 30.0, NULL, NULL,
+             '2024-03-15 09:00:00-06', '2024-03-15 09:30:00-06', NULL)
+        """)
+        db.sql("""
+            INSERT INTO heart_rate_samples VALUES
+            ('Watch', '10', 'count/min', 130, '2024-03-15 09:00:00-06', '2024-03-15 09:10:00-06', NULL)
+        """)
+        # No max_hr and no DOB -- should skip zone computation and print warning
+        compute_hr_zones(db, max_hr=None, date_of_birth=None)
+        count = db.sql("SELECT COUNT(*) FROM workout_hr_zones").fetchone()[0]
+        assert count == 0
