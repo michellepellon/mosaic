@@ -298,7 +298,7 @@ class TestParseExport:
 
 
 class TestExtractDateOfBirth:
-    def test_parses_dob_from_me_element(self, db: duckdb.DuckDBPyConnection, tmp_path: Path) -> None:
+    def test_parses_dob(self, db: duckdb.DuckDBPyConnection, tmp_path: Path) -> None:
         create_tables(db)
         xml = tmp_path / "dob_test.xml"
         xml.write_text(
@@ -307,7 +307,7 @@ class TestExtractDateOfBirth:
             ' <Me HKCharacteristicTypeIdentifierDateOfBirth="1990-05-15"/>\n'
             "</HealthData>"
         )
-        stats, dob = parse_export(db, xml)
+        _stats, dob = parse_export(db, xml)
         assert dob == "1990-05-15"
 
     def test_missing_dob_returns_none(self, db: duckdb.DuckDBPyConnection, tmp_path: Path) -> None:
@@ -319,7 +319,7 @@ class TestExtractDateOfBirth:
             ' <Me HKCharacteristicTypeIdentifierBiologicalSex="HKBiologicalSexFemale"/>\n'
             "</HealthData>"
         )
-        stats, dob = parse_export(db, xml)
+        _stats, dob = parse_export(db, xml)
         assert dob is None
 
 
@@ -334,19 +334,23 @@ class TestComputeHrZones:
         """)
         # Insert HR samples during the workout
         # Max HR = 200 -> Z1 <120, Z2 120-140, Z3 140-160, Z4 160-180, Z5 180+
-        db.sql("""
-            INSERT INTO heart_rate_samples VALUES
-            ('Watch', '10', 'count/min', 110, '2024-03-15 09:00:00-06', '2024-03-15 09:05:00-06', NULL),
-            ('Watch', '10', 'count/min', 130, '2024-03-15 09:05:00-06', '2024-03-15 09:15:00-06', NULL),
-            ('Watch', '10', 'count/min', 155, '2024-03-15 09:15:00-06', '2024-03-15 09:25:00-06', NULL),
-            ('Watch', '10', 'count/min', 175, '2024-03-15 09:25:00-06', '2024-03-15 09:30:00-06', NULL)
-        """)
+        for hr, s, e in [
+            (110, "09:00:00", "09:05:00"),
+            (130, "09:05:00", "09:15:00"),
+            (155, "09:15:00", "09:25:00"),
+            (175, "09:25:00", "09:30:00"),
+        ]:
+            db.sql(f"""
+                INSERT INTO heart_rate_samples VALUES
+                ('Watch', '10', 'count/min', {hr},
+                 '2024-03-15 {s}-06', '2024-03-15 {e}-06', NULL)
+            """)
         compute_hr_zones(db, max_hr=200)
         rows = db.sql("""
             SELECT zone, seconds FROM workout_hr_zones
             ORDER BY zone
         """).fetchall()
-        zones = {zone: secs for zone, secs in rows}
+        zones = dict(rows)
         assert zones[1] == 300.0   # 5 min = 300s (HR 110, Z1)
         assert zones[2] == 600.0   # 10 min = 600s (HR 130, Z2)
         assert zones[3] == 600.0   # 10 min = 600s (HR 155, Z3)
@@ -362,7 +366,8 @@ class TestComputeHrZones:
         # HR sample is outside workout window
         db.sql("""
             INSERT INTO heart_rate_samples VALUES
-            ('Watch', '10', 'count/min', 72, '2024-03-15 08:00:00-06', '2024-03-15 08:00:00-06', NULL)
+            ('Watch', '10', 'count/min', 72,
+             '2024-03-15 08:00:00-06', '2024-03-15 08:00:00-06', NULL)
         """)
         compute_hr_zones(db, max_hr=200)
         count = db.sql("SELECT COUNT(*) FROM workout_hr_zones").fetchone()[0]
@@ -380,7 +385,8 @@ class TestComputeHrZones:
         # Z2 = 60-70% of 184 = 110.4-128.8 -> HR 130 is Z3
         db.sql("""
             INSERT INTO heart_rate_samples VALUES
-            ('Watch', '10', 'count/min', 130, '2024-03-15 09:00:00-06', '2024-03-15 09:10:00-06', NULL)
+            ('Watch', '10', 'count/min', 130,
+             '2024-03-15 09:00:00-06', '2024-03-15 09:10:00-06', NULL)
         """)
         compute_hr_zones(db, max_hr=None, date_of_birth="1990-05-15")
         zone = db.sql("SELECT zone FROM workout_hr_zones").fetchone()[0]
@@ -395,7 +401,8 @@ class TestComputeHrZones:
         """)
         db.sql("""
             INSERT INTO heart_rate_samples VALUES
-            ('Watch', '10', 'count/min', 130, '2024-03-15 09:00:00-06', '2024-03-15 09:10:00-06', NULL)
+            ('Watch', '10', 'count/min', 130,
+             '2024-03-15 09:00:00-06', '2024-03-15 09:10:00-06', NULL)
         """)
         # No max_hr and no DOB -- should skip zone computation and print warning
         compute_hr_zones(db, max_hr=None, date_of_birth=None)

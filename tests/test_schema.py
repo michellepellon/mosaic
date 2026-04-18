@@ -308,7 +308,7 @@ class TestDashboardHrzonesView:
         create_views(db)
         rows = db.sql("SELECT * FROM dashboard_hrzones").fetchall()
         assert len(rows) == 1
-        date, z2, z4, total = rows[0]
+        _date, z2, z4, total = rows[0]
         assert z2 == 1200 / 60.0  # 20 min in Z2
         assert z4 == (180 + 60) / 60.0  # Z4 + Z5 = 4 min
         assert total == (300 + 1200 + 600 + 180 + 60) / 60.0

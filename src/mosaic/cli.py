@@ -76,7 +76,8 @@ def main(argv: list[str] | None = None) -> None:
         "--batch-size", type=int, default=50_000, help="Rows per batch flush (default: 50000)"
     )
     parser.add_argument(
-        "--max-hr", type=int, default=None, help="Max heart rate for zone calculation (default: estimate from DOB)"
+        "--max-hr", type=int, default=None,
+        help="Max heart rate for zone calculation (default: estimate from DOB)",
     )
     parser.add_argument(
         "--labs", type=Path, default=None, help="Path to CSV with lab results"
