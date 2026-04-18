@@ -1,4 +1,6 @@
 """Tests for the JSON export module."""
+# ABOUTME: Verifies the JSON export pipeline including lab grouping,
+# ABOUTME: status computation, and all required dashboard data keys.
 
 import json
 from pathlib import Path
@@ -31,6 +33,7 @@ class TestExportJson:
             "scorecard", "steps", "sleep", "rhr", "hrv", "spo2", "vo2",
             "bodyfat", "weight", "exercise", "hrzones", "labs",
             "walking_speed", "walking_asymmetry", "respiratory_rate",
+            "lab_trends", "longevity_thresholds",
         }
         assert expected_keys == set(data.keys())
 
@@ -40,7 +43,7 @@ class TestExportJson:
         create_tables(db)
         db.sql("""
             INSERT INTO clinical_labs VALUES
-            ('2024-01-30', 'Glucose', 79.0, 'mg/dL', 70, 99, '<90', '72-85')
+            ('2024-01-30', 'Glucose', '2345-7', 79.0, 'mg/dL', 70, 99, 'Labcorp')
         """)
         create_views(db)
         out = tmp_path / "test.json"
@@ -58,7 +61,7 @@ class TestExportJson:
         create_tables(db)
         db.sql("""
             INSERT INTO clinical_labs VALUES
-            ('2024-01-30', 'Glucose', 79.0, 'mg/dL', 70, 99, '<90', '72-85')
+            ('2024-01-30', 'Glucose', '2345-7', 79.0, 'mg/dL', 70, 99, 'Labcorp')
         """)
         create_views(db)
         out = tmp_path / "test.json"

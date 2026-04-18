@@ -1,60 +1,13 @@
 """Export dashboard data to JSON for the browser fallback path."""
+# ABOUTME: Exports all dashboard view data from DuckDB to a single JSON file
+# ABOUTME: for the browser fallback path when DuckDB-WASM is not available.
 
 import json
 from pathlib import Path
 
 import duckdb
 
-# Lab panel groupings — must match dashboard.html transformLabs()
-_LAB_GROUPS: dict[str, str] = {
-    "Glucose": "Metabolic Panel",
-    "ALT": "Metabolic Panel",
-    "AST": "Metabolic Panel",
-    "Albumin": "Metabolic Panel",
-    "Alkaline phosphatase": "Metabolic Panel",
-    "BUN": "Metabolic Panel",
-    "Creatinine": "Metabolic Panel",
-    "Total bilirubin": "Metabolic Panel",
-    "Potassium": "Metabolic Panel",
-    "Sodium": "Metabolic Panel",
-    "eGFR creat (CKD-EPI 2021)": "Metabolic Panel",
-    "Cholesterol, total": "Lipid Panel",
-    "HDL cholesterol": "Lipid Panel",
-    "LDL cholesterol calculated": "Lipid Panel",
-    "Non-HDL cholesterol": "Lipid Panel",
-    "Triglycerides": "Lipid Panel",
-    "Cholesterol/HDL ratio": "Lipid Panel",
-    "WBC": "Hematology",
-    "HGB": "Hematology",
-    "HCT": "Hematology",
-    "Platelet count": "Hematology",
-    "Hemoglobin A1C": "Hematology",
-    "TSH": "Thyroid",
-}
-
-
-def _compute_lab_status(value: float, optimal: object) -> str:
-    """Compute green/amber/red status for a lab result vs its optimal range."""
-    opt = str(optimal) if optimal else ""
-    if not opt or opt == "--" or opt == "None":
-        return "green"
-    if opt.startswith("<"):
-        t = float(opt[1:])
-        return "green" if value <= t else ("amber" if value <= t * 1.2 else "red")
-    if opt.startswith(">"):
-        t = float(opt[1:])
-        return "green" if value >= t else ("amber" if value >= t * 0.8 else "red")
-    parts = opt.split("-")
-    if len(parts) == 2:
-        try:
-            lo, hi = float(parts[0]), float(parts[1])
-        except ValueError:
-            return "green"
-        if lo <= value <= hi:
-            return "green"
-        margin = (hi - lo) * 0.2
-        return "amber" if (lo - margin <= value <= hi + margin) else "red"
-    return "green"
+from mosaic.schema import LONGEVITY_THRESHOLDS, compute_lab_status
 
 
 def _query(conn: duckdb.DuckDBPyConnection, sql: str) -> list[dict[str, object]]:
@@ -81,22 +34,25 @@ def _transform_labs(lab_rows: list[dict[str, object]]) -> dict[str, object]:
     """Transform raw lab rows into the grouped format the dashboard expects."""
     if not lab_rows:
         return {"date": "", "source": "", "groups": {}}
-    date = str(lab_rows[0].get("date", ""))
+    date = str(lab_rows[0].get("draw_date", ""))
     groups: dict[str, list[dict[str, object]]] = {}
     for row in lab_rows:
-        test_name = str(row["test"])
-        group = _LAB_GROUPS.get(test_name, "Other")
+        loinc = str(row.get("loinc_code") or "")
+        # Look up panel from LONGEVITY_THRESHOLDS by LOINC, fall back to "Other"
+        threshold = LONGEVITY_THRESHOLDS.get(loinc, {})
+        group = threshold.get("panel", "Other")
+        optimal = threshold.get("optimal", "")
         if group not in groups:
             groups[group] = []
-        status = _compute_lab_status(
+        status = compute_lab_status(
             float(row["value"]),  # type: ignore[arg-type]
-            row.get("optimal"),
+            optimal,
         )
         groups[group].append({
             "test": row["test"],
             "value": row["value"],
             "unit": row["unit"],
-            "optimal": row.get("optimal", ""),
+            "optimal": optimal,
             "status": status,
         })
     return {"date": date, "source": "", "groups": groups}
@@ -106,7 +62,7 @@ def export_json(conn: duckdb.DuckDBPyConnection, path: Path) -> None:
     """Export all dashboard view data to a JSON file for the browser fallback."""
     lab_rows = _query(
         conn,
-        "SELECT date, test, value, unit, longevity_target, optimal "
+        "SELECT draw_date, test, loinc_code, value, unit, ref_low, ref_high "
         "FROM dashboard_labs ORDER BY test",
     )
 
@@ -159,6 +115,15 @@ def export_json(conn: duckdb.DuckDBPyConnection, path: Path) -> None:
             "SELECT date AS d, v FROM dashboard_respiratory_rate ORDER BY date",
         ),
         "labs": _transform_labs(lab_rows),
+        "lab_trends": _query(
+            conn,
+            "SELECT test, loinc_code, draw_date AS d, value, unit "
+            "FROM dashboard_lab_trends",
+        ),
+        "longevity_thresholds": {
+            loinc: {"panel": t["panel"], "display": t["display"], "optimal": t["optimal"]}
+            for loinc, t in LONGEVITY_THRESHOLDS.items()
+        },
     }
 
     path.parent.mkdir(parents=True, exist_ok=True)

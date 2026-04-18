@@ -79,9 +79,9 @@ class TestMainEndToEnd:
         db_path = tmp_path / "test.duckdb"
         labs_csv = tmp_path / "labs.csv"
         labs_csv.write_text(
-            "date,test,value,unit,ref_low,ref_high,longevity_target,optimal\n"
-            "2024-01-30,Glucose,79,mg/dL,70,99,<90,72-85\n"
-            "2024-01-30,ALT,25,U/L,0,50,<30,<20\n"
+            "draw_date,test,loinc_code,value,unit,ref_low,ref_high,source\n"
+            "2024-01-30,Glucose,2345-7,79,mg/dL,70,99,Labcorp\n"
+            "2024-01-30,ALT,1742-6,25,U/L,0,50,Labcorp\n"
         )
         main([str(xml_path), "--output", str(db_path), "--labs", str(labs_csv)])
         conn = duckdb.connect(str(db_path), read_only=True)
@@ -123,8 +123,8 @@ class TestMainEndToEnd:
         json_path = tmp_path / "out.json"
         labs_csv = tmp_path / "labs.csv"
         labs_csv.write_text(
-            "date,test,value,unit,ref_low,ref_high,longevity_target,optimal\n"
-            "2024-01-30,Glucose,79,mg/dL,70,99,<90,72-85\n"
+            "draw_date,test,loinc_code,value,unit,ref_low,ref_high,source\n"
+            "2024-01-30,Glucose,2345-7,79,mg/dL,70,99,Labcorp\n"
         )
         main([
             str(xml_path),

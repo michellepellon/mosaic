@@ -1,10 +1,14 @@
 """MCP server exposing Mosaic health data to AI agents."""
+# ABOUTME: FastMCP server that exposes health metrics and lab results
+# ABOUTME: to AI agents via tools and a schema resource.
 
 import json
 import os
 
 import duckdb
 from fastmcp import FastMCP
+
+from mosaic.schema import LONGEVITY_THRESHOLDS, compute_lab_status
 
 mcp = FastMCP(
     name="Mosaic Health",
@@ -148,51 +152,28 @@ def get_lab_results() -> dict[str, object]:
     if not rows:
         return {"error": "No lab data found. Import labs with: mosaic --labs labs.csv"}
 
-    group_map: dict[str, str] = {
-        "Glucose": "Metabolic Panel",
-        "ALT": "Metabolic Panel",
-        "AST": "Metabolic Panel",
-        "Albumin": "Metabolic Panel",
-        "Alkaline phosphatase": "Metabolic Panel",
-        "BUN": "Metabolic Panel",
-        "Creatinine": "Metabolic Panel",
-        "Total bilirubin": "Metabolic Panel",
-        "Potassium": "Metabolic Panel",
-        "Sodium": "Metabolic Panel",
-        "eGFR creat (CKD-EPI 2021)": "Metabolic Panel",
-        "Cholesterol, total": "Lipid Panel",
-        "HDL cholesterol": "Lipid Panel",
-        "LDL cholesterol calculated": "Lipid Panel",
-        "Non-HDL cholesterol": "Lipid Panel",
-        "Triglycerides": "Lipid Panel",
-        "Cholesterol/HDL ratio": "Lipid Panel",
-        "WBC": "Hematology",
-        "HGB": "Hematology",
-        "HCT": "Hematology",
-        "Platelet count": "Hematology",
-        "Hemoglobin A1C": "Hematology",
-        "TSH": "Thyroid",
-    }
-
     groups: dict[str, list[dict[str, object]]] = {}
     date = None
     for row in rows:
         if date is None:
-            date = row["date"]
-        group = group_map.get(str(row["test"]), "Other")
+            date = row["draw_date"]
+        loinc = str(row.get("loinc_code") or "")
+        threshold = LONGEVITY_THRESHOLDS.get(loinc, {})
+        group = threshold.get("panel", "Other")
+        optimal = threshold.get("optimal", "")
         if group not in groups:
             groups[group] = []
-        status = _compute_lab_status(row["value"], row.get("optimal"))  # type: ignore[arg-type]
-        groups[group].append(
-            {
-                "test": row["test"],
-                "value": row["value"],
-                "unit": row["unit"],
-                "optimal_range": row["optimal"],
-                "longevity_target": row["longevity_target"],
-                "status": status,
-            }
+        status = compute_lab_status(
+            row["value"], optimal  # type: ignore[arg-type]
         )
+        groups[group].append({
+            "test": row["test"],
+            "value": row["value"],
+            "unit": row["unit"],
+            "optimal_range": optimal,
+            "longevity_target": optimal,
+            "status": status,
+        })
 
     return {"date": str(date), "panels": groups}
 
@@ -292,32 +273,6 @@ def get_schema() -> str:
         schema[table_name].append({"column": column_name, "type": data_type})
 
     return json.dumps(schema, indent=2, default=str)
-
-
-# ── Helpers ──────────────────────────────────────────────────────
-
-
-def _compute_lab_status(value: float, optimal: object) -> str:
-    opt = str(optimal) if optimal else ""
-    if not opt or opt == "--" or opt == "None":
-        return "green"
-    if opt.startswith("<"):
-        t = float(opt[1:])
-        return "green" if value <= t else ("amber" if value <= t * 1.2 else "red")
-    if opt.startswith(">"):
-        t = float(opt[1:])
-        return "green" if value >= t else ("amber" if value >= t * 0.8 else "red")
-    parts = opt.split("-")
-    if len(parts) == 2:
-        try:
-            lo, hi = float(parts[0]), float(parts[1])
-        except ValueError:
-            return "green"
-        if lo <= value <= hi:
-            return "green"
-        margin = (hi - lo) * 0.2
-        return "amber" if (lo - margin <= value <= hi + margin) else "red"
-    return "green"
 
 
 if __name__ == "__main__":
