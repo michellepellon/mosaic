@@ -11,7 +11,7 @@ from pathlib import Path
 import duckdb
 
 from mosaic.export import export_json
-from mosaic.parser import parse_export
+from mosaic.parser import compute_hr_zones, parse_export
 from mosaic.schema import TABLE_NAMES, create_tables, create_views, truncate_tables
 
 
@@ -76,6 +76,9 @@ def main(argv: list[str] | None = None) -> None:
         "--batch-size", type=int, default=50_000, help="Rows per batch flush (default: 50000)"
     )
     parser.add_argument(
+        "--max-hr", type=int, default=None, help="Max heart rate for zone calculation (default: estimate from DOB)"
+    )
+    parser.add_argument(
         "--labs", type=Path, default=None, help="Path to CSV with lab results"
     )
     parser.add_argument(
@@ -118,6 +121,9 @@ def main(argv: list[str] | None = None) -> None:
             since=args.since,
             batch_size=args.batch_size,
         )
+
+        # Compute HR zones from real heart rate data
+        compute_hr_zones(conn, max_hr=args.max_hr, date_of_birth=date_of_birth)
 
         # Create views
         create_views(conn)

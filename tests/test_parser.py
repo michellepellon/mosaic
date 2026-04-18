@@ -245,8 +245,8 @@ class TestParseExport:
         stats, _dob = parse_export(db, xml_path)
         # 2 step records
         assert db.sql("SELECT COUNT(*) FROM step_counts").fetchone()[0] == 2
-        # 1 heart rate record
-        assert db.sql("SELECT COUNT(*) FROM heart_rate_samples").fetchone()[0] == 1
+        # 4 heart rate records (1 outside workout + 3 during workout)
+        assert db.sql("SELECT COUNT(*) FROM heart_rate_samples").fetchone()[0] == 4
         # 1 HRV record
         assert db.sql("SELECT COUNT(*) FROM hrv_samples").fetchone()[0] == 1
         # 1 VO2 Max record

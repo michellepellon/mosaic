@@ -135,3 +135,57 @@ class TestMainEndToEnd:
         data = json.loads(json_path.read_text())
         assert isinstance(data["labs"], dict)
         assert "groups" in data["labs"]
+
+
+class TestMaxHrFlag:
+    def test_max_hr_computes_zones(self, tmp_path: Path) -> None:
+        xml_path = FIXTURE_DIR / "sample_export.xml"
+        db_path = tmp_path / "test.duckdb"
+        main([str(xml_path), "--output", str(db_path), "--max-hr", "185"])
+        conn = duckdb.connect(str(db_path), read_only=True)
+        count = conn.sql("SELECT COUNT(*) FROM workout_hr_zones").fetchone()[0]
+        # Fixture has a workout 09:00-09:30 and HR samples overlapping it
+        assert count > 0
+        conn.close()
+
+    def test_no_max_hr_uses_dob_from_export(self, tmp_path: Path) -> None:
+        xml_path = FIXTURE_DIR / "sample_export.xml"
+        db_path = tmp_path / "test.duckdb"
+        # Fixture's <Me> element has DOB, so zones should still be computed
+        main([str(xml_path), "--output", str(db_path)])
+        conn = duckdb.connect(str(db_path), read_only=True)
+        count = conn.sql("SELECT COUNT(*) FROM workout_hr_zones").fetchone()[0]
+        assert count > 0
+        conn.close()
+
+
+class TestHrZoneIntegration:
+    def test_zones_match_expected_classification(self, tmp_path: Path) -> None:
+        """Verify fixture HR samples are classified correctly.
+
+        Fixture workout: 09:00-09:30, DOB: 1990-05-15 -> age ~33-36 -> max HR ~182-184
+        Z2 = 60-70% of ~183 = ~110-128
+        Z3 = 70-80% of ~183 = ~128-146
+        Z4 = 80-90% of ~183 = ~146-165
+        HR 125 (09:00-09:10) -> Z2 (10 min)
+        HR 145 (09:10-09:20) -> Z3 (10 min)
+        HR 162 (09:20-09:30) -> Z4 (10 min)
+        """
+        xml_path = FIXTURE_DIR / "sample_export.xml"
+        db_path = tmp_path / "test.duckdb"
+        main([str(xml_path), "--output", str(db_path)])
+        conn = duckdb.connect(str(db_path), read_only=True)
+        zones = dict(conn.sql(
+            "SELECT zone, seconds FROM workout_hr_zones ORDER BY zone"
+        ).fetchall())
+        assert zones[2] == 600.0  # 10 min in Z2
+        assert zones[3] == 600.0  # 10 min in Z3
+        assert zones[4] == 600.0  # 10 min in Z4
+        # Dashboard view should also work
+        rows = conn.sql("SELECT z2, z4, total FROM dashboard_hrzones").fetchall()
+        assert len(rows) == 1
+        z2, z4, total = rows[0]
+        assert z2 == 10.0     # 10 min
+        assert z4 == 10.0     # 10 min (Z4 only, no Z5)
+        assert total == 30.0  # all 3 zones
+        conn.close()

@@ -3,7 +3,8 @@
 ]>
 <HealthData locale="en_US">
  <ExportDate value="2024-03-15 12:00:00 -0600"/>
- <Me HKCharacteristicTypeIdentifierBiologicalSex="HKBiologicalSexFemale"/>
+ <Me HKCharacteristicTypeIdentifierDateOfBirth="1990-05-15"
+     HKCharacteristicTypeIdentifierBiologicalSex="HKBiologicalSexFemale"/>
  <Record type="HKQuantityTypeIdentifierStepCount"
   sourceName="Apple Watch" sourceVersion="10.3"
   unit="count" value="45"
@@ -22,6 +23,24 @@
   startDate="2024-03-15 08:30:00 -0600"
   endDate="2024-03-15 08:30:00 -0600"
   creationDate="2024-03-15 08:30:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierHeartRate"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="count/min" value="125"
+  startDate="2024-03-15 09:00:00 -0600"
+  endDate="2024-03-15 09:10:00 -0600"
+  creationDate="2024-03-15 09:10:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierHeartRate"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="count/min" value="145"
+  startDate="2024-03-15 09:10:00 -0600"
+  endDate="2024-03-15 09:20:00 -0600"
+  creationDate="2024-03-15 09:20:05 -0600"/>
+ <Record type="HKQuantityTypeIdentifierHeartRate"
+  sourceName="Apple Watch" sourceVersion="10.3"
+  unit="count/min" value="162"
+  startDate="2024-03-15 09:20:00 -0600"
+  endDate="2024-03-15 09:30:00 -0600"
+  creationDate="2024-03-15 09:30:05 -0600"/>
  <Record type="HKQuantityTypeIdentifierHeartRateVariabilitySDNN"
   sourceName="Apple Watch" sourceVersion="10.3"
   unit="ms" value="42.5"
