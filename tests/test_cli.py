@@ -14,7 +14,7 @@ FIXTURE_DIR = Path(__file__).parent / "fixtures"
 class TestResolveXmlPath:
     def test_xml_file_returned_directly(self) -> None:
         xml_path = FIXTURE_DIR / "sample_export.xml"
-        result, cleanup = resolve_xml_path(xml_path)
+        result, _clinical, cleanup = resolve_xml_path(xml_path)
         assert result == xml_path
         assert cleanup is None
 
@@ -25,7 +25,7 @@ class TestResolveXmlPath:
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.write(xml_source, "apple_health_export/export.xml")
 
-        result, cleanup = resolve_xml_path(zip_path)
+        result, _clinical, cleanup = resolve_xml_path(zip_path)
         assert result.name == "export.xml"
         assert result.exists()
         if cleanup:

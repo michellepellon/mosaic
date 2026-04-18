@@ -11,21 +11,25 @@ from pathlib import Path
 import duckdb
 
 from mosaic.export import export_json
+from mosaic.fhir import parse_clinical_records
 from mosaic.parser import compute_hr_zones, parse_export
 from mosaic.schema import TABLE_NAMES, create_tables, create_views, truncate_tables
 
 
-def resolve_xml_path(input_path: Path) -> tuple[Path, Callable[[], None] | None]:
-    """Resolve input to an export.xml path.
+def resolve_xml_path(
+    input_path: Path,
+) -> tuple[Path, Path | None, Callable[[], None] | None]:
+    """Resolve input to an export.xml path and optional clinical records dir.
 
-    Returns (xml_path, cleanup_fn). cleanup_fn is None if no temp dir was created.
+    Returns (xml_path, clinical_records_dir, cleanup_fn).
     """
     if not input_path.exists():
         print(f"Error: {input_path} does not exist", file=sys.stderr)
         raise SystemExit(1)
 
     if input_path.suffix == ".xml":
-        return input_path, None
+        clinical_dir = input_path.parent / "clinical-records"
+        return input_path, clinical_dir if clinical_dir.exists() else None, None
 
     if input_path.suffix == ".zip":
         tmp_dir = tempfile.mkdtemp(prefix="mosaic_")
@@ -39,12 +43,24 @@ def resolve_xml_path(input_path: Path) -> tuple[Path, Callable[[], None] | None]
             zf.extract(xml_names[0], tmp_path)
             extracted = tmp_path / xml_names[0]
 
+            # Extract clinical records if present
+            clinical_names = [
+                n for n in zf.namelist()
+                if "/clinical-records/" in n and n.endswith(".json")
+            ]
+            if clinical_names:
+                for name in clinical_names:
+                    zf.extract(name, tmp_path)
+                clinical_dir = extracted.parent / "clinical-records"
+            else:
+                clinical_dir = None
+
         def cleanup() -> None:
             import shutil
 
             shutil.rmtree(tmp_path, ignore_errors=True)
 
-        return extracted, cleanup
+        return extracted, clinical_dir, cleanup
 
     print(f"Error: {input_path} must be a .xml or .zip file", file=sys.stderr)
     raise SystemExit(1)
@@ -102,7 +118,7 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit(1)
 
     # Resolve input
-    xml_path, cleanup = resolve_xml_path(args.input)
+    xml_path, clinical_records_dir, cleanup = resolve_xml_path(args.input)
 
     try:
         start_time = time.monotonic()
@@ -135,9 +151,14 @@ def main(argv: list[str] | None = None) -> None:
                 print(f"Error: {args.labs} does not exist", file=sys.stderr)
                 raise SystemExit(1)
             conn.sql(
-                "INSERT INTO clinical_labs SELECT * FROM read_csv_auto(?)",
+                "INSERT OR IGNORE INTO clinical_labs "
+                "SELECT * FROM read_csv_auto(?)",
                 params=[str(args.labs)],
             )
+
+        # Import FHIR clinical records if available
+        if clinical_records_dir:
+            parse_clinical_records(conn, clinical_records_dir)
 
         # Export JSON if requested
         if args.json:
