@@ -95,3 +95,23 @@ class TestExportJson:
         export_json(db, out)
         data = json.loads(out.read_text())
         assert data["labs"] == {"date": "", "source": "", "groups": {}}
+
+
+class TestHrzonesExport:
+    def test_hrzones_includes_total(self, db: duckdb.DuckDBPyConnection, tmp_path: Path) -> None:
+        create_tables(db)
+        db.sql("""
+            INSERT INTO workout_hr_zones VALUES
+            ('2024-01-15 09:00:00-06', 'running', 2, 1200, 'Watch'),
+            ('2024-01-15 09:00:00-06', 'running', 4, 300, 'Watch')
+        """)
+        create_views(db)
+        out = tmp_path / "test.json"
+        export_json(db, out)
+        data = json.loads(out.read_text())
+        assert len(data["hrzones"]) == 1
+        row = data["hrzones"][0]
+        assert "total" in row
+        assert row["z2"] == 20.0
+        assert row["z4"] == 5.0
+        assert row["total"] == 25.0

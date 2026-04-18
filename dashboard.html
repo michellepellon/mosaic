@@ -770,7 +770,7 @@ async function loadFromDuckDB(conn) {
       query(conn, "SELECT date AS d, v FROM dashboard_bodyfat"),
       query(conn, "SELECT date AS d, v FROM dashboard_weight"),
       query(conn, "SELECT date AS d, v FROM dashboard_exercise"),
-      query(conn, "SELECT date AS d, z2, z4 FROM dashboard_hrzones"),
+      query(conn, "SELECT date AS d, z2, z4, total FROM dashboard_hrzones"),
       query(conn, "SELECT date AS d, steps, sleep, deep, rem, hr, hrv, spo2_min, spo2_avg FROM dashboard_scorecard"),
       query(conn, "SELECT date, test, value, unit, longevity_target, optimal FROM dashboard_labs"),
       query(conn, "SELECT date AS d, v FROM dashboard_walking_speed ORDER BY date"),
@@ -1442,7 +1442,7 @@ function buildCardioDetail(data) {
     d: parseDate(d.d),
     z2: d.z2,
     z4: d.z4,
-    other: Math.max(0, (data.exercise.find(e => e.d === d.d)?.v || 0) - d.z2 - d.z4)
+    other: Math.max(0, (d.total || 0) - d.z2 - d.z4)
   }));
 
   if (hrData.length >= 2) {
@@ -2066,6 +2066,7 @@ function buildSidebarCardio(el, data) {
     d: parseDate(d.d),
     z2: d.z2,
     z4: d.z4,
+    total: d.total || 0,
   }));
 
   if (hrData.length >= 2) {

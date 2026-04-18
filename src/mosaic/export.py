@@ -144,7 +144,7 @@ def export_json(conn: duckdb.DuckDBPyConnection, path: Path) -> None:
             conn, "SELECT date AS d, v FROM dashboard_exercise ORDER BY date"
         ),
         "hrzones": _query(
-            conn, "SELECT date AS d, z2, z4 FROM dashboard_hrzones ORDER BY date"
+            conn, "SELECT date AS d, z2, z4, total FROM dashboard_hrzones ORDER BY date"
         ),
         "walking_speed": _query(
             conn,
