@@ -297,10 +297,11 @@ _VIEW_SQL: list[str] = [
     FROM activity_summary GROUP BY 1 ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_hrzones AS
-    SELECT DATE_TRUNC('week', start_date::TIMESTAMP)::DATE AS date,
-        SUM(duration / 60.0 * 0.4) AS z2,
-        SUM(duration / 60.0 * 0.1) AS z4
-    FROM workouts GROUP BY 1 ORDER BY 1""",
+    SELECT DATE_TRUNC('week', workout_start::TIMESTAMP)::DATE AS date,
+        COALESCE(SUM(seconds) FILTER (WHERE zone = 2), 0) / 60.0 AS z2,
+        COALESCE(SUM(seconds) FILTER (WHERE zone >= 4), 0) / 60.0 AS z4,
+        COALESCE(SUM(seconds), 0) / 60.0 AS total
+    FROM workout_hr_zones GROUP BY 1 ORDER BY 1""",
 
     """CREATE OR REPLACE VIEW dashboard_scorecard AS
     WITH steps AS (SELECT date, total_steps AS steps FROM dashboard_steps),

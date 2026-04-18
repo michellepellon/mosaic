@@ -286,3 +286,29 @@ class TestDashboardViews:
         rows = db.sql("SELECT * FROM dashboard_walking_speed").fetchall()
         assert len(rows) == 1  # grouped by date
         assert 3.2 < rows[0][1] < 3.5  # avg of 3.2 and 3.4
+
+
+class TestDashboardHrzonesView:
+    def test_columns_include_total(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        create_views(db)
+        cols = [c[0] for c in db.sql("SELECT * FROM dashboard_hrzones LIMIT 0").description]
+        assert set(cols) == {"date", "z2", "z4", "total"}
+
+    def test_aggregates_zones_correctly(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        db.sql("""
+            INSERT INTO workout_hr_zones VALUES
+            ('2024-01-15 09:00:00-06', 'running', 1, 300, 'Watch'),
+            ('2024-01-15 09:00:00-06', 'running', 2, 1200, 'Watch'),
+            ('2024-01-15 09:00:00-06', 'running', 3, 600, 'Watch'),
+            ('2024-01-15 09:00:00-06', 'running', 4, 180, 'Watch'),
+            ('2024-01-15 09:00:00-06', 'running', 5, 60, 'Watch')
+        """)
+        create_views(db)
+        rows = db.sql("SELECT * FROM dashboard_hrzones").fetchall()
+        assert len(rows) == 1
+        date, z2, z4, total = rows[0]
+        assert z2 == 1200 / 60.0  # 20 min in Z2
+        assert z4 == (180 + 60) / 60.0  # Z4 + Z5 = 4 min
+        assert total == (300 + 1200 + 600 + 180 + 60) / 60.0
