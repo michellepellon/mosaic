@@ -111,7 +111,7 @@ def main(argv: list[str] | None = None) -> None:
 
         # Parse and ingest
         print(f"Parsing {xml_path}...", file=sys.stderr)
-        stats = parse_export(
+        stats, date_of_birth = parse_export(
             conn,
             xml_path,
             type_filter=type_filter,

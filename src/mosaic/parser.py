@@ -278,14 +278,16 @@ def parse_export(
     type_filter: set[str] | None = None,
     since: str | None = None,
     batch_size: int = 50_000,
-) -> dict[str, int]:
+) -> tuple[dict[str, int], str | None]:
     """Stream-parse an Apple Health export.xml and ingest into DuckDB.
 
-    Returns a dict of table_name -> row_count, plus 'total', 'skipped', 'errors'.
+    Returns (stats_dict, date_of_birth). stats_dict maps table_name -> row_count,
+    plus 'total', 'skipped', 'errors'. date_of_birth is from the <Me> element or None.
     """
     batches: dict[str, list[tuple[object, ...]]] = defaultdict(list)
     stats: dict[str, int] = defaultdict(int)
     processed = 0
+    date_of_birth: str | None = None
 
     context = iterparse(str(xml_path), events=("end",))
 
@@ -318,6 +320,12 @@ def parse_export(
                 row = extract_activity_summary(elem)
                 batches["activity_summary"].append(row)
                 stats["activity_summary"] = stats.get("activity_summary", 0) + 1
+        elif tag == "Me":
+            dob = elem.attrib.get("HKCharacteristicTypeIdentifierDateOfBirth")
+            if dob:
+                date_of_birth = dob
+            elem.clear()
+            continue
         else:
             elem.clear()
             continue
@@ -340,7 +348,7 @@ def parse_export(
             flush_batch(conn, table_name, rows)
 
     stats["total"] = sum(v for k, v in stats.items() if k not in ("skipped", "errors", "total"))
-    return dict(stats)
+    return dict(stats), date_of_birth
 
 
 def _process_record(

@@ -241,7 +241,7 @@ class TestParseExport:
     def test_parses_sample_export(self, db: duckdb.DuckDBPyConnection) -> None:
         create_tables(db)
         xml_path = FIXTURE_DIR / "sample_export.xml"
-        stats = parse_export(db, xml_path)
+        stats, _dob = parse_export(db, xml_path)
         # 2 step records
         assert db.sql("SELECT COUNT(*) FROM step_counts").fetchone()[0] == 2
         # 1 heart rate record
@@ -290,7 +290,33 @@ class TestParseExport:
     def test_returns_stats(self, db: duckdb.DuckDBPyConnection) -> None:
         create_tables(db)
         xml_path = FIXTURE_DIR / "sample_export.xml"
-        stats = parse_export(db, xml_path)
+        stats, _dob = parse_export(db, xml_path)
         assert "step_counts" in stats
         assert stats["step_counts"] == 2
         assert "total" in stats
+
+
+class TestExtractDateOfBirth:
+    def test_parses_dob_from_me_element(self, db: duckdb.DuckDBPyConnection, tmp_path: Path) -> None:
+        create_tables(db)
+        xml = tmp_path / "dob_test.xml"
+        xml.write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            "<HealthData>\n"
+            ' <Me HKCharacteristicTypeIdentifierDateOfBirth="1990-05-15"/>\n'
+            "</HealthData>"
+        )
+        stats, dob = parse_export(db, xml)
+        assert dob == "1990-05-15"
+
+    def test_missing_dob_returns_none(self, db: duckdb.DuckDBPyConnection, tmp_path: Path) -> None:
+        create_tables(db)
+        xml = tmp_path / "no_dob_test.xml"
+        xml.write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            "<HealthData>\n"
+            ' <Me HKCharacteristicTypeIdentifierBiologicalSex="HKBiologicalSexFemale"/>\n'
+            "</HealthData>"
+        )
+        stats, dob = parse_export(db, xml)
+        assert dob is None
