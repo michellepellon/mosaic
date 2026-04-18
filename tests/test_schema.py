@@ -169,6 +169,21 @@ class TestCreateViews:
         create_views(db)  # should not raise
 
 
+class TestWorkoutHrZonesTable:
+    def test_creates_workout_hr_zones_table(self, db: duckdb.DuckDBPyConnection) -> None:
+        create_tables(db)
+        result = db.sql("SELECT * FROM workout_hr_zones LIMIT 0").description
+        col_names = [col[0] for col in result]
+        assert "workout_start" in col_names
+        assert "workout_type" in col_names
+        assert "zone" in col_names
+        assert "seconds" in col_names
+        assert "source_name" in col_names
+
+    def test_workout_hr_zones_in_table_names(self) -> None:
+        assert "workout_hr_zones" in TABLE_NAMES
+
+
 class TestClinicalLabsTable:
     def test_creates_clinical_labs_table(self, db: duckdb.DuckDBPyConnection) -> None:
         create_tables(db)

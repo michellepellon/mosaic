@@ -60,6 +60,7 @@ TABLE_NAMES: frozenset[str] = frozenset({
     "respiratory_rate",
     "oxygen_saturation",
     "workouts",
+    "workout_hr_zones",
     "activity_summary",
     "clinical_labs",
 })
@@ -132,6 +133,13 @@ _TABLE_DDL: dict[str, str] = {
         start_date      TIMESTAMPTZ NOT NULL,
         end_date        TIMESTAMPTZ NOT NULL,
         creation_date   TIMESTAMPTZ
+    )""",
+    "workout_hr_zones": """CREATE TABLE IF NOT EXISTS workout_hr_zones (
+        workout_start   TIMESTAMPTZ NOT NULL,
+        workout_type    VARCHAR NOT NULL,
+        zone            INTEGER NOT NULL,
+        seconds         DOUBLE NOT NULL,
+        source_name     VARCHAR NOT NULL
     )""",
     "activity_summary": """CREATE TABLE IF NOT EXISTS activity_summary (
         date                DATE NOT NULL UNIQUE,
