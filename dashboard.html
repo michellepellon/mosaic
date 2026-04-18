@@ -772,7 +772,7 @@ async function loadFromDuckDB(conn) {
       query(conn, "SELECT date AS d, v FROM dashboard_exercise"),
       query(conn, "SELECT date AS d, z2, z4, total FROM dashboard_hrzones"),
       query(conn, "SELECT date AS d, steps, sleep, deep, rem, hr, hrv, spo2_min, spo2_avg FROM dashboard_scorecard"),
-      query(conn, "SELECT date, test, value, unit, longevity_target, optimal FROM dashboard_labs"),
+      query(conn, "SELECT draw_date, test, loinc_code, value, unit, ref_low, ref_high, source FROM dashboard_labs"),
       query(conn, "SELECT date AS d, v FROM dashboard_walking_speed ORDER BY date"),
       query(conn, "SELECT date AS d, v FROM dashboard_walking_asymmetry ORDER BY date"),
       query(conn, "SELECT date AS d, v FROM dashboard_respiratory_rate ORDER BY date"),
@@ -781,11 +781,15 @@ async function loadFromDuckDB(conn) {
            walking_speed, walking_asymmetry, respiratory_rate };
 }
 
-function transformLabs(labRows) {
+function transformLabs(labRows, thresholds) {
   if (!labRows || !labRows.length) return { date: "", source: "", groups: {} };
-  const date = labRows[0].date;
-  const groups = {};
-  const groupMap = {
+  const dates = [...new Set(labRows.map(r => r.draw_date).filter(Boolean))].sort();
+  const latestDate = dates.length ? dates[dates.length - 1] : "";
+  const latestRows = dates.length ? labRows.filter(r => r.draw_date === latestDate) : labRows;
+
+  const thresholdsByLoinc = thresholds || {};
+  // Fallback panel mapping by test name
+  const nameMap = {
     "Glucose": "Metabolic Panel", "ALT": "Metabolic Panel", "AST": "Metabolic Panel",
     "Albumin": "Metabolic Panel", "Alkaline phosphatase": "Metabolic Panel",
     "BUN": "Metabolic Panel", "Creatinine": "Metabolic Panel",
@@ -798,18 +802,29 @@ function transformLabs(labRows) {
     "Platelet count": "Hematology", "Hemoglobin A1C": "Hematology",
     "TSH": "Thyroid",
   };
-  for (const row of labRows) {
-    const group = groupMap[row.test] || "Other";
+
+  const groups = {};
+  for (const row of latestRows) {
+    const loinc = row.loinc_code || "";
+    const threshold = thresholdsByLoinc[loinc] || {};
+    const group = threshold.panel || nameMap[row.test] || "Other";
+    const optimal = threshold.optimal || "";
     if (!groups[group]) groups[group] = [];
-    const status = computeLabStatus(row);
-    groups[group].push({ test: row.test, value: row.value, unit: row.unit, optimal: row.optimal, status });
+    const status = computeLabStatus(row.value, optimal);
+    groups[group].push({
+      test: threshold.display || row.test,
+      value: row.value,
+      unit: row.unit,
+      optimal,
+      status,
+    });
   }
-  return { date, source: "", groups };
+  return { date: latestDate, source: "", groups, drawCount: dates.length };
 }
 
-function computeLabStatus(row) {
-  const v = row.value;
-  const opt = row.optimal;
+function computeLabStatus(value, optimal) {
+  const v = value;
+  const opt = optimal;
   if (!opt || opt === "--") return "green";
   if (opt.startsWith("<")) {
     const t = parseFloat(opt.slice(1));
@@ -820,7 +835,7 @@ function computeLabStatus(row) {
     return v >= t ? "green" : v >= t * 0.8 ? "amber" : "red";
   }
   const parts = opt.split("-").map(Number);
-  if (parts.length === 2) {
+  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
     const [lo, hi] = parts;
     if (v >= lo && v <= hi) return "green";
     const margin = (hi - lo) * 0.2;
@@ -937,7 +952,7 @@ function renderAll(days) {
     try {
       const conn = await initDB();
       rawData = await loadFromDuckDB(conn);
-      rawData.labs = transformLabs(rawData.labs);
+      rawData.labs = transformLabs(rawData.labs, null);
       dataSource = "duckdb";
     } catch (dbErr) {
       console.warn("DuckDB-WASM load failed, falling back to JSON:", dbErr.message);
@@ -1097,6 +1112,9 @@ function buildBloodwork(data) {
     heading.textContent = `Clinical Biomarkers — ${labDate}`;
     if (labSource) {
       heading.innerHTML += ` <span style="font-size:0.7em;color:#888;font-variant:normal;letter-spacing:0">${labSource}</span>`;
+    }
+    if (labs.drawCount && labs.drawCount > 1) {
+      heading.innerHTML += ` <span style="font-size:0.65em;color:#888;font-variant:normal;letter-spacing:0">(${labs.drawCount} draws)</span>`;
     }
   }
 
