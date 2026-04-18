@@ -1,6 +1,7 @@
 """Tests for schema module."""
 
 import duckdb
+import pytest
 
 from mosaic.schema import (
     BODY_MEASUREMENT_TYPES,
@@ -213,15 +214,12 @@ class TestExpandedClinicalLabsTable:
              70, 99, 'Labcorp')
         """)
         # Duplicate should be rejected
-        try:
+        with pytest.raises(duckdb.ConstraintException):
             db.sql("""
                 INSERT INTO clinical_labs VALUES
                 ('2024-01-30', 'Glucose', '2345-7', 79.0, 'mg/dL',
                  70, 99, 'Labcorp')
             """)
-            assert False, "Should have raised on duplicate"
-        except Exception:
-            pass  # Expected
 
 
 class TestLongevityThresholds:
