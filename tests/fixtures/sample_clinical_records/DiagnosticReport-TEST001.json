@@ -1,0 +1,27 @@
+{
+    "resourceType": "DiagnosticReport",
+    "category": {"coding": [{"system": "http://hl7.org/fhir/v2/0074", "code": "LAB"}]},
+    "effectiveDateTime": "2024-01-30T08:00:00-05:00",
+    "contained": [
+        {
+            "resourceType": "Observation",
+            "effectiveDateTime": "2024-01-30T08:00:00-05:00",
+            "code": {"coding": [
+                {"system": "http://loinc.org", "display": "Glucose", "code": "2345-7"}
+            ]},
+            "valueQuantity": {"value": 85, "unit": "mg/dL"},
+            "referenceRange": [{"low": {"value": 70}, "high": {"value": 99}}],
+            "status": "final"
+        },
+        {
+            "resourceType": "Observation",
+            "effectiveDateTime": "2024-01-30T08:00:00-05:00",
+            "code": {"coding": [
+                {"system": "http://loinc.org", "display": "BUN", "code": "3094-0"}
+            ]},
+            "valueQuantity": {"value": 12, "unit": "mg/dL"},
+            "referenceRange": [{"low": {"value": 6}, "high": {"value": 20}}],
+            "status": "final"
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "resourceType": "Observation",
+    "category": [{"coding": [
+        {"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory"}
+    ]}],
+    "effectiveDateTime": "2024-07-15T10:00:00-04:00",
+    "code": {"coding": [
+        {"system": "http://loinc.org", "display": "Glucose", "code": "2345-7"}
+    ]},
+    "valueQuantity": {"value": 92, "unit": "mg/dL"},
+    "referenceRange": [{"low": {"value": 70}, "high": {"value": 99}}],
+    "status": "final"
+}
