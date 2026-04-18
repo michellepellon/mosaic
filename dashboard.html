@@ -539,6 +539,11 @@ h2[data-section].sidebar-active::after {
 <h2 data-section="gait">Gait &amp; Mobility</h2>
 <div class="small-multiples" id="gait-section"></div>
 
+<!-- ═══════════ SECTION 3c: Cross-Metric Correlations ═══════════ -->
+<h2 data-section="correlations">Cross-Metric Correlations</h2>
+<p class="wide content-with-sidenotes">Paired metrics that reveal cause-and-effect relationships. These three pairings cover the most common longevity interventions: optimize sleep, calibrate training, screen for apnea.</p>
+<div id="correlations-section"></div>
+
 <!-- ═══════════ SECTION 4: Cardiovascular Detail ═══════════ -->
 <h2 data-section="cardio">Cardiovascular Detail</h2>
 <div class="cardio-grid" id="cardio-detail"></div>
@@ -869,6 +874,7 @@ function openSidebar(section) {
     biomarkers: "Clinical Biomarkers",
     trends: "Trends",
     gait: "Gait & Mobility",
+    correlations: "Cross-Metric Correlations",
     cardio: "Cardiovascular",
     sleep: "Sleep",
   };
@@ -880,6 +886,7 @@ function openSidebar(section) {
     biomarkers: () => buildSidebarBiomarkers(contentEl, filtered),
     trends: () => buildSidebarTrends(contentEl, filtered),
     gait: () => buildSidebarGait(contentEl, filtered),
+    correlations: () => buildSidebarCorrelations(contentEl, filtered),
     cardio: () => buildSidebarCardio(contentEl, filtered),
     sleep: () => buildSidebarSleep(contentEl, filtered),
   };
@@ -933,7 +940,8 @@ function renderAll(days) {
 
   // Clear dynamic sections
   for (const id of ["system-status", "bloodwork-section", "small-multiples",
-                     "cardio-detail", "sleep-architecture", "gait-section"]) {
+                     "cardio-detail", "sleep-architecture", "gait-section",
+                     "correlations-section"]) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = "";
   }
@@ -942,6 +950,7 @@ function renderAll(days) {
   buildBloodwork(filtered);
   buildSmallMultiples(filtered, startDate, endDate);
   buildGaitSection(filtered, startDate, endDate);
+  buildCorrelations(filtered);
   buildCardioDetail(filtered);
   buildSleepArchitecture(filtered);
   refreshSidebar();
@@ -1367,6 +1376,240 @@ function buildGaitSection(data, rangeStart, rangeEnd) {
     tufteXAxis(g, x, ih, "%b %d");
     addLineTooltip(g, ch.data, x, y, ch.yFmt, iw, ih);
     container.appendChild(div);
+  }
+}
+
+// ═══════════════════════════════════════════
+// SECTION 3c: Cross-Metric Correlations
+// ═══════════════════════════════════════════
+function buildCorrelations(data) {
+  const container = document.getElementById("correlations-section");
+  if (!container) return;
+
+  const fullW = 920, fullH = 200;
+  const margin = { top: 10, right: 50, bottom: 22, left: 36 };
+  const iw = fullW - margin.left - margin.right;
+  const ih = fullH - margin.top - margin.bottom;
+
+  // ── Shared data prep ──
+  const sleepData = data.sleep.filter(d => d.total > 0.5);
+  const sleepByDate = {};
+  for (const s of sleepData) sleepByDate[s.d] = s;
+
+  // ── Chart 1: HRV vs Sleep Quality ──
+  {
+    const hrvData = data.hrv.filter(d => d.v > 0);
+    const chart1Data = hrvData.map(d => ({
+      d: parseDate(d.d),
+      hrv: d.r7 || d.v,
+      deep: sleepByDate[d.d]?.deep || 0,
+      rem: sleepByDate[d.d]?.rem || 0,
+    })).filter(d => d.deep + d.rem > 0);
+
+    if (chart1Data.length >= 3) {
+      const div = document.createElement("div");
+      div.style.marginBottom = "2rem";
+      const titleEl = document.createElement("div");
+      titleEl.className = "chart-title";
+      titleEl.textContent = "HRV vs Sleep Quality";
+      div.appendChild(titleEl);
+      const context = document.createElement("p");
+      context.style.cssText = "font-size:0.78rem;color:#666;font-style:italic;max-width:600px;margin-bottom:0.5rem";
+      context.textContent = "Autonomic recovery is gated by sleep architecture. Chronically low HRV with adequate sleep suggests overtraining; low HRV with poor sleep suggests fixing sleep first.";
+      div.appendChild(context);
+
+      const svg = d3.select(div).append("svg")
+        .attr("width", fullW).attr("height", fullH)
+        .attr("viewBox", `0 0 ${fullW} ${fullH}`)
+        .style("max-width", "100%");
+      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+      const x = d3.scaleTime().domain(d3.extent(chart1Data, d => d.d)).range([0, iw]);
+      const yLeft = d3.scaleLinear()
+        .domain([d3.min(chart1Data, d => d.hrv) * 0.9, d3.max(chart1Data, d => d.hrv) * 1.1])
+        .range([ih, 0]);
+      const yRightMax = d3.max(chart1Data, d => d.deep + d.rem) * 1.2;
+      const yRight = d3.scaleLinear().domain([0, yRightMax]).range([ih, 0]);
+
+      // Stacked bars: deep + REM
+      const barW = Math.max(1, iw / chart1Data.length - 1);
+      g.selectAll("rect.deep").data(chart1Data).join("rect")
+        .attr("x", d => x(d.d) - barW / 2)
+        .attr("y", d => yRight(d.deep + d.rem))
+        .attr("width", barW).attr("height", d => ih - yRight(d.deep + d.rem))
+        .attr("fill", "#444").attr("opacity", 0.5);
+      g.selectAll("rect.rem").data(chart1Data).join("rect")
+        .attr("x", d => x(d.d) - barW / 2)
+        .attr("y", d => yRight(d.rem))
+        .attr("width", barW).attr("height", d => ih - yRight(d.rem))
+        .attr("fill", "#888").attr("opacity", 0.5);
+
+      // HRV line on top
+      const line = d3.line().x(d => x(d.d)).y(d => yLeft(d.hrv)).curve(d3.curveMonotoneX);
+      g.append("path").attr("d", line(chart1Data))
+        .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1.3);
+
+      tufteYAxis(g, yLeft, iw, d3.format(".0f"));
+      // Right axis labels
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yRight(yRightMax)).attr("dy", "0.35em")
+        .text(d3.format(".1f")(yRightMax) + "h");
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yRight(0)).attr("dy", "0.35em")
+        .text("0");
+      tufteXAxis(g, x, ih, "%b '%y");
+
+      container.appendChild(div);
+    }
+  }
+
+  // ── Chart 2: RHR Trend vs Training Load ──
+  {
+    const rhrByWeek = {};
+    for (const d of data.rhr) {
+      const wk = d3.timeMonday(parseDate(d.d)).toISOString().slice(0, 10);
+      if (!rhrByWeek[wk]) rhrByWeek[wk] = [];
+      rhrByWeek[wk].push(d.v);
+    }
+    const rhrWeekly = [];
+    for (const [wk, vals] of Object.entries(rhrByWeek)) {
+      rhrWeekly.push({ d: parseDate(wk), v: d3.mean(vals) });
+    }
+    const exByDate = {};
+    for (const e of data.exercise) exByDate[e.d] = e.v;
+    const chart2Data = rhrWeekly.map(d => ({
+      d: d.d,
+      rhr: d.v,
+      exercise: exByDate[d.d.toISOString().slice(0, 10)] || 0,
+    }));
+
+    if (chart2Data.length >= 3) {
+      const div = document.createElement("div");
+      div.style.marginBottom = "2rem";
+      const titleEl = document.createElement("div");
+      titleEl.className = "chart-title";
+      titleEl.textContent = "RHR Trend vs Training Load";
+      div.appendChild(titleEl);
+      const context = document.createElement("p");
+      context.style.cssText = "font-size:0.78rem;color:#666;font-style:italic;max-width:600px;margin-bottom:0.5rem";
+      context.textContent = "Rising resting HR during stable training volume is the earliest signal of overtraining or illness. Well-adapted training shows declining RHR with increasing load.";
+      div.appendChild(context);
+
+      const svg = d3.select(div).append("svg")
+        .attr("width", fullW).attr("height", fullH)
+        .attr("viewBox", `0 0 ${fullW} ${fullH}`)
+        .style("max-width", "100%");
+      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+      const x = d3.scaleTime().domain(d3.extent(chart2Data, d => d.d)).range([0, iw]);
+      const yLeft = d3.scaleLinear()
+        .domain([d3.min(chart2Data, d => d.rhr) * 0.95, d3.max(chart2Data, d => d.rhr) * 1.05])
+        .range([ih, 0]);
+      const yRightMax = d3.max(chart2Data, d => d.exercise) * 1.2 || 200;
+      const yRight = d3.scaleLinear().domain([0, yRightMax]).range([ih, 0]);
+
+      // Exercise bars
+      const barW = Math.max(1, iw / chart2Data.length - 1);
+      g.selectAll("rect.ex").data(chart2Data).join("rect")
+        .attr("x", d => x(d.d) - barW / 2)
+        .attr("y", d => yRight(d.exercise))
+        .attr("width", barW).attr("height", d => ih - yRight(d.exercise))
+        .attr("fill", "#ccc").attr("opacity", 0.6);
+
+      // RHR line
+      const line = d3.line().x(d => x(d.d)).y(d => yLeft(d.rhr)).curve(d3.curveMonotoneX);
+      g.append("path").attr("d", line(chart2Data))
+        .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1.3);
+
+      tufteYAxis(g, yLeft, iw, d3.format(".0f"));
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yRight(yRightMax)).attr("dy", "0.35em")
+        .text(d3.format(".0f")(yRightMax) + "m");
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yRight(0)).attr("dy", "0.35em")
+        .text("0");
+      tufteXAxis(g, x, ih, "%b '%y");
+
+      container.appendChild(div);
+    }
+  }
+
+  // ── Chart 3: SpO2 Nadir vs Deep Sleep ──
+  {
+    const spo2ByDate = {};
+    for (const s of data.spo2) spo2ByDate[s.d] = s.min;
+    const chart3Data = sleepData.map(d => ({
+      d: parseDate(d.d),
+      deep: d.deep || 0,
+      spo2: spo2ByDate[d.d] ?? null,
+    })).filter(d => d.spo2 !== null);
+
+    if (chart3Data.length >= 3) {
+      const div = document.createElement("div");
+      div.style.marginBottom = "2rem";
+      const titleEl = document.createElement("div");
+      titleEl.className = "chart-title";
+      titleEl.textContent = "SpO2 Nadir vs Deep Sleep";
+      div.appendChild(titleEl);
+      const context = document.createElement("p");
+      context.style.cssText = "font-size:0.78rem;color:#666;font-style:italic;max-width:600px;margin-bottom:0.5rem";
+      context.textContent = "Nocturnal desaturation disrupts deep sleep via microarousals. If deep sleep is chronically low and SpO2 dips below 90%, a sleep study should be considered.";
+      div.appendChild(context);
+
+      const svg = d3.select(div).append("svg")
+        .attr("width", fullW).attr("height", fullH)
+        .attr("viewBox", `0 0 ${fullW} ${fullH}`)
+        .style("max-width", "100%");
+      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+      const x = d3.scaleTime().domain(d3.extent(chart3Data, d => d.d)).range([0, iw]);
+      const spo2Min = Math.min(d3.min(chart3Data, d => d.spo2), 88) - 1;
+      const spo2Max = Math.max(d3.max(chart3Data, d => d.spo2), 100);
+      const yLeft = d3.scaleLinear().domain([spo2Min, spo2Max]).range([ih, 0]);
+      const deepMax = d3.max(chart3Data, d => d.deep) * 1.2 || 2;
+      const yRight = d3.scaleLinear().domain([0, deepMax]).range([ih, 0]);
+
+      // Deep sleep bars
+      const barW = Math.max(1, iw / chart3Data.length - 1);
+      g.selectAll("rect.deep").data(chart3Data).join("rect")
+        .attr("x", d => x(d.d) - barW / 2)
+        .attr("y", d => yRight(d.deep))
+        .attr("width", barW).attr("height", d => ih - yRight(d.deep))
+        .attr("fill", "#444").attr("opacity", 0.4);
+
+      // Danger threshold at 88%
+      g.append("line")
+        .attr("x1", 0).attr("x2", iw)
+        .attr("y1", yLeft(88)).attr("y2", yLeft(88))
+        .attr("stroke", "#b44").attr("stroke-width", 0.8).attr("stroke-dasharray", "2,2");
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yLeft(88)).attr("dy", "0.35em")
+        .style("fill", "#b44")
+        .text("88% danger");
+
+      // SpO2 connecting line
+      const line = d3.line().x(d => x(d.d)).y(d => yLeft(d.spo2)).curve(d3.curveMonotoneX);
+      g.append("path").attr("d", line(chart3Data))
+        .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1);
+
+      // SpO2 scatter dots (red if < 90%)
+      g.selectAll("circle.spo2").data(chart3Data).join("circle")
+        .attr("cx", d => x(d.d)).attr("cy", d => yLeft(d.spo2))
+        .attr("r", 2.5)
+        .attr("fill", d => d.spo2 < 90 ? "#b44" : "#333");
+
+      tufteYAxis(g, yLeft, iw, d3.format(".0f"));
+      // Right axis labels for deep sleep
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yRight(deepMax)).attr("dy", "0.35em")
+        .text(d3.format(".1f")(deepMax) + "h");
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yRight(0)).attr("dy", "0.35em")
+        .text("0");
+      tufteXAxis(g, x, ih, "%b '%y");
+
+      container.appendChild(div);
+    }
   }
 }
 
@@ -2011,6 +2254,12 @@ function buildSidebarGait(el, data) {
     addLineTooltip(g, chartData, x, y, ch.yFmt, iw, ih);
     el.appendChild(div);
   }
+}
+function buildSidebarCorrelations(el, data) {
+  const p = document.createElement("p");
+  p.style.cssText = "color:#888;font-style:italic";
+  p.textContent = "Tier 2 correlation pairs coming soon.";
+  el.appendChild(p);
 }
 function buildSidebarCardio(el, data) {
   const w = 340, h = 180;
