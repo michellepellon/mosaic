@@ -1142,7 +1142,7 @@ async function initDB() {
   await db.registerFileBuffer("health.duckdb", buffer);
 
   const conn = await db.connect();
-  await conn.query("ATTACH 'health.duckdb' AS health (READ_ONLY)");
+  await conn.query("ATTACH 'health.duckdb' AS health");
   await conn.query("USE health");
   return conn;
 }
@@ -2324,20 +2324,30 @@ async function loadProfile() {
   return saved;
 }
 
-function saveProfile() {
+async function saveProfile() {
   const data = {};
   for (const id of PROFILE_FIELDS) {
     const el = document.getElementById(id);
     if (el) data[id] = el.value;
   }
-  // Save to localStorage (immediate persistence)
+  // Write directly to DuckDB-WASM
+  if (dbConn) {
+    try {
+      for (const [key, value] of Object.entries(data)) {
+        if (value) {
+          const safeKey = key.replace(/'/g, "''");
+          const safeVal = value.replace(/'/g, "''");
+          await dbConn.query(
+            `INSERT OR REPLACE INTO athlete_profile VALUES ('${safeKey}', '${safeVal}')`
+          );
+        }
+      }
+    } catch (err) {
+      console.warn("DuckDB profile write failed:", err.message);
+    }
+  }
+  // localStorage as fallback cache
   localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
-  // Write to DuckDB via export: save as JSON for CLI to import
-  try {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const existing = document.getElementById("profile-download-link");
-    if (existing) existing.remove();
-  } catch { /* ignore */ }
   return data;
 }
 
@@ -2359,11 +2369,10 @@ function initProfile() {
     if (panel.classList.contains("open")) loadProfile();
   });
 
-  saveBtn.addEventListener("click", () => {
-    saveProfile();
-    status.textContent = "saved";
+  saveBtn.addEventListener("click", async () => {
+    await saveProfile();
+    status.textContent = "saved to DuckDB";
     setTimeout(() => { status.textContent = ""; }, 2000);
-    // Re-render with updated targets
     if (rawData) renderAll(currentRange);
   });
 }
