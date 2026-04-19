@@ -1157,33 +1157,35 @@ async function flushToDisk() {
   // write the whole database back. Instead we export the profile as
   // JSON — the CLI auto-imports it on next parse via --profile.
   try {
-    // Collect profile from DuckDB or localStorage
-    let profile = {};
-    if (dbConn) {
-      try {
-        const rows = await dbConn.query("SELECT key, value FROM athlete_profile");
-        for (const row of rows.toArray()) {
-          const r = row.toJSON();
-          profile[r.key] = r.value;
-        }
-      } catch { /* table may not exist */ }
-    }
-    if (!Object.keys(profile).length) {
-      profile = getProfile(); // fall back to localStorage
+    // Collect profile from localStorage (primary store in browser)
+    let profile = getProfile();
     }
 
     const json = JSON.stringify(profile, null, 2);
-    const handle = await window.showSaveFilePicker({
-      suggestedName: "profile.json",
-      startIn: "downloads",
-      types: [{
-        description: "Athlete Profile",
-        accept: { "application/json": [".json"] },
-      }],
-    });
-    const writable = await handle.createWritable();
-    await writable.write(json);
-    await writable.close();
+
+    // File System Access API (Chrome/Edge) or download fallback (Firefox/Safari)
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: "profile.json",
+        startIn: "downloads",
+        types: [{
+          description: "Athlete Profile",
+          accept: { "application/json": [".json"] },
+        }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+    } else {
+      // Fallback: trigger a download
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "profile.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
     return true;
   } catch (err) {
     if (err.name === "AbortError") return false;
@@ -2348,14 +2350,17 @@ async function loadProfile() {
   let saved = {};
   if (dbConn) {
     try {
-      const rows = await dbConn.query(
-        "SELECT key, value FROM athlete_profile"
+      const check = await dbConn.query(
+        "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'athlete_profile'"
       );
-      for (const row of rows.toArray()) {
-        const r = row.toJSON();
-        saved[r.key] = r.value;
+      if (Number(check.toArray()[0].toJSON()["count_star()"]) > 0) {
+        const rows = await dbConn.query("SELECT key, value FROM athlete_profile");
+        for (const row of rows.toArray()) {
+          const r = row.toJSON();
+          saved[r.key] = r.value;
+        }
       }
-    } catch { /* table may not exist yet */ }
+    } catch { /* ignore */ }
   }
   // Merge with localStorage (localStorage wins for unsaved edits)
   try {
