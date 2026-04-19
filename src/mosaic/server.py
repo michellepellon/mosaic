@@ -8,6 +8,7 @@ import os
 import duckdb
 from fastmcp import FastMCP
 
+from mosaic.readiness import compute_readiness
 from mosaic.schema import LONGEVITY_THRESHOLDS, compute_lab_status
 
 mcp = FastMCP(
@@ -99,6 +100,22 @@ def get_health_summary(days: int = 30) -> dict[str, object]:
             "exercise_min_per_week": {"value": ex_avg, "target": 150},
         },
     }
+
+
+@mcp.tool
+def get_daily_brief() -> dict[str, object]:
+    """Get today's performance readiness score, training prescription, and alerts.
+
+    Returns a composite readiness score (0-100) based on HRV, resting HR,
+    sleep quality, SpO2, and training load compared to 30-day baselines.
+    Includes a training prescription (peak/ready/moderate/recover) and
+    watch list alerts for concerning trends.
+    """
+    conn = _connect()
+    try:
+        return compute_readiness(conn)
+    finally:
+        conn.close()
 
 
 @mcp.tool
