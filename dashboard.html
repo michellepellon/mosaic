@@ -681,8 +681,79 @@ table.workout-table td {
 }
 
 @media print {
-  #console-bar, #query-console { display: none; }
+  #console-bar, #query-console, #profile-panel { display: none; }
   body { background: #fff; }
+}
+
+/* ── Profile Panel ── */
+#profile-toggle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  letter-spacing: 0.04em;
+}
+#profile-toggle:hover { color: #334155; }
+
+#profile-panel {
+  display: none; background: #fff;
+  border-bottom: 1px solid #e2e4e9;
+  padding: 1.5rem 2rem;
+}
+#profile-panel.open { display: block; }
+
+#profile-panel h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: #9ca3af;
+  margin-bottom: 0.8rem; margin-top: 1.2rem;
+}
+#profile-panel h3:first-child { margin-top: 0; }
+
+.profile-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem 1.2rem;
+}
+@media (max-width: 900px) { .profile-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.profile-field label {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #9ca3af;
+  margin-bottom: 0.2rem;
+}
+.profile-field input,
+.profile-field select,
+.profile-field textarea {
+  width: 100%; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem; padding: 0.4rem 0.5rem;
+  border: 1px solid #e2e4e9; background: #f7f8fa;
+  color: #1a1a2e;
+}
+.profile-field textarea {
+  font-family: 'DM Sans', sans-serif;
+  resize: vertical; min-height: 60px;
+}
+.profile-field input:focus,
+.profile-field select:focus,
+.profile-field textarea:focus {
+  outline: none; border-color: #334155;
+}
+
+.profile-actions {
+  margin-top: 1.2rem; display: flex; gap: 0.5rem; align-items: center;
+}
+.profile-actions button {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.4rem 1.2rem;
+  cursor: pointer; border: none;
+}
+.profile-actions .btn-save {
+  background: #334155; color: #f7f8fa;
+}
+.profile-actions .btn-save:hover { background: #1a1a2e; }
+.profile-actions .save-status {
+  font-size: 0.7rem; color: #9ca3af;
 }
 </style>
 </head>
@@ -703,8 +774,117 @@ table.workout-table td {
     <div class="header-meta">
       <span id="range-toggle"></span>
       <span id="last-updated"></span>
+      <span id="profile-toggle">profile</span>
     </div>
   </header>
+
+  <!-- Profile Panel -->
+  <div id="profile-panel">
+    <h3>Demographics</h3>
+    <div class="profile-grid">
+      <div class="profile-field">
+        <label>Name</label>
+        <input type="text" id="p-name" placeholder="Michelle">
+      </div>
+      <div class="profile-field">
+        <label>Date of Birth</label>
+        <input type="date" id="p-dob">
+      </div>
+      <div class="profile-field">
+        <label>Sex</label>
+        <select id="p-sex">
+          <option value="">—</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+        </select>
+      </div>
+      <div class="profile-field">
+        <label>Height</label>
+        <input type="text" id="p-height" placeholder="5'6&quot;">
+      </div>
+    </div>
+
+    <h3>Physiology</h3>
+    <div class="profile-grid">
+      <div class="profile-field">
+        <label>Max HR (measured)</label>
+        <input type="number" id="p-maxhr" placeholder="Est. from DOB">
+      </div>
+      <div class="profile-field">
+        <label>Resting HR (baseline)</label>
+        <input type="number" id="p-rhr-baseline" placeholder="Auto from data">
+      </div>
+      <div class="profile-field">
+        <label>Training Age (years)</label>
+        <input type="number" id="p-training-age" placeholder="3">
+      </div>
+      <div class="profile-field">
+        <label>Primary Activity</label>
+        <input type="text" id="p-activity" placeholder="Running, cycling">
+      </div>
+    </div>
+
+    <h3>Targets</h3>
+    <div class="profile-grid">
+      <div class="profile-field">
+        <label>Daily Steps</label>
+        <input type="number" id="p-target-steps" placeholder="10000">
+      </div>
+      <div class="profile-field">
+        <label>Sleep (hrs)</label>
+        <input type="number" id="p-target-sleep" step="0.5" placeholder="7.5">
+      </div>
+      <div class="profile-field">
+        <label>Body Fat %</label>
+        <input type="number" id="p-target-bf" step="0.5" placeholder="25">
+      </div>
+      <div class="profile-field">
+        <label>VO2 Max</label>
+        <input type="number" id="p-target-vo2" placeholder="40">
+      </div>
+      <div class="profile-field">
+        <label>Exercise (min/wk)</label>
+        <input type="number" id="p-target-exercise" placeholder="150">
+      </div>
+      <div class="profile-field">
+        <label>Target Weight (lbs)</label>
+        <input type="number" id="p-target-weight" placeholder="">
+      </div>
+      <div class="profile-field">
+        <label>Z2 Min/Week Target</label>
+        <input type="number" id="p-target-z2" placeholder="180">
+      </div>
+      <div class="profile-field">
+        <label>Resting HR Target</label>
+        <input type="number" id="p-target-rhr" placeholder="65">
+      </div>
+    </div>
+
+    <h3>Medical</h3>
+    <div class="profile-grid" style="grid-template-columns: repeat(2, 1fr)">
+      <div class="profile-field">
+        <label>Conditions / History</label>
+        <textarea id="p-conditions" placeholder="e.g., Asthma, prior ACL repair..."></textarea>
+      </div>
+      <div class="profile-field">
+        <label>Current Medications</label>
+        <textarea id="p-medications" placeholder="e.g., Vitamin D 5000 IU, Creatine 5g..."></textarea>
+      </div>
+    </div>
+
+    <h3>Notes</h3>
+    <div class="profile-grid" style="grid-template-columns: 1fr">
+      <div class="profile-field">
+        <label>Goals / Context</label>
+        <textarea id="p-goals" placeholder="e.g., Training for a half marathon in September. Focusing on building aerobic base and dropping body fat."></textarea>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <button class="btn-save" id="profile-save">Save</button>
+      <span class="save-status" id="profile-status"></span>
+    </div>
+  </div>
 
   <!-- Daily Brief Banner -->
   <div id="daily-brief"></div>
@@ -2105,9 +2285,74 @@ document.getElementById("console-hint")?.addEventListener("click", () => {
   consoleEl.style.display = consoleEl.style.display === "none" ? "block" : "none";
 });
 
-// Initialize console after data loads
+// ═══════════════════════════════════════════
+// PROFILE MANAGEMENT
+// ═══════════════════════════════════════════
+
+const PROFILE_KEY = "mosaic_profile";
+
+const PROFILE_FIELDS = [
+  "p-name", "p-dob", "p-sex", "p-height", "p-maxhr", "p-rhr-baseline",
+  "p-training-age", "p-activity", "p-target-steps", "p-target-sleep",
+  "p-target-bf", "p-target-vo2", "p-target-exercise", "p-target-weight",
+  "p-target-z2", "p-target-rhr", "p-conditions", "p-medications", "p-goals",
+];
+
+function loadProfile() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
+    for (const id of PROFILE_FIELDS) {
+      const el = document.getElementById(id);
+      if (el && saved[id] != null) el.value = saved[id];
+    }
+    return saved;
+  } catch { return {}; }
+}
+
+function saveProfile() {
+  const data = {};
+  for (const id of PROFILE_FIELDS) {
+    const el = document.getElementById(id);
+    if (el) data[id] = el.value;
+  }
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
+  return data;
+}
+
+function getProfile() {
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}"); }
+  catch { return {}; }
+}
+
+function initProfile() {
+  const toggle = document.getElementById("profile-toggle");
+  const panel = document.getElementById("profile-panel");
+  const saveBtn = document.getElementById("profile-save");
+  const status = document.getElementById("profile-status");
+
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener("click", () => {
+    panel.classList.toggle("open");
+    if (panel.classList.contains("open")) loadProfile();
+  });
+
+  saveBtn.addEventListener("click", () => {
+    saveProfile();
+    status.textContent = "saved";
+    setTimeout(() => { status.textContent = ""; }, 2000);
+    // Re-render with updated targets
+    if (rawData) renderAll(currentRange);
+  });
+}
+
+// Initialize console and profile after data loads
 document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(initQueryConsole, 100);
+  setTimeout(() => {
+    initQueryConsole();
+    initProfile();
+    loadProfile();
+  }, 100);
 });
 </script>
 </body>
