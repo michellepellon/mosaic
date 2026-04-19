@@ -555,6 +555,37 @@ h2[data-section].sidebar-active::after {
 <h2 data-section="sleep">Sleep Architecture</h2>
 <div class="sleep-chart" id="sleep-architecture"></div>
 
+<!-- ═══════════ QUERY CONSOLE ═══════════ -->
+<h2>Query Console</h2>
+<p class="wide">SQL against your health database. DuckDB-WASM runs entirely in your browser — nothing leaves your machine.</p>
+<div id="query-console">
+  <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.8rem">
+    <textarea id="query-input" rows="3" spellcheck="false" style="
+      flex:1;font-family:'Berkeley Mono','SF Mono',Menlo,monospace;font-size:0.82rem;
+      padding:0.5rem 0.6rem;border:1px solid #ddd;background:#fffff8;color:#111;
+      resize:vertical;line-height:1.5;border-radius:2px;
+    " placeholder="SELECT * FROM dashboard_scorecard ORDER BY date DESC LIMIT 10">SELECT date, total AS sleep_hrs, deep, rem
+FROM dashboard_sleep
+WHERE total > 0.5
+ORDER BY date DESC LIMIT 14</textarea>
+    <div style="display:flex;flex-direction:column;gap:0.3rem">
+      <button id="query-run" style="
+        font-family:inherit;font-size:0.78rem;padding:0.4rem 1rem;
+        background:#333;color:#fffff8;border:none;cursor:pointer;
+        font-variant:small-caps;letter-spacing:0.04em;border-radius:2px;
+      ">run</button>
+      <button id="query-schema" style="
+        font-family:inherit;font-size:0.72rem;padding:0.3rem 0.8rem;
+        background:transparent;color:#888;border:1px solid #ddd;cursor:pointer;
+        border-radius:2px;
+      ">schema</button>
+    </div>
+  </div>
+  <div id="query-status" style="font-size:0.75rem;color:#888;margin-bottom:0.5rem"></div>
+  <div id="query-chart" style="margin-bottom:1rem"></div>
+  <div id="query-result" style="overflow-x:auto"></div>
+</div>
+
 </article>
 
 <!-- ═══════════ SIDEBAR ═══════════ -->
@@ -856,6 +887,7 @@ function computeLabStatus(value, optimal) {
 let rawData = null;
 let dataSource = "json";
 let currentRange = 365; // default to 1 year
+let dbConn = null; // exposed for query console
 
 // ── Sidebar state ──
 let sidebarSection = null;
@@ -963,8 +995,8 @@ function renderAll(days) {
 (async () => {
   try {
     try {
-      const conn = await initDB();
-      rawData = await loadFromDuckDB(conn);
+      dbConn = await initDB();
+      rawData = await loadFromDuckDB(dbConn);
       rawData.labs = transformLabs(rawData.labs, null);
       dataSource = "duckdb";
     } catch (dbErr) {
@@ -2698,6 +2730,160 @@ function buildSidebarSleep(el, data) {
   ));
   el.appendChild(statsDiv);
 }
+
+// ═══════════════════════════════════════════
+// QUERY CONSOLE
+// ═══════════════════════════════════════════
+
+function initQueryConsole() {
+  const input = document.getElementById("query-input");
+  const runBtn = document.getElementById("query-run");
+  const schemaBtn = document.getElementById("query-schema");
+  const statusEl = document.getElementById("query-status");
+  const resultEl = document.getElementById("query-result");
+  const chartEl = document.getElementById("query-chart");
+
+  if (!input || !runBtn) return;
+
+  async function runQuery() {
+    const sql = input.value.trim();
+    if (!sql) return;
+    if (!dbConn) {
+      statusEl.textContent = "DuckDB not available (using JSON fallback)";
+      statusEl.style.color = "#b44";
+      return;
+    }
+
+    statusEl.textContent = "Running...";
+    statusEl.style.color = "#888";
+    resultEl.innerHTML = "";
+    chartEl.innerHTML = "";
+
+    try {
+      const t0 = performance.now();
+      const result = await dbConn.query(sql);
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+
+      const rows = result.toArray().map(r => {
+        const obj = {};
+        for (const [k, v] of Object.entries(r.toJSON())) {
+          if (typeof v === "bigint") obj[k] = Number(v);
+          else if (v instanceof Date) obj[k] = v.toISOString().slice(0, 10);
+          else if (typeof v === "number" && (k === "d" || k === "date" || k.includes("date"))) {
+            const ms = v < 100000 ? v * 86400000 : v;
+            obj[k] = new Date(ms).toISOString().slice(0, 10);
+          } else obj[k] = v;
+        }
+        return obj;
+      });
+
+      const cols = rows.length ? Object.keys(rows[0]) : [];
+      statusEl.textContent = `${rows.length} row${rows.length !== 1 ? "s" : ""} \u00b7 ${elapsed}s`;
+      statusEl.style.color = "#5b8a5e";
+
+      // Render table
+      if (rows.length > 0) {
+        let html = `<table class="system-status" style="font-size:0.78rem">
+          <thead><tr>${cols.map(c =>
+            `<th style="text-align:${typeof rows[0][c] === "number" ? "right" : "left"}">${c}</th>`
+          ).join("")}</tr></thead><tbody>`;
+        for (const row of rows.slice(0, 200)) {
+          html += `<tr>${cols.map(c => {
+            const v = row[c];
+            const align = typeof v === "number" ? "right" : "left";
+            const display = v == null ? "" : typeof v === "number" ? (
+              Number.isInteger(v) ? v.toLocaleString() : v.toFixed(2)
+            ) : v;
+            return `<td style="text-align:${align}">${display}</td>`;
+          }).join("")}</tr>`;
+        }
+        html += "</tbody></table>";
+        if (rows.length > 200) html += `<p style="color:#888;font-size:0.75rem">${rows.length - 200} more rows not shown</p>`;
+        resultEl.innerHTML = html;
+
+        // Auto-chart: if there's a date-like column and a numeric column, draw a line chart
+        const dateCol = cols.find(c => c === "date" || c === "d" || c.includes("date"));
+        const numCols = cols.filter(c => c !== dateCol && typeof rows[0][c] === "number");
+        if (dateCol && numCols.length > 0 && rows.length >= 2) {
+          renderQueryChart(chartEl, rows, dateCol, numCols);
+        }
+      }
+    } catch (err) {
+      statusEl.textContent = err.message;
+      statusEl.style.color = "#b44";
+    }
+  }
+
+  function renderQueryChart(container, rows, dateCol, numCols) {
+    const w = 920, h = 200;
+    const margin = { top: 10, right: 50, bottom: 22, left: 50 };
+    const iw = w - margin.left - margin.right;
+    const ih = h - margin.top - margin.bottom;
+
+    const parsed = rows.map(r => ({
+      ...r,
+      _d: parseDate(r[dateCol]),
+    })).filter(r => r._d).sort((a, b) => a._d - b._d);
+
+    if (parsed.length < 2) return;
+
+    const svg = d3.select(container).append("svg")
+      .attr("width", w).attr("height", h)
+      .attr("viewBox", `0 0 ${w} ${h}`)
+      .style("max-width", "100%");
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleTime().domain(d3.extent(parsed, d => d._d)).range([0, iw]);
+
+    // One line per numeric column
+    const colors = ["#333", "#5b8a5e", "#b44", "#b8860b", "#666", "#888"];
+    for (let i = 0; i < Math.min(numCols.length, 6); i++) {
+      const col = numCols[i];
+      const vals = parsed.filter(d => d[col] != null);
+      if (vals.length < 2) continue;
+
+      const yExt = d3.extent(vals, d => d[col]);
+      const yPad = (yExt[1] - yExt[0]) * 0.1 || 1;
+      const y = d3.scaleLinear()
+        .domain([yExt[0] - yPad, yExt[1] + yPad])
+        .range([ih, 0]);
+
+      const line = d3.line().x(d => x(d._d)).y(d => y(d[col])).curve(d3.curveMonotoneX);
+      g.append("path").attr("d", line(vals))
+        .attr("fill", "none").attr("stroke", colors[i]).attr("stroke-width", 1.3);
+
+      // Label at end
+      const last = vals[vals.length - 1];
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y(last[col])).attr("dy", "0.35em")
+        .style("fill", colors[i]).style("font-weight", "600")
+        .text(col + " " + (Number.isInteger(last[col]) ? last[col] : last[col].toFixed(1)));
+
+      if (i === 0) tufteYAxis(g, y, iw, d3.format(yExt[1] > 1000 ? ",.0f" : ".1f"));
+    }
+
+    tufteXAxis(g, x, ih, "%b '%y");
+  }
+
+  runBtn.addEventListener("click", runQuery);
+  input.addEventListener("keydown", e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") runQuery();
+  });
+
+  schemaBtn.addEventListener("click", async () => {
+    input.value = `SELECT table_name, column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'main'
+ORDER BY table_name, ordinal_position`;
+    runQuery();
+  });
+}
+
+// Initialize console after data loads
+document.addEventListener("DOMContentLoaded", () => {
+  // Console init is deferred until after the main IIFE runs
+  setTimeout(initQueryConsole, 100);
+});
 </script>
 </body>
 </html>
