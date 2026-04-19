@@ -1,0 +1,67 @@
+<h2>Mosaic: Information Architecture</h2>
+<p class="subtitle">The current dashboard mixes 4 levels of information on one scrolling page. A coherent UX progressively discloses depth.</p>
+
+<div class="section">
+  <h3>The Problem</h3>
+  <div class="mockup">
+    <div class="mockup-header">Current Layout (one endless scroll)</div>
+    <div class="mockup-body" style="font-size:0.75rem;line-height:1.8;color:#666">
+      <div style="border-left:3px solid #5b8a5e;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Daily Brief (readiness score)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Protocol Scorecard (10 metrics table)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Clinical Biomarkers (lab results table)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Trends (9 small multiple charts)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Gait & Mobility (2 charts)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Correlations (3 dual-axis charts)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Cardiovascular (2 charts)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">Sleep Architecture (2 charts)</div>
+      <div style="border-left:3px solid #888;padding:0.3rem 0.5rem;margin-bottom:0.3rem">SQL Console</div>
+      <div style="color:#b44;font-style:italic;margin-top:0.5rem">~15 sections, no hierarchy, no narrative</div>
+    </div>
+  </div>
+</div>
+
+<h3>Which redesign direction?</h3>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Two-Mode: Brief + Lab</h3>
+      <p><strong>Brief</strong> is the landing page: readiness score, prescription, key numbers, alerts. Nothing else. One screen, no scrolling.</p>
+      <p><strong>Lab</strong> is the analysis workspace: tabbed by domain (Recovery, Physical, Metabolic, Custom). Each tab has relevant charts + an inline SQL console. Click a tab to explore that domain.</p>
+      <p style="color:#5b8a5e">The morning check takes 10 seconds. Deep analysis is one click away.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Clear separation of intent</li><li>Brief stays focused</li><li>Domains organize the chaos</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Tab switching adds friction</li><li>Harder to see cross-domain patterns</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Progressive Disclosure: Stack with Collapse</h3>
+      <p><strong>Brief</strong> at top (always visible). Below it, collapsible domain cards: Recovery, Physical, Metabolic. Each card shows a 1-line summary when collapsed ("Recovery: 82/100 — sleep excellent, HRV below baseline"). Click to expand and see the charts.</p>
+      <p><strong>Console</strong> pinned at the bottom, always accessible.</p>
+      <p style="color:#5b8a5e">Everything on one page, but only the brief demands attention. You expand what you need.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Single page, no mode switching</li><li>Domain summaries give overview</li><li>Drill-down on demand</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Collapsed cards still take space</li><li>Risk of "accordion fatigue"</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Command Center: Brief + Grid</h3>
+      <p><strong>Brief</strong> as a top banner (compact: score, status, prescription in one row). Below it, a <strong>dense grid</strong> of small cards — each card is one metric with a sparkline and current value. Click any card to expand into a full analysis view with charts, correlations, and SQL.</p>
+      <p><strong>Console</strong> accessible via a card or keyboard shortcut.</p>
+      <p style="color:#5b8a5e">Like a flight deck — everything visible at a glance, drill into anything.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Dense overview for power users</li><li>Every metric is one click from deep analysis</li><li>Feels like a performance center</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>More complex to build</li><li>Grid layout harder to make responsive</li><li>Lots of small cards can feel noisy</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

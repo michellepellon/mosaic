@@ -882,7 +882,6 @@ table.workout-table td {
 
     <div class="profile-actions">
       <button class="btn-save" id="profile-save">Save</button>
-      <button class="btn-save" id="profile-flush" style="background:#9ca3af">Save to Disk</button>
       <span class="save-status" id="profile-status"></span>
     </div>
   </div>
@@ -1127,8 +1126,6 @@ function addLineTooltip(g, data, x, y, yFmt, w, h) {
 // ── DuckDB-WASM ──
 import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
 
-let duckdbInstance = null; // keep reference for file export
-
 async function initDB() {
   const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
   const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
@@ -1139,7 +1136,6 @@ async function initDB() {
   const logger = new duckdb.ConsoleLogger();
   const db = new duckdb.AsyncDuckDB(logger, worker);
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-  duckdbInstance = db;
 
   const response = await fetch("data/health.duckdb");
   const buffer = new Uint8Array(await response.arrayBuffer());
@@ -1149,48 +1145,6 @@ async function initDB() {
   await conn.query("ATTACH 'health.duckdb' AS health (READ_ONLY)");
   await conn.query("USE health");
   return conn;
-}
-
-async function flushToDisk() {
-  // Export profile data as JSON to disk via File System Access API.
-  // DuckDB-WASM loads the .duckdb as a read-only buffer, so we can't
-  // write the whole database back. Instead we export the profile as
-  // JSON — the CLI auto-imports it on next parse via --profile.
-  try {
-    // Collect profile from localStorage (primary store in browser)
-    const profile = getProfile();
-
-    const json = JSON.stringify(profile, null, 2);
-
-    // File System Access API (Chrome/Edge) or download fallback (Firefox/Safari)
-    if (window.showSaveFilePicker) {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: "profile.json",
-        startIn: "downloads",
-        types: [{
-          description: "Athlete Profile",
-          accept: { "application/json": [".json"] },
-        }],
-      });
-      const writable = await handle.createWritable();
-      await writable.write(json);
-      await writable.close();
-    } else {
-      // Fallback: trigger a download
-      const blob = new Blob([json], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "profile.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-    return true;
-  } catch (err) {
-    if (err.name === "AbortError") return false;
-    console.warn("Flush to disk failed:", err.message);
-    return false;
-  }
 }
 
 async function query(conn, sql) {
@@ -2345,23 +2299,13 @@ const PROFILE_FIELDS = [
 ];
 
 async function loadProfile() {
-  // Load from DuckDB first, fall back to localStorage
   let saved = {};
-  if (dbConn) {
-    try {
-      const check = await dbConn.query(
-        "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'athlete_profile'"
-      );
-      if (Number(check.toArray()[0].toJSON()["count_star()"]) > 0) {
-        const rows = await dbConn.query("SELECT key, value FROM athlete_profile");
-        for (const row of rows.toArray()) {
-          const r = row.toJSON();
-          saved[r.key] = r.value;
-        }
-      }
-    } catch { /* ignore */ }
-  }
-  // Merge with localStorage (localStorage wins for unsaved edits)
+  // Load from server API (reads DuckDB on disk)
+  try {
+    const resp = await fetch("/api/profile");
+    if (resp.ok) saved = await resp.json();
+  } catch { /* server may not support API — fall back to localStorage */ }
+  // Merge with localStorage
   try {
     const local = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
     saved = { ...saved, ...local };
@@ -2373,15 +2317,26 @@ async function loadProfile() {
   return saved;
 }
 
-function saveProfile() {
+async function saveProfile() {
   const data = {};
   for (const id of PROFILE_FIELDS) {
     const el = document.getElementById(id);
     if (el) data[id] = el.value;
   }
-  // localStorage as fallback cache
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
-  return data;
+  // Write to DuckDB via server API
+  try {
+    const resp = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    return data;
+  } catch (err) {
+    console.warn("API save failed, using localStorage:", err.message);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
+    return data;
+  }
 }
 
 function getProfile() {
@@ -2402,23 +2357,13 @@ function initProfile() {
     if (panel.classList.contains("open")) loadProfile();
   });
 
-  saveBtn.addEventListener("click", () => {
-    saveProfile();
+  saveBtn.addEventListener("click", async () => {
+    status.textContent = "saving...";
+    await saveProfile();
     status.textContent = "saved";
     setTimeout(() => { status.textContent = ""; }, 2000);
     if (rawData) renderAll(currentRange);
   });
-
-  const flushBtn = document.getElementById("profile-flush");
-  if (flushBtn) {
-    flushBtn.addEventListener("click", async () => {
-      await saveProfile();
-      status.textContent = "saving to disk...";
-      const ok = await flushToDisk();
-      status.textContent = ok ? "written to disk" : "cancelled";
-      setTimeout(() => { status.textContent = ""; }, 3000);
-    });
-  }
 }
 
 // Initialize console and profile after data loads

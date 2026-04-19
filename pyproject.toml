@@ -5,13 +5,12 @@ description = "Parse Apple Health Data exports into DuckDB"
 requires-python = ">=3.14"
 dependencies = [
     "duckdb>=1.2.0",
-    "fastmcp>=2.14.4",
     "pyarrow>=18.0.0",
 ]
 
 [project.scripts]
 mosaic = "mosaic.cli:main"
-mosaic-server = "mosaic.server:mcp.run"
+mosaic-web = "mosaic.web:main"
 
 [build-system]
 requires = ["hatchling"]

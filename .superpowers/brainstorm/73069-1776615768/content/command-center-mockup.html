@@ -1,0 +1,180 @@
+<h2>Command Center: Detailed Mockup</h2>
+<p class="subtitle">Brief banner + metric grid + expandable analysis cards</p>
+
+<div class="mockup">
+  <div class="mockup-header">Mosaic — Performance Center</div>
+  <div class="mockup-body" style="background:#fffff8;padding:0">
+
+    <!-- BRIEF BANNER -->
+    <div style="display:flex;align-items:center;gap:1.5rem;padding:1rem 1.2rem;border-bottom:1px solid #eee;background:rgba(91,138,94,0.04)">
+      <div style="text-align:center;min-width:60px">
+        <div style="font-size:2.2rem;font-weight:600;color:#5b8a5e;line-height:1">74</div>
+        <div style="font-variant:small-caps;font-size:0.65rem;letter-spacing:0.08em;color:#5b8a5e">ready</div>
+      </div>
+      <div style="flex:1;font-size:0.82rem;color:#333">
+        <div style="font-weight:500;margin-bottom:0.2rem">Zone 2 aerobic base, moderate strength. Solid training day.</div>
+        <div style="font-size:0.72rem;color:#888">HRV 43 · RHR 73 · Sleep 100 · Quality 100 · SpO2 100 · Load 25</div>
+      </div>
+      <div style="font-size:0.72rem;color:#b8860b">● Training load spike</div>
+    </div>
+
+    <!-- METRIC GRID -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#eee;margin:0">
+
+      <!-- Card: Sleep -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">sleep</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#333">9.2</span>
+          <span style="font-size:0.7rem;color:#888">hrs</span>
+          <span style="font-size:0.65rem;color:#5b8a5e;margin-left:auto">▲</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,15 L10,12 L20,14 L30,8 L40,10 L50,6 L60,9 L70,5 L80,7 L90,4 L100,6 L110,3 L120,5" fill="none" stroke="#333" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card: HRV -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">hrv</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#b44">31</span>
+          <span style="font-size:0.7rem;color:#888">ms</span>
+          <span style="font-size:0.65rem;color:#b44;margin-left:auto">▼</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,5 L10,6 L20,4 L30,8 L40,7 L50,10 L60,9 L70,12 L80,11 L90,14 L100,13 L110,15 L120,16" fill="none" stroke="#b44" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card: RHR -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">resting hr</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#333">75</span>
+          <span style="font-size:0.7rem;color:#888">bpm</span>
+          <span style="font-size:0.65rem;color:#888;margin-left:auto">—</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,10 L10,11 L20,9 L30,10 L40,11 L50,10 L60,9 L70,10 L80,11 L90,10 L100,9 L110,10 L120,10" fill="none" stroke="#333" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card: VO2 Max -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">vo2 max</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#333">38.2</span>
+          <span style="font-size:0.7rem;color:#888">mL/kg</span>
+          <span style="font-size:0.65rem;color:#5b8a5e;margin-left:auto">▲</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,18 L20,16 L40,15 L60,13 L80,10 L100,8 L120,6" fill="none" stroke="#333" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card: Steps -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">steps</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#333">8,421</span>
+          <span style="font-size:0.65rem;color:#888;margin-left:auto">▲</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,12 L10,8 L20,14 L30,6 L40,10 L50,7 L60,11 L70,5 L80,9 L90,4 L100,8 L110,6 L120,7" fill="none" stroke="#333" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card: SpO2 -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">spo2 min</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#5b8a5e">93</span>
+          <span style="font-size:0.7rem;color:#888">%</span>
+          <span style="font-size:0.65rem;color:#5b8a5e;margin-left:auto">▲</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,8 L10,6 L20,7 L30,5 L40,6 L50,4 L60,5 L70,3 L80,4 L90,3 L100,4 L110,3 L120,3" fill="none" stroke="#5b8a5e" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card: Body Fat -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">body fat</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#333">24.1</span>
+          <span style="font-size:0.7rem;color:#888">%</span>
+          <span style="font-size:0.65rem;color:#5b8a5e;margin-left:auto">▼</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,4 L20,5 L40,6 L60,8 L80,10 L100,12 L120,14" fill="none" stroke="#333" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Card: Exercise -->
+      <div style="background:#fffff8;padding:0.7rem 0.8rem;cursor:pointer">
+        <div style="font-variant:small-caps;font-size:0.65rem;color:#888;letter-spacing:0.04em;margin-bottom:0.3rem">exercise</div>
+        <div style="display:flex;align-items:baseline;gap:0.4rem">
+          <span style="font-size:1.4rem;font-weight:600;color:#b8860b">143</span>
+          <span style="font-size:0.7rem;color:#888">min/wk</span>
+          <span style="font-size:0.65rem;color:#b8860b;margin-left:auto">▲▲</span>
+        </div>
+        <div style="height:20px;background:#f5f5f0;margin-top:0.3rem;border-radius:1px;overflow:hidden">
+          <svg width="100%" height="20" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M0,16 L20,14 L40,12 L60,10 L80,6 L100,4 L120,2" fill="none" stroke="#b8860b" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- EXPANDED CARD EXAMPLE -->
+    <div style="padding:1rem 1.2rem;border-top:2px solid #333">
+      <div style="font-variant:small-caps;font-size:0.8rem;letter-spacing:0.04em;color:#333;margin-bottom:0.5rem">▾ sleep — expanded</div>
+      <div style="display:flex;gap:1rem">
+        <div style="flex:2;height:120px;background:#f5f5f0;border-radius:2px;display:flex;align-items:center;justify-content:center;color:#888;font-size:0.75rem">[Full sleep architecture chart]</div>
+        <div style="flex:1;font-size:0.72rem;color:#666;line-height:1.6">
+          <div>Total: <strong>9.2 hrs</strong> (target: 7.5)</div>
+          <div>Deep: <strong>1.8 hrs</strong> (target: 1.5)</div>
+          <div>REM: <strong>0.8 hrs</strong> (target: 1.5)</div>
+          <div style="color:#b8860b;margin-top:0.3rem">⚠ REM below target</div>
+        </div>
+      </div>
+      <div style="margin-top:0.5rem;padding:0.4rem 0.5rem;background:#f9f9f4;font-family:monospace;font-size:0.68rem;color:#888;border-radius:2px">
+        SELECT date, total, deep, rem FROM dashboard_sleep WHERE total > 0.5 ORDER BY date DESC LIMIT 14
+      </div>
+    </div>
+
+    <!-- CONSOLE HINT -->
+    <div style="padding:0.6rem 1.2rem;border-top:1px solid #eee;font-size:0.7rem;color:#999;text-align:center">
+      ⌘K to open query console · ⌘1-8 to jump to a metric
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:1.5rem">
+  <h3>Interaction Model</h3>
+  <ul style="font-size:0.85rem;line-height:1.8;color:#555">
+    <li><strong>Glance:</strong> Banner gives readiness + prescription in 2 seconds</li>
+    <li><strong>Scan:</strong> Grid shows all 8 metrics with sparklines — spot the red immediately</li>
+    <li><strong>Drill:</strong> Click any card to expand full charts + stats + the SQL behind it</li>
+    <li><strong>Explore:</strong> ⌘K opens the query console for ad-hoc analysis</li>
+    <li>Only one card expanded at a time — keeps the page focused</li>
+    <li>Expanded card shows the SQL query that generated it — editable, runnable</li>
+  </ul>
+</div>
