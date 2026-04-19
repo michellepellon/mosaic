@@ -7,6 +7,7 @@ from pathlib import Path
 
 import duckdb
 
+from mosaic.readiness import compute_readiness
 from mosaic.schema import LONGEVITY_THRESHOLDS, compute_lab_status
 
 
@@ -124,6 +125,7 @@ def export_json(conn: duckdb.DuckDBPyConnection, path: Path) -> None:
             loinc: {"panel": t["panel"], "display": t["display"], "optimal": t["optimal"]}
             for loinc, t in LONGEVITY_THRESHOLDS.items()
         },
+        "readiness": compute_readiness(conn),
     }
 
     path.parent.mkdir(parents=True, exist_ok=True)
