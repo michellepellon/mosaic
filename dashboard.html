@@ -12,6 +12,32 @@
 /* ── Reset ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ── Auth Gate ── */
+#auth-gate {
+  position: fixed; inset: 0; z-index: 1000;
+  background: #f7f8fa;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 1.2rem;
+}
+#auth-gate .auth-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.8rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #1a1a2e;
+}
+#auth-gate input {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  padding: 0.6rem 1rem; width: 240px;
+  border: 1px solid #e2e4e9; background: #fff; color: #1a1a2e;
+  text-align: center; letter-spacing: 0.1em;
+}
+#auth-gate input:focus { outline: none; border-color: #334155; }
+#auth-gate .auth-error {
+  font-size: 0.75rem; color: #ef4444; height: 1rem;
+}
+#auth-gate .auth-hint {
+  font-size: 0.65rem; color: #9ca3af; margin-top: 0.5rem;
+}
+
 /* ── Base ── */
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
@@ -661,7 +687,16 @@ table.workout-table td {
 </style>
 </head>
 <body>
-<div id="app">
+
+<!-- Auth Gate -->
+<div id="auth-gate">
+  <div class="auth-title">Mosaic</div>
+  <input type="password" id="auth-input" placeholder="passphrase" autocomplete="off">
+  <div class="auth-error" id="auth-error"></div>
+  <div class="auth-hint">your performance center</div>
+</div>
+
+<div id="app" style="display:none">
   <!-- Header -->
   <header id="app-header">
     <div class="header-title">MOSAIC</div>
@@ -717,6 +752,42 @@ ORDER BY date DESC LIMIT 14</textarea>
     <div id="query-result"></div>
   </div>
 </div>
+
+<script>
+// ── Auth Gate ──
+// SHA-256 hash of the passphrase. Change this to set your password.
+// Generate with: echo -n "yourpassword" | shasum -a 256
+const AUTH_HASH = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8"; // "password"
+
+(function initAuth() {
+  if (sessionStorage.getItem("mosaic_auth") === "1") {
+    document.getElementById("auth-gate").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    return;
+  }
+  const input = document.getElementById("auth-input");
+  const error = document.getElementById("auth-error");
+
+  async function checkAuth() {
+    const pass = input.value;
+    if (!pass) return;
+    const hash = Array.from(
+      new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pass)))
+    ).map(b => b.toString(16).padStart(2, "0")).join("");
+    if (hash === AUTH_HASH) {
+      sessionStorage.setItem("mosaic_auth", "1");
+      document.getElementById("auth-gate").style.display = "none";
+      document.getElementById("app").style.display = "block";
+    } else {
+      error.textContent = "incorrect";
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  input.addEventListener("keydown", e => { if (e.key === "Enter") checkAuth(); });
+})();
+</script>
 
 <script type="module">
 // ══════════════════════════════════════════════════
@@ -1833,9 +1904,18 @@ function renderAll(days) {
         if (row.d && row.d < minDate) minDate = row.d;
       }
     }
-    const sourceLabel = dataSource === "duckdb" ? "via DuckDB" : "from snapshot";
-    document.getElementById("last-updated").textContent =
-      `${maxDate} \u00b7 ${sourceLabel}`;
+    const freshness = (() => {
+      if (!maxDate) return "no data";
+      const last = new Date(maxDate + "T00:00:00");
+      const now = new Date();
+      const days = Math.floor((now - last) / 86400000);
+      if (days === 0) return "updated today";
+      if (days === 1) return "updated yesterday";
+      if (days < 7) return `updated ${days} days ago`;
+      if (days < 30) return `updated ${Math.floor(days / 7)} weeks ago`;
+      return `last sync ${maxDate}`;
+    })();
+    document.getElementById("last-updated").textContent = freshness;
 
     // Build toggle
     const toggleEl = document.getElementById("range-toggle");
