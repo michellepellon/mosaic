@@ -522,6 +522,9 @@ h2[data-section].sidebar-active::after {
   <span id="range-toggle"></span>
 </div>
 
+<!-- ═══════════ DAILY ACTION BRIEF ═══════════ -->
+<div id="daily-brief"></div>
+
 <!-- ═══════════ SECTION 1: System Status ═══════════ -->
 <h2 data-section="scorecard">Protocol Scorecard</h2>
 <div id="system-status"></div>
@@ -939,13 +942,14 @@ function renderAll(days) {
     : days <= 30 ? "30d Avg" : days <= 90 ? "90d Avg" : "1y Avg";
 
   // Clear dynamic sections
-  for (const id of ["system-status", "bloodwork-section", "small-multiples",
+  for (const id of ["daily-brief", "system-status", "bloodwork-section", "small-multiples",
                      "cardio-detail", "sleep-architecture", "gait-section",
                      "correlations-section"]) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = "";
   }
 
+  buildDailyBrief(filtered);
   buildSystemStatus(filtered, periodLabel);
   buildBloodwork(filtered);
   buildSmallMultiples(filtered, startDate, endDate);
@@ -1017,6 +1021,163 @@ function renderAll(days) {
       `<p style="color:#b44">Error loading data: ${err.message}</p>`;
   }
 })();
+
+// ═══════════════════════════════════════════
+// DAILY ACTION BRIEF
+// Computes readiness score client-side and renders the brief at the top of the dashboard.
+// ═══════════════════════════════════════════
+function computeReadiness(data) {
+  // Factor scores: compare current to baseline (30d avg)
+  function factorScore(current, baseline, invert) {
+    if (current == null || baseline == null || baseline === 0) return 75;
+    const ratio = invert ? baseline / current : current / baseline;
+    if (ratio >= 1.1) return 100;
+    if (ratio >= 1.0) return 75 + (ratio - 1.0) / 0.1 * 25;
+    if (ratio >= 0.9) return 50 + (ratio - 0.9) / 0.1 * 25;
+    if (ratio >= 0.8) return 25 + (ratio - 0.8) / 0.1 * 25;
+    return 25;
+  }
+  function targetScore(current, target, floor) {
+    if (current == null) return 75;
+    if (current >= target) return 100;
+    if (current <= floor) return 25;
+    return 25 + (current - floor) / (target - floor) * 75;
+  }
+
+  // Get latest values
+  const hrvArr = data.hrv.filter(d => d.v > 0);
+  const hrvCurrent = hrvArr.length ? hrvArr[hrvArr.length - 1].v : null;
+  const hrvBaseline = hrvArr.length ? hrvArr[hrvArr.length - 1].r30 : null;
+
+  const rhrArr = data.rhr;
+  const rhrCurrent = rhrArr.length ? rhrArr[rhrArr.length - 1].v : null;
+  const rhrBaseline = rhrArr.length >= 30
+    ? d3.mean(rhrArr.slice(-30), d => d.v)
+    : (rhrArr.length ? d3.mean(rhrArr, d => d.v) : null);
+
+  const sleepArr = data.sleep.filter(d => d.total > 0.5);
+  const sleepLast = sleepArr.length ? sleepArr[sleepArr.length - 1] : null;
+  const sleepTotal = sleepLast ? sleepLast.total : null;
+  const sleepQuality = sleepLast ? (sleepLast.deep || 0) + (sleepLast.rem || 0) : null;
+  const sleepQualityBaseline = sleepArr.length >= 7
+    ? d3.mean(sleepArr.slice(-30), d => (d.deep || 0) + (d.rem || 0))
+    : null;
+
+  const spo2Arr = data.spo2;
+  const spo2Min = spo2Arr.length ? spo2Arr[spo2Arr.length - 1].min : null;
+
+  const exArr = data.exercise;
+  const exCurrent = exArr.length ? exArr[exArr.length - 1].v : null;
+  const exBaseline = exArr.length >= 4
+    ? d3.mean(exArr.slice(-4), d => d.v)
+    : (exArr.length ? d3.mean(exArr, d => d.v) : null);
+
+  // Compute factors
+  const fHrv = factorScore(hrvCurrent, hrvBaseline, false);
+  const fRhr = factorScore(rhrCurrent, rhrBaseline, true);
+  const fSleepTotal = targetScore(sleepTotal, 7.5, 5.0);
+  const fSleepQuality = factorScore(sleepQuality, sleepQualityBaseline, false);
+  const fSpo2 = targetScore(spo2Min, 90, 82);
+  const fTraining = factorScore(exCurrent, exBaseline, true);
+
+  const score = Math.round(
+    fHrv * 0.30 + fRhr * 0.20 + fSleepTotal * 0.20
+    + fSleepQuality * 0.15 + fSpo2 * 0.10 + fTraining * 0.05
+  );
+
+  // Status
+  let status, prescription, color;
+  if (score >= 85) {
+    status = "PEAK"; prescription = "High-intensity intervals, heavy strength, or long endurance. Your best training day.";
+    color = "#5b8a5e";
+  } else if (score >= 70) {
+    status = "READY"; prescription = "Zone 2 aerobic base, moderate strength. Solid training day.";
+    color = "#8a9a5e";
+  } else if (score >= 50) {
+    status = "MODERATE"; prescription = "Light Zone 2, mobility work, yoga. Don\u2019t push today.";
+    color = "#b8860b";
+  } else {
+    status = "RECOVER"; prescription = "Walk only. Prioritize sleep tonight. Watch for illness.";
+    color = "#b44";
+  }
+
+  // Alerts
+  const alerts = [];
+  // HRV trending down 3+ days
+  if (hrvArr.length >= 4) {
+    const recent = hrvArr.slice(-4).map(d => d.v);
+    if (recent.every((v, i) => i === 0 || v < recent[i - 1])) {
+      alerts.push({ level: "warning", message: "HRV trending down 3+ consecutive days" });
+    }
+  }
+  // Deep sleep < 1hr for 3+ nights
+  if (sleepArr.length >= 3) {
+    const recentDeep = sleepArr.slice(-3).map(d => d.deep || 0);
+    if (recentDeep.every(d => d < 1.0)) {
+      alerts.push({ level: "warning", message: "Deep sleep under 1 hour for 3+ nights" });
+    }
+  }
+  // SpO2 below 88
+  if (spo2Min != null && spo2Min < 88) {
+    alerts.push({ level: "critical", message: `SpO2 dropped to ${Math.round(spo2Min)}% last night` });
+  }
+  // No Zone 2 this week
+  const hrzones = data.hrzones;
+  if (!hrzones.length || (hrzones[hrzones.length - 1].z2 || 0) < 5) {
+    alerts.push({ level: "info", message: "No significant Zone 2 training this week" });
+  }
+
+  return { score, status, prescription, color, alerts, factors: {
+    hrv: { score: Math.round(fHrv), current: hrvCurrent, baseline: hrvBaseline },
+    rhr: { score: Math.round(fRhr), current: rhrCurrent, baseline: rhrBaseline },
+    sleep: { score: Math.round(fSleepTotal), current: sleepTotal, target: 7.5 },
+    quality: { score: Math.round(fSleepQuality), current: sleepQuality, baseline: sleepQualityBaseline },
+    spo2: { score: Math.round(fSpo2), current: spo2Min, target: 90 },
+    training: { score: Math.round(fTraining), current: exCurrent, baseline: exBaseline },
+  }};
+}
+
+function buildDailyBrief(data) {
+  const container = document.getElementById("daily-brief");
+  if (!container) return;
+
+  const r = computeReadiness(data);
+
+  // Background tint (very subtle)
+  const bgAlpha = "0a"; // 4% opacity
+  const bgColor = r.color + bgAlpha;
+
+  let html = `
+    <div style="background:${bgColor};border-left:3px solid ${r.color};padding:1.2rem 1.5rem;margin-bottom:2rem">
+      <div style="display:flex;align-items:baseline;gap:1rem;margin-bottom:0.3rem">
+        <span style="font-size:3.2rem;font-weight:600;color:${r.color};line-height:1;font-variant-numeric:tabular-nums">${r.score}</span>
+        <span style="font-variant:small-caps;letter-spacing:0.08em;font-size:1.1rem;color:${r.color}">${r.status}</span>
+      </div>
+      <p style="font-size:1rem;margin-bottom:0.6rem;max-width:none;font-weight:500">${r.prescription}</p>
+      <div style="display:flex;gap:1.2rem;flex-wrap:wrap;font-size:0.75rem;color:#888;margin-bottom:${r.alerts.length ? '0.8rem' : '0'}">
+        <span>HRV ${r.factors.hrv.score}</span>
+        <span>RHR ${r.factors.rhr.score}</span>
+        <span>Sleep ${r.factors.sleep.score}</span>
+        <span>Quality ${r.factors.quality.score}</span>
+        <span>SpO2 ${r.factors.spo2.score}</span>
+        <span>Load ${r.factors.training.score}</span>
+      </div>`;
+
+  if (r.alerts.length) {
+    html += `<div style="display:flex;flex-direction:column;gap:0.3rem">`;
+    for (const a of r.alerts) {
+      const alertColor = a.level === "critical" ? "#b44"
+        : a.level === "warning" ? "#b8860b" : "#888";
+      const icon = a.level === "critical" ? "\u25b2"
+        : a.level === "warning" ? "\u25cf" : "\u25cb";
+      html += `<div style="font-size:0.78rem;color:${alertColor}">${icon} ${a.message}</div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
 
 // ═══════════════════════════════════════════
 // SECTION 1: System Status
