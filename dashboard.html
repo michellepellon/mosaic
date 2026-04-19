@@ -1158,8 +1158,7 @@ async function flushToDisk() {
   // JSON — the CLI auto-imports it on next parse via --profile.
   try {
     // Collect profile from localStorage (primary store in browser)
-    let profile = getProfile();
-    }
+    const profile = getProfile();
 
     const json = JSON.stringify(profile, null, 2);
 
