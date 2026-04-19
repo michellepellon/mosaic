@@ -693,6 +693,13 @@ table.workout-table td {
 }
 #profile-toggle:hover { color: #334155; }
 
+#logout-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  letter-spacing: 0.04em;
+}
+#logout-btn:hover { color: #ef4444; }
+
 #profile-panel {
   display: none; background: #fff;
   border-bottom: 1px solid #e2e4e9;
@@ -775,6 +782,7 @@ table.workout-table td {
       <span id="range-toggle"></span>
       <span id="last-updated"></span>
       <span id="profile-toggle">Profile</span>
+      <span id="logout-btn">Log Out</span>
     </div>
   </header>
 
@@ -2363,6 +2371,11 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfile();
     loadProfile();
   }, 100);
+
+  document.getElementById("logout-btn")?.addEventListener("click", () => {
+    sessionStorage.removeItem("mosaic_auth");
+    location.reload();
+  });
 });
 </script>
 </body>
