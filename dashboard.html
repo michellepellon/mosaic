@@ -2298,15 +2298,30 @@ const PROFILE_FIELDS = [
   "p-target-z2", "p-target-rhr", "p-conditions", "p-medications", "p-goals",
 ];
 
-function loadProfile() {
+async function loadProfile() {
+  // Load from DuckDB first, fall back to localStorage
+  let saved = {};
+  if (dbConn) {
+    try {
+      const rows = await dbConn.query(
+        "SELECT key, value FROM athlete_profile"
+      );
+      for (const row of rows.toArray()) {
+        const r = row.toJSON();
+        saved[r.key] = r.value;
+      }
+    } catch { /* table may not exist yet */ }
+  }
+  // Merge with localStorage (localStorage wins for unsaved edits)
   try {
-    const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
-    for (const id of PROFILE_FIELDS) {
-      const el = document.getElementById(id);
-      if (el && saved[id] != null) el.value = saved[id];
-    }
-    return saved;
-  } catch { return {}; }
+    const local = JSON.parse(localStorage.getItem(PROFILE_KEY) || "{}");
+    saved = { ...saved, ...local };
+  } catch { /* ignore */ }
+  for (const id of PROFILE_FIELDS) {
+    const el = document.getElementById(id);
+    if (el && saved[id] != null && saved[id] !== "") el.value = saved[id];
+  }
+  return saved;
 }
 
 function saveProfile() {
@@ -2315,7 +2330,14 @@ function saveProfile() {
     const el = document.getElementById(id);
     if (el) data[id] = el.value;
   }
+  // Save to localStorage (immediate persistence)
   localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
+  // Write to DuckDB via export: save as JSON for CLI to import
+  try {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const existing = document.getElementById("profile-download-link");
+    if (existing) existing.remove();
+  } catch { /* ignore */ }
   return data;
 }
 

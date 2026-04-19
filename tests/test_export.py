@@ -33,7 +33,7 @@ class TestExportJson:
             "scorecard", "steps", "sleep", "rhr", "hrv", "spo2", "vo2",
             "bodyfat", "weight", "exercise", "hrzones", "labs",
             "walking_speed", "walking_asymmetry", "respiratory_rate",
-            "lab_trends", "longevity_thresholds", "readiness",
+            "lab_trends", "longevity_thresholds", "readiness", "profile",
         }
         assert expected_keys == set(data.keys())
 

@@ -101,6 +101,10 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--json", type=Path, default=None, help="Export dashboard data to JSON file"
     )
+    parser.add_argument(
+        "--profile", type=Path, default=None,
+        help="Import athlete profile from JSON file",
+    )
 
     args = parser.parse_args(argv)
 
@@ -159,6 +163,29 @@ def main(argv: list[str] | None = None) -> None:
         # Import FHIR clinical records if available
         if clinical_records_dir:
             parse_clinical_records(conn, clinical_records_dir)
+
+        # Import athlete profile if provided
+        if args.profile:
+            if not args.profile.exists():
+                print(f"Error: {args.profile} does not exist", file=sys.stderr)
+                raise SystemExit(1)
+            import json as _json
+
+            profile_data = _json.loads(args.profile.read_text())
+            for key, value in profile_data.items():
+                if value:
+                    conn.execute(
+                        "INSERT OR REPLACE INTO athlete_profile (key, value) "
+                        "VALUES (?, ?)",
+                        [str(key), str(value)],
+                    )
+            profile_count = conn.sql(
+                "SELECT COUNT(*) FROM athlete_profile"
+            ).fetchone()
+            print(
+                f"  profile: {profile_count[0] if profile_count else 0} fields",
+                file=sys.stderr,
+            )
 
         # Export JSON if requested
         if args.json:

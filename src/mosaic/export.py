@@ -126,6 +126,17 @@ def export_json(conn: duckdb.DuckDBPyConnection, path: Path) -> None:
             for loinc, t in LONGEVITY_THRESHOLDS.items()
         },
         "readiness": compute_readiness(conn),
+        "profile": {
+            row[0]: row[1]
+            for row in (
+                conn.sql("SELECT key, value FROM athlete_profile").fetchall()
+                if conn.sql(
+                    "SELECT COUNT(*) FROM information_schema.tables "
+                    "WHERE table_name = 'athlete_profile'"
+                ).fetchone()[0] > 0
+                else []
+            )
+        },
     }
 
     path.parent.mkdir(parents=True, exist_ok=True)

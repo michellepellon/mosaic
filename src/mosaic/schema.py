@@ -63,6 +63,7 @@ TABLE_NAMES: frozenset[str] = frozenset({
     "workout_hr_zones",
     "activity_summary",
     "clinical_labs",
+    "athlete_profile",
 })
 
 
@@ -160,6 +161,10 @@ _TABLE_DDL: dict[str, str] = {
         ref_high      DOUBLE,
         source        VARCHAR,
         UNIQUE(draw_date, loinc_code)
+    )""",
+    "athlete_profile": """CREATE TABLE IF NOT EXISTS athlete_profile (
+        key     VARCHAR NOT NULL PRIMARY KEY,
+        value   VARCHAR NOT NULL
     )""",
 }
 
