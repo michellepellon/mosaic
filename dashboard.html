@@ -882,6 +882,7 @@ table.workout-table td {
 
     <div class="profile-actions">
       <button class="btn-save" id="profile-save">Save</button>
+      <button class="btn-save" id="profile-flush" style="background:#9ca3af">Save to Disk</button>
       <span class="save-status" id="profile-status"></span>
     </div>
   </div>
@@ -1126,6 +1127,8 @@ function addLineTooltip(g, data, x, y, yFmt, w, h) {
 // ── DuckDB-WASM ──
 import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
 
+let duckdbInstance = null; // keep reference for file export
+
 async function initDB() {
   const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
   const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
@@ -1136,6 +1139,7 @@ async function initDB() {
   const logger = new duckdb.ConsoleLogger();
   const db = new duckdb.AsyncDuckDB(logger, worker);
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+  duckdbInstance = db;
 
   const response = await fetch("data/health.duckdb");
   const buffer = new Uint8Array(await response.arrayBuffer());
@@ -1145,6 +1149,34 @@ async function initDB() {
   await conn.query("ATTACH 'health.duckdb' AS health");
   await conn.query("USE health");
   return conn;
+}
+
+async function flushToDisk() {
+  // Write the in-memory DuckDB back to disk via File System Access API.
+  if (!duckdbInstance) return false;
+  try {
+    // Export modified database from WASM memory
+    await dbConn.query("CHECKPOINT");
+    const buf = await duckdbInstance.copyFileToBuffer("health.duckdb");
+
+    // Request write access to the file
+    const handle = await window.showSaveFilePicker({
+      suggestedName: "health.duckdb",
+      startIn: "downloads",
+      types: [{
+        description: "DuckDB Database",
+        accept: { "application/octet-stream": [".duckdb"] },
+      }],
+    });
+    const writable = await handle.createWritable();
+    await writable.write(buf);
+    await writable.close();
+    return true;
+  } catch (err) {
+    if (err.name === "AbortError") return false; // user cancelled
+    console.warn("Flush to disk failed:", err.message);
+    return false;
+  }
 }
 
 async function query(conn, sql) {
@@ -2371,10 +2403,21 @@ function initProfile() {
 
   saveBtn.addEventListener("click", async () => {
     await saveProfile();
-    status.textContent = "saved to DuckDB";
+    status.textContent = "saved";
     setTimeout(() => { status.textContent = ""; }, 2000);
     if (rawData) renderAll(currentRange);
   });
+
+  const flushBtn = document.getElementById("profile-flush");
+  if (flushBtn) {
+    flushBtn.addEventListener("click", async () => {
+      await saveProfile();
+      status.textContent = "saving to disk...";
+      const ok = await flushToDisk();
+      status.textContent = ok ? "written to disk" : "cancelled";
+      setTimeout(() => { status.textContent = ""; }, 3000);
+    });
+  }
 }
 
 // Initialize console and profile after data loads
