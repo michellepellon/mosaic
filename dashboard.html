@@ -1146,34 +1146,47 @@ async function initDB() {
   await db.registerFileBuffer("health.duckdb", buffer);
 
   const conn = await db.connect();
-  await conn.query("ATTACH 'health.duckdb' AS health");
+  await conn.query("ATTACH 'health.duckdb' AS health (READ_ONLY)");
   await conn.query("USE health");
   return conn;
 }
 
 async function flushToDisk() {
-  // Write the in-memory DuckDB back to disk via File System Access API.
-  if (!duckdbInstance) return false;
+  // Export profile data as JSON to disk via File System Access API.
+  // DuckDB-WASM loads the .duckdb as a read-only buffer, so we can't
+  // write the whole database back. Instead we export the profile as
+  // JSON — the CLI auto-imports it on next parse via --profile.
   try {
-    // Export modified database from WASM memory
-    await dbConn.query("CHECKPOINT");
-    const buf = await duckdbInstance.copyFileToBuffer("health.duckdb");
+    // Collect profile from DuckDB or localStorage
+    let profile = {};
+    if (dbConn) {
+      try {
+        const rows = await dbConn.query("SELECT key, value FROM athlete_profile");
+        for (const row of rows.toArray()) {
+          const r = row.toJSON();
+          profile[r.key] = r.value;
+        }
+      } catch { /* table may not exist */ }
+    }
+    if (!Object.keys(profile).length) {
+      profile = getProfile(); // fall back to localStorage
+    }
 
-    // Request write access to the file
+    const json = JSON.stringify(profile, null, 2);
     const handle = await window.showSaveFilePicker({
-      suggestedName: "health.duckdb",
+      suggestedName: "profile.json",
       startIn: "downloads",
       types: [{
-        description: "DuckDB Database",
-        accept: { "application/octet-stream": [".duckdb"] },
+        description: "Athlete Profile",
+        accept: { "application/json": [".json"] },
       }],
     });
     const writable = await handle.createWritable();
-    await writable.write(buf);
+    await writable.write(json);
     await writable.close();
     return true;
   } catch (err) {
-    if (err.name === "AbortError") return false; // user cancelled
+    if (err.name === "AbortError") return false;
     console.warn("Flush to disk failed:", err.message);
     return false;
   }
@@ -2356,27 +2369,11 @@ async function loadProfile() {
   return saved;
 }
 
-async function saveProfile() {
+function saveProfile() {
   const data = {};
   for (const id of PROFILE_FIELDS) {
     const el = document.getElementById(id);
     if (el) data[id] = el.value;
-  }
-  // Write directly to DuckDB-WASM
-  if (dbConn) {
-    try {
-      for (const [key, value] of Object.entries(data)) {
-        if (value) {
-          const safeKey = key.replace(/'/g, "''");
-          const safeVal = value.replace(/'/g, "''");
-          await dbConn.query(
-            `INSERT OR REPLACE INTO athlete_profile VALUES ('${safeKey}', '${safeVal}')`
-          );
-        }
-      }
-    } catch (err) {
-      console.warn("DuckDB profile write failed:", err.message);
-    }
   }
   // localStorage as fallback cache
   localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
@@ -2401,8 +2398,8 @@ function initProfile() {
     if (panel.classList.contains("open")) loadProfile();
   });
 
-  saveBtn.addEventListener("click", async () => {
-    await saveProfile();
+  saveBtn.addEventListener("click", () => {
+    saveProfile();
     status.textContent = "saved";
     setTimeout(() => { status.textContent = ""; }, 2000);
     if (rawData) renderAll(currentRange);
