@@ -3,208 +3,259 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mosaic - Longevity Dashboard</title>
+<title>Mosaic</title>
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<link rel="stylesheet" href="https://edwardtufte.github.io/et-book/et-book.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── Base Typography & Layout ── */
+/* ── Reset ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ── Base ── */
 body {
-  font-family: "et-book", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #111;
-  background: #fffff8;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1a1a2e;
+  background: #f7f8fa;
   -webkit-font-smoothing: antialiased;
 }
 
-article {
-  max-width: 960px;
+/* ── App Shell ── */
+#app {
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 3rem 1rem 4rem 1rem;
+  padding: 0 1rem 3rem 1rem;
 }
 
-h1 {
-  font-weight: 400;
-  font-size: 2.4rem;
-  line-height: 1.2;
-  margin-bottom: 0.4rem;
+/* ── Header ── */
+#app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1.2rem 0 0.8rem 0;
+  border-bottom: 1px solid #e2e4e9;
+  margin-bottom: 1rem;
 }
 
-h1 .subtitle {
-  display: block;
-  font-size: 1.1rem;
-  font-style: italic;
-  color: #666;
-  margin-top: 0.3rem;
-}
-
-h1 .subtitle.last-updated {
-  font-style: normal;
+.header-title {
+  font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;
-  margin-top: 1rem;
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
+  color: #334155;
 }
 
-h2 {
-  font-variant: small-caps;
-  font-weight: 400;
-  font-size: 1.4rem;
-  letter-spacing: 0.05em;
-  margin-top: 3rem;
-  margin-bottom: 1rem;
-  border-bottom: none;
-}
-
-h3 {
-  font-variant: small-caps;
-  font-weight: 400;
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
-  color: #555;
-  margin-top: 1.4rem;
-  margin-bottom: 0.4rem;
-}
-
-p { margin-bottom: 0.8rem; max-width: 600px; }
-p.wide { max-width: none; }
-
-/* ── Sidenotes ── */
-.content-with-sidenotes {
-  position: relative;
-}
-
-.sidenote {
-  float: right;
-  clear: right;
-  margin-right: -240px;
-  width: 210px;
+.header-meta {
+  display: flex;
+  gap: 1.2rem;
+  align-items: baseline;
   font-size: 0.8rem;
-  line-height: 1.4;
-  color: #666;
-  position: relative;
+  color: #9ca3af;
 }
 
-.sidenote::before {
-  content: attr(data-label);
-  font-size: 0.65rem;
-  vertical-align: super;
-  color: #999;
-  margin-right: 0.2em;
-}
-
-sup.sidenote-ref {
-  font-size: 0.7em;
-  color: #999;
-  cursor: default;
-}
-
-/* ── System Status Table ── */
-table.system-status {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  margin-bottom: 2rem;
-}
-
-table.system-status th {
-  text-align: left;
-  font-weight: 400;
-  font-variant: small-caps;
-  letter-spacing: 0.04em;
-  color: #666;
-  padding: 0.3rem 0.6rem;
-  border-bottom: 1px solid #ccc;
+.header-meta a {
+  color: #334155;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.8rem;
 }
 
-table.system-status td {
-  padding: 0.35rem 0.6rem;
-  border-bottom: 1px solid #eee;
-  vertical-align: middle;
+.header-meta a:hover {
+  text-decoration: underline;
 }
 
-table.system-status tr:last-child td {
-  border-bottom: 1px solid #ccc;
+/* ── Daily Brief Banner ── */
+#daily-brief {
+  margin-bottom: 1.2rem;
 }
 
-table.system-status td.metric-name {
-  font-variant: small-caps;
-  letter-spacing: 0.02em;
-  width: 140px;
+.brief-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e4e9;
+  padding: 1.2rem 1.5rem;
 }
 
-table.system-status td.metric-value {
+.brief-left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  flex-shrink: 0;
+}
+
+.brief-score {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  text-align: right;
-  width: 80px;
+}
+
+.brief-status {
+  font-family: 'Barlow Condensed', sans-serif;
   font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
 }
 
-table.system-status td.metric-target {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  width: 60px;
-  color: #888;
-  font-size: 0.82rem;
+.brief-center {
+  flex: 1;
+  min-width: 0;
 }
 
-table.system-status td.sparkline-cell {
-  width: 90px;
-  padding: 0.2rem 0.4rem;
+.brief-prescription {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #1a1a2e;
 }
 
-table.system-status td.bullet-cell {
-  width: 200px;
-  padding: 0.2rem 0.6rem;
+.brief-factors {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: #9ca3af;
 }
 
-/* ── Bloodwork Table ── */
-table.bloodwork {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-  margin-bottom: 1rem;
+.brief-right {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-table.bloodwork th {
-  text-align: left;
-  font-weight: 400;
-  font-variant: small-caps;
-  letter-spacing: 0.04em;
-  color: #666;
-  padding: 0.25rem 0.5rem;
-  border-bottom: 1px solid #ccc;
+.brief-alert {
   font-size: 0.78rem;
 }
 
-table.bloodwork td {
-  padding: 0.22rem 0.5rem;
-  border-bottom: 1px solid #f0f0eb;
-  vertical-align: middle;
+/* ── Domain Grid ── */
+#domain-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-bottom: 0;
 }
 
-table.bloodwork td:nth-child(2),
-table.bloodwork td:nth-child(3) {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+.domain-card {
+  background: #ffffff;
+  border: 1px solid #e2e4e9;
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  /* Collapse adjacent borders */
+  margin-right: -1px;
 }
 
-table.bloodwork td:nth-child(4) {
-  text-align: center;
-  width: 24px;
+.domain-card:last-child {
+  margin-right: 0;
 }
 
-table.bloodwork tr.group-header td {
-  font-variant: small-caps;
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
-  color: #555;
-  padding-top: 0.7rem;
-  border-bottom: 1px solid #ddd;
-  background: none;
+.domain-card:hover {
+  border-color: #334155;
+  z-index: 1;
+  position: relative;
 }
 
+.domain-card.active {
+  border-color: #334155;
+  border-bottom-color: #ffffff;
+  z-index: 2;
+  position: relative;
+}
+
+.domain-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #334155;
+  margin-bottom: 0.6rem;
+}
+
+.domain-primary {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #1a1a2e;
+  margin-bottom: 0.1rem;
+}
+
+.domain-primary-unit {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.domain-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.domain-sub .sub-label {
+  color: #9ca3af;
+}
+
+.domain-sub .sub-value {
+  color: #1a1a2e;
+  font-weight: 500;
+}
+
+.domain-sub .sub-warn {
+  color: #d97706;
+}
+
+.domain-sub .sub-danger {
+  color: #ef4444;
+}
+
+.domain-sparkline {
+  margin-top: 0.5rem;
+}
+
+.domain-session-log {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  margin-top: 0.4rem;
+  line-height: 1.5;
+}
+
+.domain-session-log .session-entry {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.domain-panel-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.panel-dot-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: #9ca3af;
+}
+
+/* ── Status Dots ── */
 .dot {
   display: inline-block;
   width: 7px;
@@ -212,68 +263,319 @@ table.bloodwork tr.group-header td {
   border-radius: 50%;
 }
 
-.dot-green { background: #5b8a5e; }
-.dot-amber { background: #c49a2a; }
-.dot-red { background: #b44; }
+.dot-green { background: #334155; }
+.dot-amber { background: #d97706; }
+.dot-red { background: #ef4444; }
 
-/* ── Small Multiples Grid ── */
-.small-multiples {
+/* ── Expanded Card ── */
+#expanded-card {
+  background: #ffffff;
+  border: 1px solid #e2e4e9;
+  border-top: 2px solid #334155;
+  margin-top: -1px;
+  padding: 1.5rem;
+}
+
+.expanded-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #334155;
+  margin-bottom: 1rem;
+}
+
+.expanded-layout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.2rem 1.5rem;
-  margin: 1rem 0 2rem 0;
-}
-
-.small-multiple {
-  position: relative;
-}
-
-.small-multiple .chart-title {
-  font-size: 0.82rem;
-  font-variant: small-caps;
-  letter-spacing: 0.03em;
-  color: #444;
-  margin-bottom: 0.15rem;
-}
-
-.small-multiple svg {
-  display: block;
-}
-
-/* ── Cardiovascular Section ── */
-.cardio-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 2rem;
-  margin: 1rem 0 2rem 0;
 }
 
-.cardio-chart .chart-title {
+.expanded-chart-area {
+  min-width: 0;
+}
+
+.expanded-stats {
   font-size: 0.82rem;
-  font-variant: small-caps;
-  letter-spacing: 0.03em;
-  color: #444;
-  margin-bottom: 0.15rem;
 }
 
-/* ── Sleep Architecture ── */
-.sleep-chart {
-  margin: 1rem 0 2rem 0;
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #e2e4e9;
 }
 
-.sleep-chart .chart-title {
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: #9ca3af;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.stat-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #334155;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #e2e4e9;
+}
+
+.stat-section-title:first-child {
+  margin-top: 0;
+}
+
+.expanded-sql {
+  margin-top: 1.2rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  border-top: 1px solid #e2e4e9;
+  padding-top: 0.6rem;
+}
+
+.expanded-flags {
+  margin-top: 0.8rem;
+}
+
+.expanded-flag {
+  font-size: 0.78rem;
+  padding: 0.15rem 0;
+}
+
+/* ── Bloodwork expanded table ── */
+table.bloodwork-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 0.82rem;
-  font-variant: small-caps;
-  letter-spacing: 0.03em;
-  color: #444;
-  margin-bottom: 0.15rem;
 }
 
-/* ── Tufte Axis Styles ── */
+table.bloodwork-table th {
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid #e2e4e9;
+}
+
+table.bloodwork-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid #e2e4e9;
+  vertical-align: middle;
+}
+
+table.bloodwork-table td:nth-child(2),
+table.bloodwork-table td:nth-child(3),
+table.bloodwork-table td:nth-child(4) {
+  font-family: 'JetBrains Mono', monospace;
+  text-align: right;
+}
+
+table.bloodwork-table tr.group-header td {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: #334155;
+  padding-top: 0.8rem;
+  border-bottom: 1px solid #334155;
+  background: none;
+}
+
+/* ── Workout log table ── */
+table.workout-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+table.workout-table th {
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  padding: 0.25rem 0.4rem;
+  border-bottom: 1px solid #e2e4e9;
+}
+
+table.workout-table td {
+  padding: 0.2rem 0.4rem;
+  border-bottom: 1px solid #e2e4e9;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+}
+
+/* ── Console ── */
+#console-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #e2e4e9;
+  padding: 0.5rem 1rem;
+  z-index: 100;
+  cursor: pointer;
+}
+
+#console-hint {
+  max-width: 1120px;
+  margin: 0 auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+#console-hint .key {
+  display: inline-block;
+  background: #e2e4e9;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+  color: #334155;
+}
+
+#query-console {
+  position: fixed;
+  bottom: 2.2rem;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 2px solid #334155;
+  padding: 1rem;
+  z-index: 99;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.console-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  max-width: 1120px;
+  margin: 0 auto 0.8rem auto;
+}
+
+#query-input {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #e2e4e9;
+  background: #f7f8fa;
+  color: #1a1a2e;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.console-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+#query-run {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.4rem 1rem;
+  background: #334155;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+
+#query-run:hover {
+  background: #1a1a2e;
+}
+
+#query-schema {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.8rem;
+  background: transparent;
+  color: #9ca3af;
+  border: 1px solid #e2e4e9;
+  cursor: pointer;
+}
+
+#query-schema:hover {
+  border-color: #334155;
+  color: #334155;
+}
+
+#query-status {
+  max-width: 1120px;
+  margin: 0 auto 0.5rem auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: #9ca3af;
+}
+
+#query-chart {
+  max-width: 1120px;
+  margin: 0 auto 1rem auto;
+}
+
+#query-result {
+  max-width: 1120px;
+  margin: 0 auto;
+  overflow-x: auto;
+}
+
+/* ── Query result table ── */
+#query-result table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+#query-result th {
+  text-align: left;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid #e2e4e9;
+}
+
+#query-result td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid #e2e4e9;
+}
+
+/* ── Chart Styles ── */
 .axis-label {
-  font-family: "et-book", Georgia, serif;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  fill: #888;
+  fill: #9ca3af;
 }
 
 .axis-label-right {
@@ -281,323 +583,147 @@ table.bloodwork tr.group-header td {
 }
 
 .target-line {
-  stroke: #999;
+  stroke: #e2e4e9;
   stroke-width: 0.8;
   stroke-dasharray: 3,3;
 }
 
 .data-line {
   fill: none;
-  stroke: #333;
+  stroke: #334155;
   stroke-width: 1.3;
 }
 
 .data-area {
-  fill: #333;
+  fill: #334155;
   opacity: 0.06;
 }
 
 .annotation-text {
-  font-family: "et-book", Georgia, serif;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  fill: #666;
+  fill: #9ca3af;
 }
 
 .endpoint-dot {
-  fill: #333;
+  fill: #334155;
   r: 2;
 }
 
 .range-frame line {
-  stroke: #999;
+  stroke: #9ca3af;
   stroke-width: 0.7;
 }
 
 .mosaic-tooltip {
   position: absolute;
   display: none;
-  font-family: "et-book", Georgia, serif;
-  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
   line-height: 1.4;
-  color: #333;
-  background: #fffff8;
-  border: 1px solid #ccc;
+  color: #1a1a2e;
+  background: #ffffff;
+  border: 1px solid #e2e4e9;
   padding: 3px 7px;
   pointer-events: none;
   z-index: 100;
   white-space: nowrap;
 }
 
-/* ── Print optimization ── */
-@media print {
-  body { font-size: 10pt; }
-  article { max-width: none; padding: 0; }
-  .sidenote { margin-right: -180px; width: 160px; }
-}
-
 /* ── Responsive ── */
-@media (max-width: 1100px) {
-  .sidenote {
-    float: none;
-    display: block;
-    margin: 0.4rem 0 0.8rem 1rem;
-    width: auto;
-    max-width: 500px;
-    padding: 0.4rem 0.6rem;
-    border-left: 2px solid #eee;
+@media (max-width: 900px) {
+  #domain-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .domain-card {
+    margin-right: 0;
+    margin-bottom: -1px;
+  }
+  .expanded-layout {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 720px) {
-  .small-multiples { grid-template-columns: repeat(2, 1fr); }
-  .cardio-grid { grid-template-columns: 1fr; }
-}
-
-/* ── Sidebar ── */
-.sidebar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 380px;
-  height: 100vh;
-  background: #fffff8;
-  border-left: 1px solid #ddd;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  z-index: 200;
-  overflow-y: auto;
-  padding: 1.5rem;
-}
-
-.sidebar.open {
-  transform: translateX(0);
-}
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 1.2rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid #ddd;
-}
-
-.sidebar-header h2 {
-  font-variant: small-caps;
-  font-weight: 400;
-  font-size: 1.1rem;
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-.sidebar-header button {
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  color: #888;
-  cursor: pointer;
-  padding: 0 0.3rem;
-  line-height: 1;
-  font-family: inherit;
-}
-
-.sidebar-header button:hover {
-  color: #333;
-}
-
-h2[data-section] {
-  cursor: pointer;
-  transition: color 0.15s;
-}
-
-h2[data-section]::after {
-  content: " \203A";
-  opacity: 0;
-  transition: opacity 0.15s;
-  color: #999;
-}
-
-h2[data-section]:hover::after {
-  opacity: 1;
-}
-
-h2[data-section].sidebar-active {
-  color: #333;
-}
-
-h2[data-section].sidebar-active::after {
-  opacity: 1;
-  color: #333;
-}
-
-.sidebar-metric {
-  margin-bottom: 1rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid #f0f0eb;
-}
-
-.sidebar-metric:last-child {
-  border-bottom: none;
-}
-
-.sidebar-metric .metric-label {
-  font-variant: small-caps;
-  font-size: 0.85rem;
-  letter-spacing: 0.03em;
-  color: #555;
-  margin-bottom: 0.2rem;
-}
-
-.sidebar-metric .metric-stats {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.82rem;
-  font-variant-numeric: tabular-nums;
-  margin-top: 0.3rem;
-  color: #666;
-}
-
-.sidebar-metric .metric-stats .current {
-  font-weight: 600;
-  color: #333;
-}
-
-.sidebar-section-title {
-  font-variant: small-caps;
-  font-size: 0.9rem;
-  letter-spacing: 0.04em;
-  color: #555;
-  margin-top: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.sidebar-chart {
-  margin-bottom: 1.2rem;
-}
-
-.sidebar-chart .chart-title {
-  font-size: 0.78rem;
-  font-variant: small-caps;
-  letter-spacing: 0.03em;
-  color: #555;
-  margin-bottom: 0.15rem;
-}
-
-.sidebar-chart svg {
-  display: block;
-}
-
-@media (max-width: 720px) {
-  .sidebar {
-    width: 100%;
-    height: 60vh;
-    top: auto;
-    bottom: 0;
-    transform: translateY(100%);
-    border-left: none;
-    border-top: 1px solid #ddd;
-    border-radius: 12px 12px 0 0;
+@media (max-width: 560px) {
+  #domain-grid {
+    grid-template-columns: 1fr;
   }
-  .sidebar.open {
-    transform: translateY(0);
+  .brief-banner {
+    flex-direction: column;
+    gap: 0.8rem;
   }
 }
 
 @media print {
-  .sidebar { display: none; }
-  h2[data-section]::after { display: none; }
-  h2[data-section] { cursor: default; }
+  #console-bar, #query-console { display: none; }
+  body { background: #fff; }
 }
 </style>
 </head>
 <body>
-<article>
+<div id="app">
+  <!-- Header -->
+  <header id="app-header">
+    <div class="header-title">MOSAIC</div>
+    <div class="header-meta">
+      <span id="range-toggle"></span>
+      <span id="last-updated"></span>
+    </div>
+  </header>
 
-<h1>Mosaic
-  <span class="subtitle">A longevity dashboard that combines lifestyle and clinical biomarkers into a single view to drive life-changing health outcomes.</span>
-  <span class="subtitle last-updated" id="last-updated"></span>
-</h1>
+  <!-- Daily Brief Banner -->
+  <div id="daily-brief"></div>
 
-<div style="margin-top:1.2rem;font-variant:small-caps;font-size:0.95rem;letter-spacing:0.04em">
-  <span id="range-toggle"></span>
-</div>
+  <!-- Domain Grid -->
+  <div id="domain-grid">
+    <div class="domain-card" id="card-recovery" data-domain="recovery">
+      <div class="domain-label">Recovery</div>
+      <div class="domain-body"></div>
+    </div>
+    <div class="domain-card" id="card-training" data-domain="training">
+      <div class="domain-label">Training</div>
+      <div class="domain-body"></div>
+    </div>
+    <div class="domain-card" id="card-fitness" data-domain="fitness">
+      <div class="domain-label">Fitness</div>
+      <div class="domain-body"></div>
+    </div>
+    <div class="domain-card" id="card-bloodwork" data-domain="bloodwork">
+      <div class="domain-label">Bloodwork</div>
+      <div class="domain-body"></div>
+    </div>
+  </div>
 
-<!-- ═══════════ DAILY ACTION BRIEF ═══════════ -->
-<div id="daily-brief"></div>
+  <!-- Expanded Card -->
+  <div id="expanded-card" style="display:none"></div>
 
-<!-- ═══════════ SECTION 1: System Status ═══════════ -->
-<h2 data-section="scorecard">Protocol Scorecard</h2>
-<div id="system-status"></div>
-
-<!-- ═══════════ SECTION 2: Bloodwork ═══════════ -->
-<h2 data-section="biomarkers" id="biomarkers-heading">Clinical Biomarkers</h2>
-<div class="content-with-sidenotes" id="bloodwork-section"></div>
-
-<!-- ═══════════ SECTION 3: Small Multiples ═══════════ -->
-<h2 data-section="trends">Trends</h2>
-<p class="wide" id="data-span">Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds.</p>
-<div class="small-multiples" id="small-multiples"></div>
-
-<!-- ═══════════ SECTION 3b: Gait & Mobility ═══════════ -->
-<h2 data-section="gait">Gait &amp; Mobility</h2>
-<div class="small-multiples" id="gait-section"></div>
-
-<!-- ═══════════ SECTION 3c: Cross-Metric Correlations ═══════════ -->
-<h2 data-section="correlations">Cross-Metric Correlations</h2>
-<p class="wide content-with-sidenotes">Paired metrics that reveal cause-and-effect relationships. These three pairings cover the most common longevity interventions: optimize sleep, calibrate training, screen for apnea.</p>
-<div id="correlations-section"></div>
-
-<!-- ═══════════ SECTION 4: Cardiovascular Detail ═══════════ -->
-<h2 data-section="cardio">Cardiovascular Detail</h2>
-<div class="cardio-grid" id="cardio-detail"></div>
-
-<!-- ═══════════ SECTION 5: Sleep Architecture ═══════════ -->
-<h2 data-section="sleep">Sleep Architecture</h2>
-<div class="sleep-chart" id="sleep-architecture"></div>
-
-<!-- ═══════════ QUERY CONSOLE ═══════════ -->
-<h2>Query Console</h2>
-<p class="wide">SQL against your health database. DuckDB-WASM runs entirely in your browser — nothing leaves your machine.</p>
-<div id="query-console">
-  <div style="display:flex;gap:0.5rem;align-items:flex-start;margin-bottom:0.8rem">
-    <textarea id="query-input" rows="3" spellcheck="false" style="
-      flex:1;font-family:'Berkeley Mono','SF Mono',Menlo,monospace;font-size:0.82rem;
-      padding:0.5rem 0.6rem;border:1px solid #ddd;background:#fffff8;color:#111;
-      resize:vertical;line-height:1.5;border-radius:2px;
-    " placeholder="SELECT * FROM dashboard_scorecard ORDER BY date DESC LIMIT 10">SELECT date, total AS sleep_hrs, deep, rem
+  <!-- Console Bar -->
+  <div id="console-bar">
+    <div id="console-hint"><span class="key">&#8984;K</span> query console</div>
+  </div>
+  <div id="query-console" style="display:none">
+    <div class="console-input-row">
+      <textarea id="query-input" rows="3" spellcheck="false" placeholder="SELECT * FROM dashboard_scorecard ORDER BY date DESC LIMIT 10">SELECT date, total AS sleep_hrs, deep, rem
 FROM dashboard_sleep
 WHERE total > 0.5
 ORDER BY date DESC LIMIT 14</textarea>
-    <div style="display:flex;flex-direction:column;gap:0.3rem">
-      <button id="query-run" style="
-        font-family:inherit;font-size:0.78rem;padding:0.4rem 1rem;
-        background:#333;color:#fffff8;border:none;cursor:pointer;
-        font-variant:small-caps;letter-spacing:0.04em;border-radius:2px;
-      ">run</button>
-      <button id="query-schema" style="
-        font-family:inherit;font-size:0.72rem;padding:0.3rem 0.8rem;
-        background:transparent;color:#888;border:1px solid #ddd;cursor:pointer;
-        border-radius:2px;
-      ">schema</button>
+      <div class="console-buttons">
+        <button id="query-run">run</button>
+        <button id="query-schema">schema</button>
+      </div>
     </div>
+    <div id="query-status"></div>
+    <div id="query-chart"></div>
+    <div id="query-result"></div>
   </div>
-  <div id="query-status" style="font-size:0.75rem;color:#888;margin-bottom:0.5rem"></div>
-  <div id="query-chart" style="margin-bottom:1rem"></div>
-  <div id="query-result" style="overflow-x:auto"></div>
 </div>
 
-</article>
-
-<!-- ═══════════ SIDEBAR ═══════════ -->
-<aside id="sidebar" class="sidebar">
-  <div class="sidebar-header">
-    <h2 id="sidebar-title"></h2>
-    <button id="sidebar-close" aria-label="Close">&times;</button>
-  </div>
-  <div id="sidebar-content"></div>
-</aside>
-
 <script type="module">
+// ══════════════════════════════════════════════════
+// ABOUTME: Command center dashboard for the Mosaic longevity project.
+// ABOUTME: Loads health data from DuckDB-WASM (or JSON fallback) and renders domain cards, charts, and a SQL console.
+// ══════════════════════════════════════════════════
+
 // ── Utilities ──
 const parseDate = d3.timeParse("%Y-%m-%d");
 const fmt = d3.format(",");
@@ -638,20 +764,18 @@ function filterByRange(data, days) {
 function tufteYAxis(g, yScale, width, format) {
   const domain = yScale.domain();
   const range = yScale.range();
-  // Left endpoint labels
   g.append("text").attr("class", "axis-label")
     .attr("x", -4).attr("y", range[1]).attr("dy", "0.35em").attr("text-anchor", "end")
     .text(format(domain[0]));
   g.append("text").attr("class", "axis-label")
     .attr("x", -4).attr("y", range[0]).attr("dy", "0.35em").attr("text-anchor", "end")
     .text(format(domain[1]));
-  // Small range-frame ticks
   g.append("line").attr("class", "range-frame")
     .attr("x1", 0).attr("x2", 0).attr("y1", range[0]).attr("y2", range[0] + 4)
-    .attr("stroke", "#999").attr("stroke-width", 0.7);
+    .attr("stroke", "#9ca3af").attr("stroke-width", 0.7);
   g.append("line").attr("class", "range-frame")
     .attr("x1", 0).attr("x2", 0).attr("y1", range[1] - 4).attr("y2", range[1])
-    .attr("stroke", "#999").attr("stroke-width", 0.7);
+    .attr("stroke", "#9ca3af").attr("stroke-width", 0.7);
 }
 
 function tufteXAxis(g, xScale, height, dateFormat) {
@@ -667,18 +791,18 @@ function tufteXAxis(g, xScale, height, dateFormat) {
 }
 
 // ── Sparkline generator (inline SVG) ──
-function sparklineSVG(data, w, h) {
+function sparklineSVG(data, w, h, strokeColor) {
   const valid = (data || []).filter(d => d != null && !isNaN(d));
   if (valid.length < 2) return "";
+  const color = strokeColor || "#334155";
   const x = d3.scaleLinear().domain([0, valid.length - 1]).range([1, w - 1]);
   const ext = d3.extent(valid);
   const pad = (ext[1] - ext[0]) * 0.1 || 1;
   const y = d3.scaleLinear().domain([ext[0] - pad, ext[1] + pad]).range([h - 1, 1]);
   const line = d3.line().x((d, i) => x(i)).y(d => y(d));
   let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
-  svg += `<path d="${line(valid)}" fill="none" stroke="#333" stroke-width="1"/>`;
-  // endpoint dot
-  svg += `<circle cx="${x(valid.length - 1)}" cy="${y(valid[valid.length - 1])}" r="1.5" fill="#333"/>`;
+  svg += `<path d="${line(valid)}" fill="none" stroke="${color}" stroke-width="1"/>`;
+  svg += `<circle cx="${x(valid.length - 1)}" cy="${y(valid[valid.length - 1])}" r="1.5" fill="${color}"/>`;
   svg += `</svg>`;
   return svg;
 }
@@ -690,20 +814,13 @@ function bulletSVG(value, target, min, max, lowerBetter) {
   const x = d3.scaleLinear().domain([min, max]).range([0, w]).clamp(true);
 
   let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
-
-  // Background: full range (light gray)
-  svg += `<rect x="0" y="${h/2-2}" width="${w}" height="4" fill="#e8e8e0" rx="1"/>`;
-
-  // Target marker (thin vertical line)
+  svg += `<rect x="0" y="${h/2-2}" width="${w}" height="4" fill="#e2e4e9" rx="0"/>`;
   const tx = x(target);
-  svg += `<line x1="${tx}" x2="${tx}" y1="${h/2-6}" y2="${h/2+6}" stroke="#999" stroke-width="1" stroke-dasharray="2,1"/>`;
-
-  // Value marker
+  svg += `<line x1="${tx}" x2="${tx}" y1="${h/2-6}" y2="${h/2+6}" stroke="#9ca3af" stroke-width="1" stroke-dasharray="2,1"/>`;
   const vx = x(value);
   const isGood = lowerBetter ? value <= target : value >= target;
-  const color = isGood ? "#5b8a5e" : "#b44";
+  const color = isGood ? "#334155" : "#ef4444";
   svg += `<line x1="${vx}" x2="${vx}" y1="${h/2-5}" y2="${h/2+5}" stroke="${color}" stroke-width="2.5"/>`;
-
   svg += `</svg>`;
   return svg;
 }
@@ -731,10 +848,10 @@ function addLineTooltip(g, data, x, y, yFmt, w, h) {
     .attr("fill", "none").attr("pointer-events", "all");
   const vline = g.append("line")
     .attr("y1", 0).attr("y2", h)
-    .attr("stroke", "#999").attr("stroke-width", 0.5)
+    .attr("stroke", "#9ca3af").attr("stroke-width", 0.5)
     .attr("stroke-dasharray", "2,2")
     .style("display", "none");
-  const dot = g.append("circle").attr("r", 3).attr("fill", "#333").style("display", "none");
+  const dot = g.append("circle").attr("r", 3).attr("fill", "#334155").style("display", "none");
 
   overlay.on("mousemove", function(event) {
     const [mx] = d3.pointer(event);
@@ -827,7 +944,6 @@ function transformLabs(labRows, thresholds) {
   const latestRows = dates.length ? labRows.filter(r => r.draw_date === latestDate) : labRows;
 
   const thresholdsByLoinc = thresholds || {};
-  // Fallback panel mapping by test name
   const nameMap = {
     "Glucose": "Metabolic Panel", "ALT": "Metabolic Panel", "AST": "Metabolic Panel",
     "Albumin": "Metabolic Panel", "Alkaline phosphatase": "Metabolic Panel",
@@ -883,183 +999,10 @@ function computeLabStatus(value, optimal) {
   return "green";
 }
 
-// ── Main data load ──
-let rawData = null;
-let dataSource = "json";
-let currentRange = 365; // default to 1 year
-let dbConn = null; // exposed for query console
-
-// ── Sidebar state ──
-let sidebarSection = null;
-
-function openSidebar(section) {
-  const sidebar = document.getElementById("sidebar");
-  const titleEl = document.getElementById("sidebar-title");
-  const contentEl = document.getElementById("sidebar-content");
-
-  document.querySelectorAll("h2.sidebar-active").forEach(el => el.classList.remove("sidebar-active"));
-
-  const heading = document.querySelector(`h2[data-section="${section}"]`);
-  if (heading) heading.classList.add("sidebar-active");
-
-  const { filtered } = filterByRange(rawData, currentRange);
-
-  const titles = {
-    scorecard: "Protocol Scorecard",
-    biomarkers: "Clinical Biomarkers",
-    trends: "Trends",
-    gait: "Gait & Mobility",
-    correlations: "Cross-Metric Correlations",
-    cardio: "Cardiovascular",
-    sleep: "Sleep",
-  };
-  titleEl.textContent = titles[section] || section;
-  contentEl.textContent = "";
-
-  const builders = {
-    scorecard: () => buildSidebarScorecard(contentEl, filtered),
-    biomarkers: () => buildSidebarBiomarkers(contentEl, filtered),
-    trends: () => buildSidebarTrends(contentEl, filtered),
-    gait: () => buildSidebarGait(contentEl, filtered),
-    correlations: () => buildSidebarCorrelations(contentEl, filtered),
-    cardio: () => buildSidebarCardio(contentEl, filtered),
-    sleep: () => buildSidebarSleep(contentEl, filtered),
-  };
-
-  if (builders[section]) builders[section]();
-
-  sidebar.classList.add("open");
-  sidebarSection = section;
-}
-
-function closeSidebar() {
-  document.getElementById("sidebar").classList.remove("open");
-  document.querySelectorAll("h2.sidebar-active").forEach(el => el.classList.remove("sidebar-active"));
-  sidebarSection = null;
-}
-
-function refreshSidebar() {
-  if (sidebarSection) openSidebar(sidebarSection);
-}
-
-// ── Sidebar event listeners ──
-document.querySelector("article").addEventListener("click", e => {
-  const heading = e.target.closest("h2[data-section]");
-  if (!heading) return;
-  const section = heading.dataset.section;
-  if (sidebarSection === section) {
-    closeSidebar();
-  } else {
-    openSidebar(section);
-  }
-});
-
-document.getElementById("sidebar-close").addEventListener("click", closeSidebar);
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && sidebarSection) closeSidebar();
-});
-
-function renderAll(days) {
-  currentRange = days;
-  const { filtered, startDate, endDate } = filterByRange(rawData, days);
-
-  // Update toggle styling
-  document.querySelectorAll("#range-toggle a").forEach(a => {
-    a.style.fontWeight = a.dataset.days == String(days ?? "all") ? "700" : "400";
-  });
-
-  // Update scorecard period label
-  const periodLabel = days == null ? "All-time Avg"
-    : days <= 30 ? "30d Avg" : days <= 90 ? "90d Avg" : "1y Avg";
-
-  // Clear dynamic sections
-  for (const id of ["daily-brief", "system-status", "bloodwork-section", "small-multiples",
-                     "cardio-detail", "sleep-architecture", "gait-section",
-                     "correlations-section"]) {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = "";
-  }
-
-  buildDailyBrief(filtered);
-  buildSystemStatus(filtered, periodLabel);
-  buildBloodwork(filtered);
-  buildSmallMultiples(filtered, startDate, endDate);
-  buildGaitSection(filtered, startDate, endDate);
-  buildCorrelations(filtered);
-  buildCardioDetail(filtered);
-  buildSleepArchitecture(filtered);
-  refreshSidebar();
-}
-
-(async () => {
-  try {
-    try {
-      dbConn = await initDB();
-      rawData = await loadFromDuckDB(dbConn);
-      rawData.labs = transformLabs(rawData.labs, null);
-      dataSource = "duckdb";
-    } catch (dbErr) {
-      console.warn("DuckDB-WASM load failed, falling back to JSON:", dbErr.message);
-      const resp = await fetch("data/embedded_data.json");
-      rawData = await resp.json();
-    }
-
-    let maxDate = "", minDate = "9999";
-    for (const key of Object.keys(rawData)) {
-      if (!Array.isArray(rawData[key])) continue;
-      for (const row of rawData[key]) {
-        if (row.d && row.d > maxDate) maxDate = row.d;
-        if (row.d && row.d < minDate) minDate = row.d;
-      }
-    }
-    const sourceLabel = dataSource === "duckdb" ? "via DuckDB" : "from snapshot";
-    document.getElementById("last-updated").textContent =
-      `Last Updated ${maxDate} \u00b7 ${sourceLabel}`;
-
-    const fmtMonth = d => {
-      const dt = new Date(d + "T00:00:00");
-      return dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-    };
-    if (minDate < "9999") {
-      document.getElementById("data-span").textContent =
-        `Key biomarkers over time. Dotted lines mark longevity targets. Red dashes indicate danger thresholds. Data spans ${fmtMonth(minDate)} through ${fmtMonth(maxDate)}.`;
-    }
-
-    // Build toggle
-    const toggleEl = document.getElementById("range-toggle");
-    const ranges = [
-      { label: "30 days", days: 30 },
-      { label: "90 days", days: 90 },
-      { label: "1 year", days: 365 },
-      { label: "All", days: null },
-    ];
-    toggleEl.innerHTML = ranges.map(r => {
-      const key = r.days ?? "all";
-      const bold = r.days === currentRange ? "font-weight:700" : "";
-      return `<a href="#" data-days="${key}" style="color:#333;text-decoration:none;${bold}">${r.label}</a>`;
-    }).join(" \u00b7 ");
-    toggleEl.addEventListener("click", e => {
-      e.preventDefault();
-      const a = e.target.closest("a");
-      if (!a) return;
-      const d = a.dataset.days === "all" ? null : parseInt(a.dataset.days);
-      renderAll(d);
-    });
-
-    renderAll(currentRange);
-  } catch (err) {
-    document.getElementById("system-status").innerHTML =
-      `<p style="color:#b44">Error loading data: ${err.message}</p>`;
-  }
-})();
-
-// ═══════════════════════════════════════════
-// DAILY ACTION BRIEF
-// Computes readiness score client-side and renders the brief at the top of the dashboard.
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// READINESS COMPUTATION
+// ══════════════════════════════════════════════════
 function computeReadiness(data) {
-  // Factor scores: compare current to baseline (30d avg)
   function factorScore(current, baseline, invert) {
     if (current == null || baseline == null || baseline === 0) return 75;
     const ratio = invert ? baseline / current : current / baseline;
@@ -1076,7 +1019,6 @@ function computeReadiness(data) {
     return 25 + (current - floor) / (target - floor) * 75;
   }
 
-  // Get latest values
   const hrvArr = data.hrv.filter(d => d.v > 0);
   const hrvCurrent = hrvArr.length ? hrvArr[hrvArr.length - 1].v : null;
   const hrvBaseline = hrvArr.length ? hrvArr[hrvArr.length - 1].r30 : null;
@@ -1104,7 +1046,6 @@ function computeReadiness(data) {
     ? d3.mean(exArr.slice(-4), d => d.v)
     : (exArr.length ? d3.mean(exArr, d => d.v) : null);
 
-  // Compute factors
   const fHrv = factorScore(hrvCurrent, hrvBaseline, false);
   const fRhr = factorScore(rhrCurrent, rhrBaseline, true);
   const fSleepTotal = targetScore(sleepTotal, 7.5, 5.0);
@@ -1117,43 +1058,37 @@ function computeReadiness(data) {
     + fSleepQuality * 0.15 + fSpo2 * 0.10 + fTraining * 0.05
   );
 
-  // Status
   let status, prescription, color;
   if (score >= 85) {
     status = "PEAK"; prescription = "High-intensity intervals, heavy strength, or long endurance. Your best training day.";
-    color = "#5b8a5e";
+    color = "#334155";
   } else if (score >= 70) {
     status = "READY"; prescription = "Zone 2 aerobic base, moderate strength. Solid training day.";
-    color = "#8a9a5e";
+    color = "#334155";
   } else if (score >= 50) {
     status = "MODERATE"; prescription = "Light Zone 2, mobility work, yoga. Don\u2019t push today.";
-    color = "#b8860b";
+    color = "#d97706";
   } else {
     status = "RECOVER"; prescription = "Walk only. Prioritize sleep tonight. Watch for illness.";
-    color = "#b44";
+    color = "#ef4444";
   }
 
-  // Alerts
   const alerts = [];
-  // HRV trending down 3+ days
   if (hrvArr.length >= 4) {
     const recent = hrvArr.slice(-4).map(d => d.v);
     if (recent.every((v, i) => i === 0 || v < recent[i - 1])) {
       alerts.push({ level: "warning", message: "HRV trending down 3+ consecutive days" });
     }
   }
-  // Deep sleep < 1hr for 3+ nights
   if (sleepArr.length >= 3) {
     const recentDeep = sleepArr.slice(-3).map(d => d.deep || 0);
     if (recentDeep.every(d => d < 1.0)) {
       alerts.push({ level: "warning", message: "Deep sleep under 1 hour for 3+ nights" });
     }
   }
-  // SpO2 below 88
   if (spo2Min != null && spo2Min < 88) {
     alerts.push({ level: "critical", message: `SpO2 dropped to ${Math.round(spo2Min)}% last night` });
   }
-  // No Zone 2 this week
   const hrzones = data.hrzones;
   if (!hrzones.length || (hrzones[hrzones.length - 1].z2 || 0) < 5) {
     alerts.push({ level: "info", message: "No significant Zone 2 training this week" });
@@ -1169,1572 +1104,770 @@ function computeReadiness(data) {
   }};
 }
 
+// ══════════════════════════════════════════════════
+// DAILY BRIEF
+// ══════════════════════════════════════════════════
 function buildDailyBrief(data) {
   const container = document.getElementById("daily-brief");
   if (!container) return;
 
   const r = computeReadiness(data);
 
-  // Background tint (very subtle)
-  const bgAlpha = "0a"; // 4% opacity
-  const bgColor = r.color + bgAlpha;
-
-  let html = `
-    <div style="background:${bgColor};border-left:3px solid ${r.color};padding:1.2rem 1.5rem;margin-bottom:2rem">
-      <div style="display:flex;align-items:baseline;gap:1rem;margin-bottom:0.3rem">
-        <span style="font-size:3.2rem;font-weight:600;color:${r.color};line-height:1;font-variant-numeric:tabular-nums">${r.score}</span>
-        <span style="font-variant:small-caps;letter-spacing:0.08em;font-size:1.1rem;color:${r.color}">${r.status}</span>
-      </div>
-      <p style="font-size:1rem;margin-bottom:0.6rem;max-width:none;font-weight:500">${r.prescription}</p>
-      <div style="display:flex;gap:1.2rem;flex-wrap:wrap;font-size:0.75rem;color:#888;margin-bottom:${r.alerts.length ? '0.8rem' : '0'}">
-        <span>HRV ${r.factors.hrv.score}</span>
-        <span>RHR ${r.factors.rhr.score}</span>
-        <span>Sleep ${r.factors.sleep.score}</span>
-        <span>Quality ${r.factors.quality.score}</span>
-        <span>SpO2 ${r.factors.spo2.score}</span>
-        <span>Load ${r.factors.training.score}</span>
-      </div>`;
-
+  let alertsHtml = "";
   if (r.alerts.length) {
-    html += `<div style="display:flex;flex-direction:column;gap:0.3rem">`;
-    for (const a of r.alerts) {
-      const alertColor = a.level === "critical" ? "#b44"
-        : a.level === "warning" ? "#b8860b" : "#888";
+    alertsHtml = r.alerts.map(a => {
+      const alertColor = a.level === "critical" ? "#ef4444"
+        : a.level === "warning" ? "#d97706" : "#9ca3af";
       const icon = a.level === "critical" ? "\u25b2"
         : a.level === "warning" ? "\u25cf" : "\u25cb";
-      html += `<div style="font-size:0.78rem;color:${alertColor}">${icon} ${a.message}</div>`;
-    }
-    html += `</div>`;
+      return `<div class="brief-alert" style="color:${alertColor}">${icon} ${a.message}</div>`;
+    }).join("");
   }
 
-  html += `</div>`;
-  container.innerHTML = html;
+  container.innerHTML = `
+    <div class="brief-banner">
+      <div class="brief-left">
+        <span class="brief-score" style="color:${r.color}">${r.score}</span>
+        <span class="brief-status" style="color:${r.color}">${r.status}</span>
+      </div>
+      <div class="brief-center">
+        <div class="brief-prescription">${r.prescription}</div>
+        <div class="brief-factors">
+          <span>HRV ${r.factors.hrv.score}</span>
+          <span>RHR ${r.factors.rhr.score}</span>
+          <span>Sleep ${r.factors.sleep.score}</span>
+          <span>Quality ${r.factors.quality.score}</span>
+          <span>SpO2 ${r.factors.spo2.score}</span>
+          <span>Load ${r.factors.training.score}</span>
+        </div>
+      </div>
+      <div class="brief-right">${alertsHtml}</div>
+    </div>`;
 }
 
-// ═══════════════════════════════════════════
-// SECTION 1: System Status
-// ═══════════════════════════════════════════
-function buildSystemStatus(data, periodLabel) {
-  const sc = data.scorecard;
-  const last30 = sc.slice(-30);
-  const validSleep = last30.filter(d => d.sleep > 0.5);
-  const validHR = last30.filter(d => d.hr > 0);
-  const validHRV = last30.filter(d => d.hrv > 0);
+// ══════════════════════════════════════════════════
+// DOMAIN CARDS (collapsed)
+// ══════════════════════════════════════════════════
 
-  // Compute averages
-  const stepsAvg = d3.mean(last30, d => d.steps);
-  const sleepAvg = d3.mean(validSleep, d => d.sleep);
-  const deepAvg = d3.mean(validSleep, d => d.deep);
-  const remAvg = d3.mean(validSleep, d => d.rem);
-  const rhrAvg = d3.mean(data.rhr.slice(-30), d => d.v);
-  const hrvAvg = d3.mean(data.hrv.slice(-30), d => d.v);
-  const vo2Last = data.vo2.length > 0 ? data.vo2[data.vo2.length - 1].v : null;
-  const bfLast = data.bodyfat.length > 0 ? data.bodyfat[data.bodyfat.length - 1].v : null;
-  const exLast4 = data.exercise.slice(-4);
-  const exAvg = d3.mean(exLast4, d => d.v);
-  const spo2Last30 = data.spo2.slice(-30);
-  const spo2Min = d3.min(spo2Last30, d => d.min);
-  const spo2AvgMin = d3.mean(spo2Last30, d => d.min);
+function buildRecoveryCard(data) {
+  const body = document.querySelector("#card-recovery .domain-body");
+  if (!body) return;
 
-  // Trend arrows: compare current period vs prior period
-  function computeTrend(arr, key, lowerBetter) {
-    if (arr.length < 4) return { arrow: "\u2014", color: "#888" };
-    const half = Math.floor(arr.length / 2);
-    const current = arr.slice(half);
-    const prior = arr.slice(0, half);
-    const curAvg = d3.mean(current, d => d[key]);
-    const priorAvg = d3.mean(prior, d => d[key]);
-    if (priorAvg == null || curAvg == null || priorAvg === 0) return { arrow: "\u2014", color: "#888" };
-    const delta = (curAvg - priorAvg) / Math.abs(priorAvg) * 100;
-    if (Math.abs(delta) < 5) return { arrow: "\u2014", color: "#888" };
-    const improving = lowerBetter ? delta < 0 : delta > 0;
-    return {
-      arrow: improving ? "\u25B2" : "\u25BC",
-      color: improving ? "#5b8a5e" : "#b44"
-    };
+  const sleepArr = data.sleep.filter(d => d.total > 0.5);
+  const lastSleep = sleepArr.length ? sleepArr[sleepArr.length - 1] : null;
+  const sleepHrs = lastSleep ? lastSleep.total : null;
+
+  const hrvArr = data.hrv.filter(d => d.v > 0);
+  const hrvLast = hrvArr.length ? hrvArr[hrvArr.length - 1] : null;
+  const hrvVal = hrvLast ? hrvLast.v : null;
+  const hrvBaseline = hrvLast ? hrvLast.r30 : null;
+  const hrvTrending = (hrvArr.length >= 3) ? (() => {
+    const r = hrvArr.slice(-3).map(d => d.v);
+    return r.every((v, i) => i === 0 || v < r[i - 1]);
+  })() : false;
+  const hrvArrow = hrvTrending ? "\u25BC" : (hrvVal && hrvBaseline && hrvVal > hrvBaseline ? "\u25B2" : "");
+  const hrvColor = (hrvVal && hrvBaseline && hrvVal < hrvBaseline * 0.85) ? "sub-danger"
+    : (hrvVal && hrvBaseline && hrvVal < hrvBaseline * 0.95) ? "sub-warn" : "";
+
+  const rhrArr = data.rhr;
+  const rhrLast = rhrArr.length ? rhrArr[rhrArr.length - 1].v : null;
+
+  const spo2Arr = data.spo2;
+  const spo2Last = spo2Arr.length ? spo2Arr[spo2Arr.length - 1] : null;
+  const spo2Min = spo2Last ? spo2Last.min : null;
+
+  // Sparkline: sleep trend last 14 days
+  const sleepSparkData = sleepArr.slice(-14).map(d => d.total);
+  // Determine if sleep is declining
+  let sleepDeclining = false;
+  if (sleepSparkData.length >= 7) {
+    const firstHalf = d3.mean(sleepSparkData.slice(0, Math.floor(sleepSparkData.length / 2)));
+    const secondHalf = d3.mean(sleepSparkData.slice(Math.floor(sleepSparkData.length / 2)));
+    sleepDeclining = secondHalf < firstHalf * 0.9;
   }
 
-  const metrics = [
-    { name: "Daily Steps", value: fmt(Math.round(stepsAvg)), numVal: stepsAvg, target: 10000, targetStr: "10,000",
-      sparkData: last30.map(d => d.steps), min: 0, max: 20000, lowerBetter: false, trend: computeTrend(sc, "steps", false) },
-    { name: "Sleep", value: fmt1(sleepAvg) + " hrs", numVal: sleepAvg, target: 7.5, targetStr: "7.5 hrs",
-      sparkData: validSleep.map(d => d.sleep), min: 4, max: 10, lowerBetter: false, trend: computeTrend(data.sleep.filter(d => d.total > 0.5), "total", false) },
-    { name: "Deep Sleep", value: fmt1(deepAvg) + " hrs", numVal: deepAvg, target: 1.5, targetStr: "1.5 hrs",
-      sparkData: validSleep.map(d => d.deep), min: 0, max: 2.5, lowerBetter: false, trend: computeTrend(data.sleep.filter(d => d.total > 0.5), "deep", false) },
-    { name: "REM Sleep", value: fmt1(remAvg) + " hrs", numVal: remAvg, target: 1.5, targetStr: "1.5 hrs",
-      sparkData: validSleep.map(d => d.rem), min: 0, max: 2.5, lowerBetter: false, trend: computeTrend(data.sleep.filter(d => d.total > 0.5), "rem", false) },
-    { name: "Resting HR", value: fmt1(rhrAvg) + " bpm", numVal: rhrAvg, target: 65, targetStr: "65 bpm",
-      sparkData: data.rhr.slice(-30).map(d => d.v), min: 55, max: 85, lowerBetter: true, trend: computeTrend(data.rhr, "v", true) },
-    { name: "HRV", value: fmt1(hrvAvg) + " ms", numVal: hrvAvg, target: 50, targetStr: "50 ms",
-      sparkData: data.hrv.slice(-30).map(d => d.v), min: 20, max: 60, lowerBetter: false, trend: computeTrend(data.hrv, "v", false) },
-    { name: "VO2 Max", value: vo2Last ? fmt1(vo2Last) : "—", numVal: vo2Last || 0, target: 40, targetStr: "40",
-      sparkData: data.vo2.map(d => d.v), min: 20, max: 50, lowerBetter: false, trend: { arrow: "\u2014", color: "#888" } },
-    { name: "Body Fat", value: bfLast ? fmt1(bfLast) + "%" : "—", numVal: bfLast || 0, target: 25, targetStr: "25%",
-      sparkData: data.bodyfat.map(d => d.v), min: 15, max: 45, lowerBetter: true, trend: { arrow: "\u2014", color: "#888" } },
-    { name: "Exercise", value: Math.round(exAvg) + " min/wk", numVal: exAvg, target: 150, targetStr: "150 min",
-      sparkData: data.exercise.map(d => d.v), min: 0, max: 200, lowerBetter: false, trend: computeTrend(data.exercise, "v", false) },
-    { name: "SpO2 Min", value: fmtPct(spo2AvgMin) + "%", numVal: spo2AvgMin, target: 90, targetStr: "90%",
-      sparkData: spo2Last30.map(d => d.min), min: 82, max: 100, lowerBetter: false, trend: computeTrend(data.spo2, "min", false) },
-  ];
-
-  let html = `<table class="system-status">
-    <thead><tr>
-      <th>Metric</th><th style="text-align:right">${periodLabel}</th>
-      <th style="text-align:center;width:30px">\u0394</th>
-      <th style="text-align:right">Target</th>
-      <th>Trend</th><th>vs. Target</th>
-    </tr></thead><tbody>`;
-
-  for (const m of metrics) {
-    html += `<tr>
-      <td class="metric-name">${m.name}</td>
-      <td class="metric-value">${m.value}</td>
-      <td style="text-align:center;font-size:0.75rem;color:${m.trend.color}">${m.trend.arrow}</td>
-      <td class="metric-target">${m.targetStr}</td>
-      <td class="sparkline-cell">${sparklineSVG(m.sparkData, 80, 20)}</td>
-      <td class="bullet-cell">${bulletSVG(m.numVal, m.target, m.min, m.max, m.lowerBetter)}</td>
-    </tr>`;
-  }
-
-  html += `</tbody></table>`;
-  document.getElementById("system-status").innerHTML = html;
+  body.innerHTML = `
+    <div class="domain-primary">${sleepHrs != null ? fmt1(sleepHrs) : "\u2014"}<span class="domain-primary-unit"> hrs sleep</span></div>
+    <div class="domain-sub">
+      <span><span class="sub-label">HRV </span><span class="sub-value ${hrvColor}">${hrvArrow}${hrvVal != null ? Math.round(hrvVal) : "\u2014"}</span></span>
+      <span><span class="sub-label">RHR </span><span class="sub-value">${rhrLast != null ? Math.round(rhrLast) : "\u2014"}</span></span>
+      <span><span class="sub-label">SpO2 </span><span class="sub-value${spo2Min != null && spo2Min < 90 ? " sub-danger" : ""}">${spo2Min != null ? Math.round(spo2Min) + "%" : "\u2014"}</span></span>
+    </div>
+    <div class="domain-sparkline">${sparklineSVG(sleepSparkData, 200, 24, sleepDeclining ? "#ef4444" : "#334155")}</div>`;
 }
 
-// ═══════════════════════════════════════════
-// SECTION 2: Bloodwork
-// ═══════════════════════════════════════════
-function buildBloodwork(data) {
+function buildTrainingCard(data) {
+  const body = document.querySelector("#card-training .domain-body");
+  if (!body) return;
+
+  const exArr = data.exercise;
+  const weeklyMin = exArr.length ? exArr[exArr.length - 1].v : null;
+
+  // 4-week average
+  const ex4wk = exArr.length >= 4 ? d3.mean(exArr.slice(-4), d => d.v) : (exArr.length ? d3.mean(exArr, d => d.v) : null);
+  const isOverload = weeklyMin && ex4wk && weeklyMin > ex4wk * 1.5;
+
+  // HR zone data for session log approximation
+  const hrzones = data.hrzones;
+  const lastZone = hrzones.length ? hrzones[hrzones.length - 1] : null;
+
+  let sessionHtml = "";
+  if (lastZone && (lastZone.z2 > 0 || lastZone.z4 > 0 || lastZone.total > 0)) {
+    const parts = [];
+    if (lastZone.z2 > 0) parts.push(`Z2: ${Math.round(lastZone.z2)}m`);
+    if (lastZone.z4 > 0) parts.push(`Z4+: ${Math.round(lastZone.z4)}m`);
+    const other = Math.max(0, (lastZone.total || 0) - (lastZone.z2 || 0) - (lastZone.z4 || 0));
+    if (other > 5) parts.push(`Other: ${Math.round(other)}m`);
+    sessionHtml = `<div class="domain-session-log"><span class="session-entry">${parts.join(" \u00b7 ")}</span></div>`;
+  } else {
+    sessionHtml = `<div class="domain-session-log" style="color:#9ca3af">No sessions logged</div>`;
+  }
+
+  body.innerHTML = `
+    <div class="domain-primary${isOverload ? " sub-warn" : ""}" style="${isOverload ? "color:#d97706" : ""}">${weeklyMin != null ? Math.round(weeklyMin) : "\u2014"}<span class="domain-primary-unit"> min/wk</span></div>
+    ${sessionHtml}
+    <div class="domain-sub" style="margin-top:0.3rem">
+      <span><span class="sub-label">4wk avg </span><span class="sub-value">${ex4wk != null ? Math.round(ex4wk) : "\u2014"}</span></span>
+    </div>`;
+}
+
+function buildFitnessCard(data) {
+  const body = document.querySelector("#card-fitness .domain-body");
+  if (!body) return;
+
+  const vo2Last = data.vo2.length ? data.vo2[data.vo2.length - 1].v : null;
+  const bfLast = data.bodyfat.length ? data.bodyfat[data.bodyfat.length - 1].v : null;
+  const wsLast = (data.walking_speed || []).length
+    ? data.walking_speed[data.walking_speed.length - 1].v : null;
+
+  // Sparkline: VO2 trend
+  const vo2Spark = data.vo2.map(d => d.v);
+  let vo2Declining = false;
+  if (vo2Spark.length >= 4) {
+    const firstHalf = d3.mean(vo2Spark.slice(0, Math.floor(vo2Spark.length / 2)));
+    const secondHalf = d3.mean(vo2Spark.slice(Math.floor(vo2Spark.length / 2)));
+    vo2Declining = secondHalf < firstHalf * 0.95;
+  }
+
+  body.innerHTML = `
+    <div class="domain-primary">${vo2Last != null ? fmt1(vo2Last) : "\u2014"}<span class="domain-primary-unit"> VO2 Max</span></div>
+    <div class="domain-sub">
+      <span><span class="sub-label">BF </span><span class="sub-value">${bfLast != null ? fmt1(bfLast) + "%" : "\u2014"}</span></span>
+      <span><span class="sub-label">Speed </span><span class="sub-value">${wsLast != null ? fmt1(wsLast) + " mph" : "\u2014"}</span></span>
+    </div>
+    <div class="domain-sparkline">${sparklineSVG(vo2Spark, 200, 24, vo2Declining ? "#ef4444" : "#334155")}</div>`;
+}
+
+function buildBloodworkCard(data) {
+  const body = document.querySelector("#card-bloodwork .domain-body");
+  if (!body) return;
+
   const labs = data.labs;
-  const labDate = labs.date;
-  const labSource = labs.source || "";
+  const labDate = labs.date || "\u2014";
+  const drawCount = labs.drawCount || 0;
 
-  // Update section heading with date and source
-  const heading = document.getElementById("biomarkers-heading");
-  if (heading) {
-    heading.textContent = `Clinical Biomarkers — ${labDate}`;
-    if (labSource) {
-      heading.innerHTML += ` <span style="font-size:0.7em;color:#888;font-variant:normal;letter-spacing:0">${labSource}</span>`;
+  // Count results and flags
+  let totalResults = 0;
+  let flaggedTests = [];
+  const panelStatus = {};
+
+  for (const [group, tests] of Object.entries(labs.groups || {})) {
+    let worst = "green";
+    for (const t of tests) {
+      totalResults++;
+      if (t.status === "red") { worst = "red"; flaggedTests.push(t.test); }
+      else if (t.status === "amber" && worst !== "red") { worst = "amber"; flaggedTests.push(t.test); }
     }
-    if (labs.drawCount && labs.drawCount > 1) {
-      heading.innerHTML += ` <span style="font-size:0.65em;color:#888;font-variant:normal;letter-spacing:0">(${labs.drawCount} draws)</span>`;
+    panelStatus[group] = worst;
+  }
+
+  // Panel dots
+  let dotsHtml = "";
+  for (const [panel, status] of Object.entries(panelStatus)) {
+    dotsHtml += `<span class="panel-dot-group"><span class="dot dot-${status}"></span>${panel}</span>`;
+  }
+
+  // Flagged summary
+  let flagHtml = "";
+  if (flaggedTests.length > 0) {
+    const flagColor = flaggedTests.some(t => {
+      for (const tests of Object.values(labs.groups || {})) {
+        const found = tests.find(tt => tt.test === t && tt.status === "red");
+        if (found) return true;
+      }
+      return false;
+    }) ? "#ef4444" : "#d97706";
+    flagHtml = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:${flagColor};margin-top:0.3rem">${flaggedTests.slice(0, 2).join(", ")}${flaggedTests.length > 2 ? ` +${flaggedTests.length - 2}` : ""}</div>`;
+  }
+
+  body.innerHTML = `
+    <div class="domain-primary" style="font-size:1.1rem">${labDate}<span class="domain-primary-unit"> last draw</span></div>
+    <div class="domain-sub">
+      <span><span class="sub-label">Draws </span><span class="sub-value">${drawCount}</span></span>
+      <span><span class="sub-label">Results </span><span class="sub-value">${totalResults}</span></span>
+    </div>
+    <div class="domain-panel-dots">${dotsHtml}</div>
+    ${flagHtml}`;
+}
+
+// ══════════════════════════════════════════════════
+// DOMAIN EXPANSION
+// ══════════════════════════════════════════════════
+let expandedDomain = null;
+let currentRange = 365;
+
+function expandDomain(domain) {
+  expandedDomain = domain;
+  const el = document.getElementById("expanded-card");
+  el.style.display = "block";
+  el.innerHTML = "";
+
+  // Highlight active card
+  document.querySelectorAll(".domain-card").forEach(c => c.classList.remove("active"));
+  document.getElementById("card-" + domain)?.classList.add("active");
+
+  const { filtered } = filterByRange(rawData, currentRange);
+
+  const builders = {
+    recovery: buildExpandedRecovery,
+    training: buildExpandedTraining,
+    fitness: buildExpandedFitness,
+    bloodwork: buildExpandedBloodwork,
+  };
+
+  if (builders[domain]) builders[domain](el, filtered);
+}
+
+function collapseDomain() {
+  expandedDomain = null;
+  const el = document.getElementById("expanded-card");
+  el.style.display = "none";
+  el.innerHTML = "";
+  document.querySelectorAll(".domain-card").forEach(c => c.classList.remove("active"));
+}
+
+// Domain card click handlers
+document.getElementById("domain-grid").addEventListener("click", e => {
+  const card = e.target.closest(".domain-card");
+  if (!card) return;
+  const domain = card.dataset.domain;
+  if (expandedDomain === domain) {
+    collapseDomain();
+  } else {
+    expandDomain(domain);
+  }
+});
+
+// ══════════════════════════════════════════════════
+// EXPANDED CARD: RECOVERY
+// ══════════════════════════════════════════════════
+function buildExpandedRecovery(el, data) {
+  el.innerHTML = `<div class="expanded-header">Recovery</div><div class="expanded-layout"><div class="expanded-chart-area" id="exp-recovery-chart"></div><div class="expanded-stats" id="exp-recovery-stats"></div></div><div class="expanded-sql">SELECT date, total, deep, rem FROM dashboard_sleep WHERE total > 0.5 ORDER BY date DESC</div>`;
+
+  const chartEl = document.getElementById("exp-recovery-chart");
+  const statsEl = document.getElementById("exp-recovery-stats");
+
+  // Chart: dual-axis HRV line + sleep bars
+  const sleepData = data.sleep.filter(d => d.total > 0.5).slice(-30).map(d => ({
+    d: parseDate(d.d),
+    deep: d.deep ?? 0,
+    rem: d.rem ?? 0,
+    light: Math.max(0, d.total - (d.deep ?? 0) - (d.rem ?? 0)),
+    total: d.total
+  }));
+
+  const hrvData = data.hrv.filter(d => d.v > 0).map(d => ({
+    d: parseDate(d.d), v: d.r7 || d.v
+  }));
+
+  if (sleepData.length >= 2) {
+    const w = 600, h = 220;
+    const margin = { top: 10, right: 50, bottom: 24, left: 36 };
+    const iw = w - margin.left - margin.right;
+    const ih = h - margin.top - margin.bottom;
+
+    const svg = d3.select(chartEl).append("svg")
+      .attr("width", w).attr("height", h)
+      .attr("viewBox", `0 0 ${w} ${h}`)
+      .style("max-width", "100%");
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleBand().domain(sleepData.map(d => d.d)).range([0, iw]).padding(0.15);
+    const yLeft = d3.scaleLinear().domain([0, 10]).range([ih, 0]);
+
+    // Stacked sleep bars
+    sleepData.forEach(d => {
+      const barW = x.bandwidth();
+      const xPos = x(d.d);
+      // Light
+      const lightH = ih - yLeft(d.light);
+      const lightY = yLeft(d.light + d.rem + d.deep);
+      g.append("rect").attr("x", xPos).attr("y", lightY).attr("width", barW).attr("height", lightH)
+        .attr("fill", "#e2e4e9");
+      // REM
+      const remH = ih - yLeft(d.rem);
+      const remY = yLeft(d.rem + d.deep);
+      g.append("rect").attr("x", xPos).attr("y", remY).attr("width", barW).attr("height", remH)
+        .attr("fill", "#9ca3af");
+      // Deep
+      const deepH = ih - yLeft(d.deep);
+      const deepY = yLeft(d.deep);
+      g.append("rect").attr("x", xPos).attr("y", deepY).attr("width", barW).attr("height", deepH)
+        .attr("fill", "#334155");
+    });
+
+    // Target line at 7.5
+    g.append("line").attr("class", "target-line")
+      .attr("x1", 0).attr("x2", iw).attr("y1", yLeft(7.5)).attr("y2", yLeft(7.5));
+    g.append("text").attr("class", "annotation-text")
+      .attr("x", iw + 3).attr("y", yLeft(7.5)).attr("dy", "0.35em").text("7.5 target");
+
+    // HRV overlay line (filter to match sleep date range)
+    const sleepDates = new Set(sleepData.map(d => d.d.toISOString().slice(0, 10)));
+    const hrvFiltered = hrvData.filter(d => {
+      const ds = d.d.toISOString().slice(0, 10);
+      return ds >= sleepData[0].d.toISOString().slice(0, 10) && ds <= sleepData[sleepData.length - 1].d.toISOString().slice(0, 10);
+    });
+
+    if (hrvFiltered.length >= 2) {
+      const yRight = d3.scaleLinear()
+        .domain([d3.min(hrvFiltered, d => d.v) * 0.85, d3.max(hrvFiltered, d => d.v) * 1.15])
+        .range([ih, 0]);
+      const xTime = d3.scaleTime()
+        .domain([sleepData[0].d, sleepData[sleepData.length - 1].d])
+        .range([0, iw]);
+      const hrvLine = d3.line().x(d => xTime(d.d)).y(d => yRight(d.v)).curve(d3.curveMonotoneX);
+      g.append("path").attr("d", hrvLine(hrvFiltered))
+        .attr("fill", "none").attr("stroke", "#334155").attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "4,2");
+      // Right axis labels
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", yRight(d3.max(hrvFiltered, d => d.v) * 1.15)).attr("dy", "0.35em")
+        .text("HRV " + d3.format(".0f")(d3.max(hrvFiltered, d => d.v)));
+    }
+
+    // Legend
+    const leg = g.append("g").attr("transform", `translate(0, -2)`);
+    [{ label: "Deep", color: "#334155" }, { label: "REM", color: "#9ca3af" }, { label: "Light", color: "#e2e4e9" }].forEach((l, i) => {
+      leg.append("rect").attr("x", i * 55).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
+      leg.append("text").attr("class", "annotation-text").attr("x", i * 55 + 14).attr("y", 7)
+        .style("fill", "#334155").text(l.label);
+    });
+
+    tufteYAxis(g, yLeft, iw, d3.format(".0f"));
+    tufteXAxis(g, d3.scaleTime().domain(d3.extent(sleepData, d => d.d)).range([0, iw]), ih, "%b %d");
+  }
+
+  // Stats sidebar
+  const sleepArr = data.sleep.filter(d => d.total > 0.5);
+  const lastSleep = sleepArr.length ? sleepArr[sleepArr.length - 1] : null;
+  const avgSleep = d3.mean(sleepArr.slice(-30), d => d.total);
+  const avgDeep = d3.mean(sleepArr.slice(-30), d => d.deep);
+  const avgRem = d3.mean(sleepArr.slice(-30), d => d.rem);
+
+  const hrvArr = data.hrv.filter(d => d.v > 0);
+  const hrvCurrent = hrvArr.length ? hrvArr[hrvArr.length - 1].v : null;
+  const hrvBaseline = hrvArr.length ? hrvArr[hrvArr.length - 1].r30 : null;
+
+  const rhrArr = data.rhr;
+  const rhrCurrent = rhrArr.length ? rhrArr[rhrArr.length - 1].v : null;
+  const rhrBaseline = rhrArr.length >= 30 ? d3.mean(rhrArr.slice(-30), d => d.v) : null;
+
+  const spo2Arr = data.spo2;
+  const spo2Min = spo2Arr.length ? d3.min(spo2Arr.slice(-30), d => d.min) : null;
+
+  let statsHtml = `
+    <div class="stat-section-title">Sleep</div>
+    <div class="stat-row"><span class="stat-label">Total</span><span class="stat-value">${lastSleep ? fmt1(lastSleep.total) + " hrs" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">Deep</span><span class="stat-value">${lastSleep ? fmt1(lastSleep.deep || 0) + " hrs" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">REM</span><span class="stat-value">${lastSleep ? fmt1(lastSleep.rem || 0) + " hrs" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">30d avg</span><span class="stat-value">${avgSleep ? fmt1(avgSleep) + " hrs" : "\u2014"}</span></div>
+    <div class="stat-section-title">Autonomic</div>
+    <div class="stat-row"><span class="stat-label">HRV current</span><span class="stat-value">${hrvCurrent != null ? Math.round(hrvCurrent) + " ms" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">HRV baseline</span><span class="stat-value">${hrvBaseline != null ? Math.round(hrvBaseline) + " ms" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">RHR current</span><span class="stat-value">${rhrCurrent != null ? Math.round(rhrCurrent) + " bpm" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">RHR baseline</span><span class="stat-value">${rhrBaseline != null ? Math.round(rhrBaseline) + " bpm" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">SpO2 min</span><span class="stat-value">${spo2Min != null ? Math.round(spo2Min) + "%" : "\u2014"}</span></div>`;
+
+  // Flags from readiness
+  const r = computeReadiness(data);
+  const recoveryAlerts = r.alerts.filter(a =>
+    a.message.includes("HRV") || a.message.includes("sleep") || a.message.includes("Sleep") || a.message.includes("SpO2")
+  );
+  if (recoveryAlerts.length) {
+    statsHtml += `<div class="expanded-flags">`;
+    for (const a of recoveryAlerts) {
+      const c = a.level === "critical" ? "#ef4444" : a.level === "warning" ? "#d97706" : "#9ca3af";
+      statsHtml += `<div class="expanded-flag" style="color:${c}">\u25cf ${a.message}</div>`;
+    }
+    statsHtml += `</div>`;
+  }
+
+  statsEl.innerHTML = statsHtml;
+}
+
+// ══════════════════════════════════════════════════
+// EXPANDED CARD: TRAINING
+// ══════════════════════════════════════════════════
+function buildExpandedTraining(el, data) {
+  el.innerHTML = `<div class="expanded-header">Training</div><div class="expanded-layout"><div class="expanded-chart-area" id="exp-training-chart"></div><div class="expanded-stats" id="exp-training-stats"></div></div><div class="expanded-sql">SELECT date, v FROM dashboard_exercise ORDER BY date DESC</div>`;
+
+  const chartEl = document.getElementById("exp-training-chart");
+  const statsEl = document.getElementById("exp-training-stats");
+
+  // Chart: exercise weekly bars + zone distribution
+  const exData = data.exercise.map(d => ({ d: parseDate(d.d), v: d.v }));
+  const hrData = data.hrzones.map(d => ({
+    d: parseDate(d.d), z2: d.z2, z4: d.z4,
+    other: Math.max(0, (d.total || 0) - d.z2 - d.z4)
+  }));
+
+  if (exData.length >= 2) {
+    const w = 600, h = 200;
+    const margin = { top: 10, right: 50, bottom: 24, left: 40 };
+    const iw = w - margin.left - margin.right;
+    const ih = h - margin.top - margin.bottom;
+
+    const svg = d3.select(chartEl).append("svg")
+      .attr("width", w).attr("height", h)
+      .attr("viewBox", `0 0 ${w} ${h}`)
+      .style("max-width", "100%");
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Use HR zone data if available, otherwise exercise data
+    const barData = hrData.length >= 2 ? hrData : exData.map(d => ({ d: d.d, z2: d.v * 0.6, z4: d.v * 0.1, other: d.v * 0.3 }));
+
+    const x = d3.scaleBand().domain(barData.map(d => d.d)).range([0, iw]).padding(0.3);
+    const maxY = d3.max(barData, d => (d.z2 || 0) + (d.z4 || 0) + (d.other || 0)) || 30;
+    const y = d3.scaleLinear().domain([0, Math.max(maxY * 1.1, 30)]).range([ih, 0]);
+
+    barData.forEach(d => {
+      const barW = x.bandwidth();
+      const xPos = x(d.d);
+      let yPos = ih;
+
+      if (d.other > 0) {
+        const barH = ih - y(d.other);
+        yPos -= barH;
+        g.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
+          .attr("fill", "#e2e4e9");
+      }
+      if (d.z2 > 0) {
+        const barH = ih - y(d.z2);
+        yPos -= barH;
+        g.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
+          .attr("fill", "#9ca3af");
+      }
+      if (d.z4 > 0) {
+        const barH = ih - y(d.z4);
+        yPos -= barH;
+        g.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
+          .attr("fill", "#334155");
+      }
+
+      const total = (d.z2 || 0) + (d.z4 || 0) + (d.other || 0);
+      if (total > 0) {
+        g.append("text").attr("class", "annotation-text")
+          .attr("x", xPos + barW / 2).attr("y", y(total) - 3)
+          .attr("text-anchor", "middle").style("font-size", "8px")
+          .text(Math.round(total));
+      }
+    });
+
+    // Target line at 150
+    g.append("line").attr("class", "target-line")
+      .attr("x1", 0).attr("x2", iw).attr("y1", y(150)).attr("y2", y(150));
+    g.append("text").attr("class", "annotation-text")
+      .attr("x", iw + 3).attr("y", y(150)).attr("dy", "0.35em").text("150 target");
+
+    // Legend
+    const leg = g.append("g").attr("transform", `translate(${iw - 150}, 0)`);
+    [{ label: "Zone 4+", color: "#334155" }, { label: "Zone 2", color: "#9ca3af" }, { label: "Other", color: "#e2e4e9" }].forEach((l, i) => {
+      leg.append("rect").attr("x", i * 55).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
+      leg.append("text").attr("class", "annotation-text").attr("x", i * 55 + 14).attr("y", 7)
+        .style("fill", "#334155").text(l.label);
+    });
+
+    tufteYAxis(g, y, iw, d3.format(".0f"));
+    const dfmt = d3.timeFormat("%b %d");
+    g.append("text").attr("class", "axis-label")
+      .attr("x", 0).attr("y", ih + 14).attr("text-anchor", "start").text(dfmt(barData[0].d));
+    g.append("text").attr("class", "axis-label")
+      .attr("x", iw).attr("y", ih + 14).attr("text-anchor", "end").text(dfmt(barData[barData.length - 1].d));
+  }
+
+  // Stats
+  const exArr = data.exercise;
+  const lastEx = exArr.length ? exArr[exArr.length - 1].v : null;
+  const ex4wk = exArr.length >= 4 ? d3.mean(exArr.slice(-4), d => d.v) : null;
+  const hrzones = data.hrzones;
+  const totalZ2 = hrzones.length ? d3.sum(hrzones.slice(-4), d => d.z2 || 0) : 0;
+  const totalZ4 = hrzones.length ? d3.sum(hrzones.slice(-4), d => d.z4 || 0) : 0;
+
+  // Load trend
+  let loadTrend = "\u2014";
+  if (exArr.length >= 8) {
+    const recent = d3.mean(exArr.slice(-4), d => d.v);
+    const prior = d3.mean(exArr.slice(-8, -4), d => d.v);
+    if (prior > 0) {
+      const delta = ((recent - prior) / prior * 100);
+      loadTrend = (delta > 0 ? "+" : "") + Math.round(delta) + "%";
     }
   }
 
-  let html = `<table class="bloodwork">
-    <thead><tr><th>Test</th><th style="text-align:right">Value</th><th style="text-align:right">Optimal</th><th></th></tr></thead>
-    <tbody>`;
+  statsEl.innerHTML = `
+    <div class="stat-section-title">Volume</div>
+    <div class="stat-row"><span class="stat-label">This week</span><span class="stat-value">${lastEx != null ? Math.round(lastEx) + " min" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">4-week avg</span><span class="stat-value">${ex4wk != null ? Math.round(ex4wk) + " min" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">Load trend</span><span class="stat-value">${loadTrend}</span></div>
+    <div class="stat-section-title">Zone Distribution (4wk)</div>
+    <div class="stat-row"><span class="stat-label">Z2 minutes</span><span class="stat-value">${Math.round(totalZ2)}</span></div>
+    <div class="stat-row"><span class="stat-label">Z4+ minutes</span><span class="stat-value">${Math.round(totalZ4)}</span></div>`;
+}
+
+// ══════════════════════════════════════════════════
+// EXPANDED CARD: FITNESS
+// ══════════════════════════════════════════════════
+function buildExpandedFitness(el, data) {
+  el.innerHTML = `<div class="expanded-header">Fitness</div><div class="expanded-layout"><div class="expanded-chart-area" id="exp-fitness-chart"></div><div class="expanded-stats" id="exp-fitness-stats"></div></div><div class="expanded-sql">SELECT date, v FROM dashboard_vo2 ORDER BY date</div>`;
+
+  const chartEl = document.getElementById("exp-fitness-chart");
+  const statsEl = document.getElementById("exp-fitness-stats");
+
+  // Chart: VO2 Max scatter with trend + body fat
+  const vo2Data = data.vo2.map(d => ({ d: parseDate(d.d), v: d.v }));
+  const bfData = data.bodyfat.map(d => ({ d: parseDate(d.d), v: d.v }));
+
+  if (vo2Data.length >= 2) {
+    const w = 600, h = 200;
+    const margin = { top: 10, right: 50, bottom: 24, left: 36 };
+    const iw = w - margin.left - margin.right;
+    const ih = h - margin.top - margin.bottom;
+
+    const svg = d3.select(chartEl).append("svg")
+      .attr("width", w).attr("height", h)
+      .attr("viewBox", `0 0 ${w} ${h}`)
+      .style("max-width", "100%");
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const dataEnd = d3.max(vo2Data, d => d.d);
+    const projEnd = new Date(2026, 11, 31);
+    const x = d3.scaleTime()
+      .domain([d3.min(vo2Data, d => d.d), projEnd])
+      .range([0, iw]);
+    const y = d3.scaleLinear().domain([24, 45]).range([ih, 0]);
+
+    // Data points
+    g.selectAll("circle.vo2dot").data(vo2Data).join("circle")
+      .attr("cx", d => x(d.d)).attr("cy", d => y(d.v))
+      .attr("r", 3).attr("fill", "#334155");
+    const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
+    g.append("path").attr("d", line(vo2Data))
+      .attr("fill", "none").attr("stroke", "#334155").attr("stroke-width", 1);
+
+    // Projection to Dec 2026
+    const lastVo2 = vo2Data[vo2Data.length - 1];
+    g.append("line")
+      .attr("x1", x(lastVo2.d)).attr("y1", y(lastVo2.v))
+      .attr("x2", x(projEnd)).attr("y2", y(35))
+      .attr("stroke", "#334155").attr("stroke-width", 1.2)
+      .attr("stroke-dasharray", "4,3").attr("opacity", 0.5);
+
+    // Targets
+    [{ v: 35, label: "Year 1" }, { v: 40, label: "Longevity" }].forEach(t => {
+      g.append("line").attr("class", "target-line")
+        .attr("x1", 0).attr("x2", iw).attr("y1", y(t.v)).attr("y2", y(t.v));
+      g.append("text").attr("class", "annotation-text")
+        .attr("x", iw + 3).attr("y", y(t.v)).attr("dy", "0.35em")
+        .text(t.v + " " + t.label);
+    });
+
+    // Last value annotation
+    g.append("text").attr("class", "annotation-text")
+      .attr("x", x(lastVo2.d)).attr("y", y(lastVo2.v) - 8).attr("text-anchor", "middle")
+      .style("font-weight", "600").style("fill", "#334155")
+      .text(fmt1(lastVo2.v));
+
+    tufteYAxis(g, y, iw, d3.format(".0f"));
+    tufteXAxis(g, x, ih, "%b '%y");
+  }
+
+  // Body fat trend chart
+  if (bfData.length >= 2) {
+    const titleEl = document.createElement("div");
+    titleEl.style.cssText = "font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:0.78rem;letter-spacing:0.04em;text-transform:uppercase;color:#334155;margin-top:1rem;margin-bottom:0.3rem";
+    titleEl.textContent = "Body Fat Trend";
+    chartEl.appendChild(titleEl);
+
+    const w2 = 600, h2 = 120;
+    const margin2 = { top: 8, right: 50, bottom: 22, left: 36 };
+    const iw2 = w2 - margin2.left - margin2.right;
+    const ih2 = h2 - margin2.top - margin2.bottom;
+
+    const svg2 = d3.select(chartEl).append("svg")
+      .attr("width", w2).attr("height", h2)
+      .attr("viewBox", `0 0 ${w2} ${h2}`)
+      .style("max-width", "100%");
+    const g2 = svg2.append("g").attr("transform", `translate(${margin2.left},${margin2.top})`);
+
+    const x2 = d3.scaleTime().domain(d3.extent(bfData, d => d.d)).range([0, iw2]);
+    const yExt = d3.extent(bfData, d => d.v);
+    const y2 = d3.scaleLinear().domain([Math.min(yExt[0], 25) * 0.95, Math.max(yExt[1], 25) * 1.05]).range([ih2, 0]);
+
+    const area = d3.area().x(d => x2(d.d)).y0(ih2).y1(d => y2(d.v)).curve(d3.curveMonotoneX);
+    g2.append("path").attr("d", area(bfData)).attr("fill", "#334155").attr("opacity", 0.06);
+    const line2 = d3.line().x(d => x2(d.d)).y(d => y2(d.v)).curve(d3.curveMonotoneX);
+    g2.append("path").attr("d", line2(bfData)).attr("fill", "none").attr("stroke", "#334155").attr("stroke-width", 1.3);
+
+    g2.append("line").attr("class", "target-line")
+      .attr("x1", 0).attr("x2", iw2).attr("y1", y2(25)).attr("y2", y2(25));
+    g2.append("text").attr("class", "annotation-text")
+      .attr("x", iw2 + 3).attr("y", y2(25)).attr("dy", "0.35em").text("25% target");
+
+    tufteYAxis(g2, y2, iw2, d3.format(".1f"));
+    tufteXAxis(g2, x2, ih2, "%b '%y");
+  }
+
+  // Stats
+  const vo2Current = data.vo2.length ? data.vo2[data.vo2.length - 1].v : null;
+  const bfCurrent = data.bodyfat.length ? data.bodyfat[data.bodyfat.length - 1].v : null;
+  const wsData = data.walking_speed || [];
+  const wsCurrent = wsData.length ? wsData[wsData.length - 1].v : null;
+  const waData = data.walking_asymmetry || [];
+  const waCurrent = waData.length ? waData[waData.length - 1].v : null;
+
+  statsEl.innerHTML = `
+    <div class="stat-section-title">VO2 Max</div>
+    <div class="stat-row"><span class="stat-label">Current</span><span class="stat-value">${vo2Current != null ? fmt1(vo2Current) : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">Year 1 target</span><span class="stat-value">35</span></div>
+    <div class="stat-row"><span class="stat-label">Longevity target</span><span class="stat-value">40</span></div>
+    <div class="stat-section-title">Body Composition</div>
+    <div class="stat-row"><span class="stat-label">Body fat</span><span class="stat-value">${bfCurrent != null ? fmt1(bfCurrent) + "%" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">Target</span><span class="stat-value">25%</span></div>
+    <div class="stat-section-title">Mobility</div>
+    <div class="stat-row"><span class="stat-label">Walking speed</span><span class="stat-value">${wsCurrent != null ? fmt1(wsCurrent) + " mph" : "\u2014"}</span></div>
+    <div class="stat-row"><span class="stat-label">Asymmetry</span><span class="stat-value">${waCurrent != null ? fmt1(waCurrent) + "%" : "\u2014"}</span></div>`;
+}
+
+// ══════════════════════════════════════════════════
+// EXPANDED CARD: BLOODWORK
+// ══════════════════════════════════════════════════
+function buildExpandedBloodwork(el, data) {
+  el.innerHTML = `<div class="expanded-header">Bloodwork</div><div id="exp-bloodwork-content"></div><div class="expanded-sql">SELECT draw_date, test, value, unit, ref_low, ref_high FROM dashboard_labs ORDER BY draw_date DESC</div>`;
+
+  const contentEl = document.getElementById("exp-bloodwork-content");
+  const labs = data.labs;
+
+  if (!labs || !labs.groups || Object.keys(labs.groups).length === 0) {
+    contentEl.innerHTML = `<p style="color:#9ca3af">No lab data available.</p>`;
+    return;
+  }
+
+  let html = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#9ca3af;margin-bottom:1rem">Last draw: ${labs.date} &middot; ${labs.drawCount || 0} total draws</div>`;
+  html += `<table class="bloodwork-table"><thead><tr><th>Test</th><th style="text-align:right">Value</th><th style="text-align:right">Unit</th><th style="text-align:right">Optimal</th><th style="width:24px"></th></tr></thead><tbody>`;
 
   for (const [group, tests] of Object.entries(labs.groups)) {
-    html += `<tr class="group-header"><td colspan="4">${group}</td></tr>`;
+    html += `<tr class="group-header"><td colspan="5">${group}</td></tr>`;
     for (const t of tests) {
       html += `<tr>
         <td>${t.test}</td>
-        <td style="text-align:right">${t.value}${t.unit ? ' <span style="color:#999;font-size:0.8em">' + t.unit + '</span>' : ''}</td>
-        <td style="text-align:right;color:#888">${t.optimal}</td>
+        <td style="text-align:right">${t.value}</td>
+        <td style="text-align:right;color:#9ca3af">${t.unit || ""}</td>
+        <td style="text-align:right;color:#9ca3af">${t.optimal}</td>
         <td><span class="dot dot-${t.status}"></span></td>
       </tr>`;
     }
   }
 
   html += `</tbody></table>`;
-
-  document.getElementById("bloodwork-section").innerHTML = html;
+  contentEl.innerHTML = html;
 }
 
-// ═══════════════════════════════════════════
-// SECTION 3: Small Multiples
-// ═══════════════════════════════════════════
-function buildSmallMultiples(data, rangeStart, rangeEnd) {
-  const container = document.getElementById("small-multiples");
-  const w = 280, h = 110;
-  const margin = { top: 6, right: 40, bottom: 18, left: 32 };
-  const iw = w - margin.left - margin.right;
-  const ih = h - margin.top - margin.bottom;
-
-  const charts = [
-    { title: "Steps (30d rolling avg)", data: data.steps.map(d => ({ d: parseDate(d.d), v: d.r30 })),
-      target: 10000, yFmt: d3.format(",.0f") },
-    { title: "Sleep (hours)", data: data.sleep.filter(d => d.total > 0.5).map(d => ({ d: parseDate(d.d), v: d.total })),
-      target: 7.5, yFmt: d3.format(".1f") },
-    { title: "Resting Heart Rate (bpm)", data: data.rhr.map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: 65, yFmt: d3.format(".0f"), lowerBetter: true },
-    { title: "HRV 30d avg (ms)", data: data.hrv.map(d => ({ d: parseDate(d.d), v: d.r30 })),
-      target: 50, yFmt: d3.format(".0f") },
-    { title: "SpO2 nightly min (%)", data: data.spo2.map(d => ({ d: parseDate(d.d), v: d.min })),
-      target: 90, dangerThreshold: 88, yFmt: d3.format(".0f") },
-    { title: "Exercise (min/week, 4wk avg)", data: data.exercise.map((d, i, arr) => {
-        const win = arr.slice(Math.max(0, i - 3), i + 1);
-        return { d: parseDate(d.d), v: d3.mean(win, w => w.v) };
-      }),
-      target: 150, yFmt: d3.format(".0f") },
-    { title: "Body Fat (%)", data: data.bodyfat.map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: 25, yFmt: d3.format(".1f"), lowerBetter: true },
-    { title: "Weight (lbs)", data: data.weight.map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: null, yFmt: d3.format(".0f") },
-    { title: "Respiratory Rate (br/min)", data: (data.respiratory_rate || []).map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: null, yFmt: d3.format(".1f") },
-  ];
-
-  for (const ch of charts) {
-    const div = document.createElement("div");
-    div.className = "small-multiple";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "chart-title";
-    titleEl.textContent = ch.title;
-    div.appendChild(titleEl);
-
-    // Adaptive: <3 = text, 3-19 = scatter+trend, 20+ = area+line
-    if (ch.data.length < 3) {
-      const msg = document.createElement("div");
-      msg.style.cssText = "color:#888;font-size:0.82rem;font-style:italic;padding:0.5rem 0";
-      msg.textContent = ch.data.length === 0
-        ? "No data in this range."
-        : `${ch.data.length} data point${ch.data.length > 1 ? "s" : ""} \u2014 collecting data.`;
-      div.appendChild(msg);
-      container.appendChild(div);
-      continue;
-    }
-
-    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const xExt = d3.extent(ch.data, d => d.d);
-    const yExt = d3.extent(ch.data, d => d.v);
-    let yMin = yExt[0], yMax = yExt[1];
-    if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
-    if (ch.dangerThreshold != null) { yMin = Math.min(yMin, ch.dangerThreshold); }
-    yMin *= 0.95; yMax *= 1.05;
-
-    const xDomain = (rangeStart && rangeEnd)
-      ? [parseDate(rangeStart), parseDate(rangeEnd)]
-      : xExt;
-    const x = d3.scaleTime().domain(xDomain).range([0, iw]);
-    const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
-
-    if (ch.data.length < 20) {
-      // Scatter + connecting line + trend
-      const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
-      g.append("path").attr("d", line(ch.data))
-        .attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
-      g.selectAll("circle.scatter").data(ch.data).join("circle")
-        .attr("cx", d => x(d.d)).attr("cy", d => y(d.v))
-        .attr("r", 3).attr("fill", "#333");
-
-      // Linear trend line (least squares)
-      const n = ch.data.length;
-      const xVals = ch.data.map(d => d.d.getTime());
-      const yVals = ch.data.map(d => d.v);
-      const xMean = d3.mean(xVals), yMean = d3.mean(yVals);
-      let num = 0, den = 0;
-      for (let i = 0; i < n; i++) {
-        num += (xVals[i] - xMean) * (yVals[i] - yMean);
-        den += (xVals[i] - xMean) ** 2;
-      }
-      if (den > 0) {
-        const slope = num / den;
-        const intercept = yMean - slope * xMean;
-        const trendY = t => slope * t + intercept;
-        const x0 = xVals[0], x1 = xVals[n - 1];
-        g.append("line")
-          .attr("x1", x(ch.data[0].d)).attr("y1", y(trendY(x0)))
-          .attr("x2", x(ch.data[n - 1].d)).attr("y2", y(trendY(x1)))
-          .attr("stroke", "#5b8a5e").attr("stroke-width", 1)
-          .attr("stroke-dasharray", "4,3").attr("opacity", 0.6);
-      }
-    } else {
-      // Dense: area + line (existing behavior)
-      const area = d3.area()
-        .x(d => x(d.d)).y0(ih).y1(d => y(d.v))
-        .curve(d3.curveMonotoneX);
-      g.append("path").attr("class", "data-area").attr("d", area(ch.data));
-      const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
-      g.append("path").attr("class", "data-line").attr("d", line(ch.data));
-    }
-
-    // Target line
-    if (ch.target != null) {
-      g.append("line").attr("class", "target-line")
-        .attr("x1", 0).attr("x2", iw)
-        .attr("y1", y(ch.target)).attr("y2", y(ch.target));
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", y(ch.target)).attr("dy", "0.35em")
-        .text(ch.yFmt(ch.target));
-    }
-
-    // Danger threshold
-    if (ch.dangerThreshold != null) {
-      g.append("line")
-        .attr("x1", 0).attr("x2", iw)
-        .attr("y1", y(ch.dangerThreshold)).attr("y2", y(ch.dangerThreshold))
-        .attr("stroke", "#b44").attr("stroke-width", 0.8).attr("stroke-dasharray", "2,2");
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", y(ch.dangerThreshold)).attr("dy", "0.35em")
-        .style("fill", "#b44")
-        .text(ch.yFmt(ch.dangerThreshold));
-    }
-
-    // Endpoint dot + value
-    const last = ch.data[ch.data.length - 1];
-    g.append("circle").attr("class", "endpoint-dot")
-      .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
-    g.append("text").attr("class", "annotation-text")
-      .attr("x", x(last.d)).attr("y", y(last.v) - 6).attr("text-anchor", "end")
-      .style("font-weight", "600").style("fill", "#333")
-      .text(ch.yFmt(last.v));
-
-    tufteYAxis(g, y, iw, ch.yFmt);
-    tufteXAxis(g, x, ih, "%b %d");
-
-    // Tooltip
-    addLineTooltip(g, ch.data, x, y, ch.yFmt, iw, ih);
-
-    container.appendChild(div);
-  }
-}
-
-function buildGaitSection(data, rangeStart, rangeEnd) {
-  const container = document.getElementById("gait-section");
-  if (!container) return;
-  const w = 280, h = 110;
-  const margin = { top: 6, right: 40, bottom: 18, left: 32 };
-  const iw = w - margin.left - margin.right;
-  const ih = h - margin.top - margin.bottom;
-
-  const charts = [
-    { title: "Walking Speed (mph)", data: (data.walking_speed || []).map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: 3.0, yFmt: d3.format(".1f") },
-    { title: "Walking Asymmetry (%)", data: (data.walking_asymmetry || []).map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: 10, yFmt: d3.format(".1f"), lowerBetter: true },
-  ];
-
-  for (const ch of charts) {
-    const div = document.createElement("div");
-    div.className = "small-multiple";
-    const titleEl = document.createElement("div");
-    titleEl.className = "chart-title";
-    titleEl.textContent = ch.title;
-    div.appendChild(titleEl);
-
-    if (ch.data.length < 3) {
-      const msg = document.createElement("div");
-      msg.style.cssText = "color:#888;font-size:0.82rem;font-style:italic;padding:0.5rem 0";
-      msg.textContent = ch.data.length === 0
-        ? "No data in this range."
-        : `${ch.data.length} data point${ch.data.length > 1 ? "s" : ""} \u2014 collecting data.`;
-      div.appendChild(msg);
-      container.appendChild(div);
-      continue;
-    }
-
-    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const xExt = d3.extent(ch.data, d => d.d);
-    const yExt = d3.extent(ch.data, d => d.v);
-    let yMin = yExt[0], yMax = yExt[1];
-    if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
-    yMin *= 0.95; yMax *= 1.05;
-    const xDomain = (rangeStart && rangeEnd) ? [parseDate(rangeStart), parseDate(rangeEnd)] : xExt;
-    const x = d3.scaleTime().domain(xDomain).range([0, iw]);
-    const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
-
-    if (ch.data.length < 20) {
-      const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
-      g.append("path").attr("d", line(ch.data)).attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
-      g.selectAll("circle.scatter").data(ch.data).join("circle")
-        .attr("cx", d => x(d.d)).attr("cy", d => y(d.v)).attr("r", 3).attr("fill", "#333");
-    } else {
-      const area = d3.area().x(d => x(d.d)).y0(ih).y1(d => y(d.v)).curve(d3.curveMonotoneX);
-      g.append("path").attr("class", "data-area").attr("d", area(ch.data));
-      const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
-      g.append("path").attr("class", "data-line").attr("d", line(ch.data));
-    }
-
-    if (ch.target != null) {
-      g.append("line").attr("class", "target-line")
-        .attr("x1", 0).attr("x2", iw).attr("y1", y(ch.target)).attr("y2", y(ch.target));
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", y(ch.target)).attr("dy", "0.35em").text(ch.yFmt(ch.target));
-    }
-
-    const last = ch.data[ch.data.length - 1];
-    g.append("circle").attr("class", "endpoint-dot")
-      .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
-    g.append("text").attr("class", "annotation-text")
-      .attr("x", x(last.d)).attr("y", y(last.v) - 6).attr("text-anchor", "end")
-      .style("font-weight", "600").style("fill", "#333").text(ch.yFmt(last.v));
-
-    tufteYAxis(g, y, iw, ch.yFmt);
-    tufteXAxis(g, x, ih, "%b %d");
-    addLineTooltip(g, ch.data, x, y, ch.yFmt, iw, ih);
-    container.appendChild(div);
-  }
-}
-
-// ═══════════════════════════════════════════
-// SECTION 3c: Cross-Metric Correlations
-// ═══════════════════════════════════════════
-function buildCorrelations(data) {
-  const container = document.getElementById("correlations-section");
-  if (!container) return;
-
-  const fullW = 920, fullH = 200;
-  const margin = { top: 10, right: 50, bottom: 22, left: 36 };
-  const iw = fullW - margin.left - margin.right;
-  const ih = fullH - margin.top - margin.bottom;
-
-  // ── Shared data prep ──
-  const sleepData = data.sleep.filter(d => d.total > 0.5);
-  const sleepByDate = {};
-  for (const s of sleepData) sleepByDate[s.d] = s;
-
-  // ── Chart 1: HRV vs Sleep Quality ──
-  {
-    const hrvData = data.hrv.filter(d => d.v > 0);
-    const chart1Data = hrvData.map(d => ({
-      d: parseDate(d.d),
-      hrv: d.r7 || d.v,
-      deep: sleepByDate[d.d]?.deep || 0,
-      rem: sleepByDate[d.d]?.rem || 0,
-    })).filter(d => d.deep + d.rem > 0);
-
-    if (chart1Data.length >= 3) {
-      const div = document.createElement("div");
-      div.style.marginBottom = "2rem";
-      const titleEl = document.createElement("div");
-      titleEl.className = "chart-title";
-      titleEl.textContent = "HRV vs Sleep Quality";
-      div.appendChild(titleEl);
-      const context = document.createElement("p");
-      context.style.cssText = "font-size:0.78rem;color:#666;font-style:italic;max-width:600px;margin-bottom:0.5rem";
-      context.textContent = "Autonomic recovery is gated by sleep architecture. Chronically low HRV with adequate sleep suggests overtraining; low HRV with poor sleep suggests fixing sleep first.";
-      div.appendChild(context);
-
-      const svg = d3.select(div).append("svg")
-        .attr("width", fullW).attr("height", fullH)
-        .attr("viewBox", `0 0 ${fullW} ${fullH}`)
-        .style("max-width", "100%");
-      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-      const x = d3.scaleTime().domain(d3.extent(chart1Data, d => d.d)).range([0, iw]);
-      const yLeft = d3.scaleLinear()
-        .domain([d3.min(chart1Data, d => d.hrv) * 0.9, d3.max(chart1Data, d => d.hrv) * 1.1])
-        .range([ih, 0]);
-      const yRightMax = d3.max(chart1Data, d => d.deep + d.rem) * 1.2;
-      const yRight = d3.scaleLinear().domain([0, yRightMax]).range([ih, 0]);
-
-      // Stacked bars: deep + REM
-      const barW = Math.max(1, iw / chart1Data.length - 1);
-      g.selectAll("rect.deep").data(chart1Data).join("rect")
-        .attr("x", d => x(d.d) - barW / 2)
-        .attr("y", d => yRight(d.deep + d.rem))
-        .attr("width", barW).attr("height", d => ih - yRight(d.deep + d.rem))
-        .attr("fill", "#444").attr("opacity", 0.5);
-      g.selectAll("rect.rem").data(chart1Data).join("rect")
-        .attr("x", d => x(d.d) - barW / 2)
-        .attr("y", d => yRight(d.rem))
-        .attr("width", barW).attr("height", d => ih - yRight(d.rem))
-        .attr("fill", "#888").attr("opacity", 0.5);
-
-      // HRV line on top
-      const line = d3.line().x(d => x(d.d)).y(d => yLeft(d.hrv)).curve(d3.curveMonotoneX);
-      g.append("path").attr("d", line(chart1Data))
-        .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1.3);
-
-      tufteYAxis(g, yLeft, iw, d3.format(".0f"));
-      // Right axis labels
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", yRight(yRightMax)).attr("dy", "0.35em")
-        .text(d3.format(".1f")(yRightMax) + "h");
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", yRight(0)).attr("dy", "0.35em")
-        .text("0");
-      tufteXAxis(g, x, ih, "%b '%y");
-
-      container.appendChild(div);
-    }
-  }
-
-  // ── Chart 2: RHR Trend vs Training Load ──
-  {
-    const rhrByWeek = {};
-    for (const d of data.rhr) {
-      const wk = d3.timeMonday(parseDate(d.d)).toISOString().slice(0, 10);
-      if (!rhrByWeek[wk]) rhrByWeek[wk] = [];
-      rhrByWeek[wk].push(d.v);
-    }
-    const rhrWeekly = [];
-    for (const [wk, vals] of Object.entries(rhrByWeek)) {
-      rhrWeekly.push({ d: parseDate(wk), v: d3.mean(vals) });
-    }
-    const exByDate = {};
-    for (const e of data.exercise) exByDate[e.d] = e.v;
-    const chart2Data = rhrWeekly.map(d => ({
-      d: d.d,
-      rhr: d.v,
-      exercise: exByDate[d.d.toISOString().slice(0, 10)] || 0,
-    }));
-
-    if (chart2Data.length >= 3) {
-      const div = document.createElement("div");
-      div.style.marginBottom = "2rem";
-      const titleEl = document.createElement("div");
-      titleEl.className = "chart-title";
-      titleEl.textContent = "RHR Trend vs Training Load";
-      div.appendChild(titleEl);
-      const context = document.createElement("p");
-      context.style.cssText = "font-size:0.78rem;color:#666;font-style:italic;max-width:600px;margin-bottom:0.5rem";
-      context.textContent = "Rising resting HR during stable training volume is the earliest signal of overtraining or illness. Well-adapted training shows declining RHR with increasing load.";
-      div.appendChild(context);
-
-      const svg = d3.select(div).append("svg")
-        .attr("width", fullW).attr("height", fullH)
-        .attr("viewBox", `0 0 ${fullW} ${fullH}`)
-        .style("max-width", "100%");
-      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-      const x = d3.scaleTime().domain(d3.extent(chart2Data, d => d.d)).range([0, iw]);
-      const yLeft = d3.scaleLinear()
-        .domain([d3.min(chart2Data, d => d.rhr) * 0.95, d3.max(chart2Data, d => d.rhr) * 1.05])
-        .range([ih, 0]);
-      const yRightMax = d3.max(chart2Data, d => d.exercise) * 1.2 || 200;
-      const yRight = d3.scaleLinear().domain([0, yRightMax]).range([ih, 0]);
-
-      // Exercise bars
-      const barW = Math.max(1, iw / chart2Data.length - 1);
-      g.selectAll("rect.ex").data(chart2Data).join("rect")
-        .attr("x", d => x(d.d) - barW / 2)
-        .attr("y", d => yRight(d.exercise))
-        .attr("width", barW).attr("height", d => ih - yRight(d.exercise))
-        .attr("fill", "#ccc").attr("opacity", 0.6);
-
-      // RHR line
-      const line = d3.line().x(d => x(d.d)).y(d => yLeft(d.rhr)).curve(d3.curveMonotoneX);
-      g.append("path").attr("d", line(chart2Data))
-        .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1.3);
-
-      tufteYAxis(g, yLeft, iw, d3.format(".0f"));
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", yRight(yRightMax)).attr("dy", "0.35em")
-        .text(d3.format(".0f")(yRightMax) + "m");
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", yRight(0)).attr("dy", "0.35em")
-        .text("0");
-      tufteXAxis(g, x, ih, "%b '%y");
-
-      container.appendChild(div);
-    }
-  }
-
-  // ── Chart 3: SpO2 Nadir vs Deep Sleep ──
-  {
-    const spo2ByDate = {};
-    for (const s of data.spo2) spo2ByDate[s.d] = s.min;
-    const chart3Data = sleepData.map(d => ({
-      d: parseDate(d.d),
-      deep: d.deep || 0,
-      spo2: spo2ByDate[d.d] ?? null,
-    })).filter(d => d.spo2 !== null);
-
-    if (chart3Data.length >= 3) {
-      const div = document.createElement("div");
-      div.style.marginBottom = "2rem";
-      const titleEl = document.createElement("div");
-      titleEl.className = "chart-title";
-      titleEl.textContent = "SpO2 Nadir vs Deep Sleep";
-      div.appendChild(titleEl);
-      const context = document.createElement("p");
-      context.style.cssText = "font-size:0.78rem;color:#666;font-style:italic;max-width:600px;margin-bottom:0.5rem";
-      context.textContent = "Nocturnal desaturation disrupts deep sleep via microarousals. If deep sleep is chronically low and SpO2 dips below 90%, a sleep study should be considered.";
-      div.appendChild(context);
-
-      const svg = d3.select(div).append("svg")
-        .attr("width", fullW).attr("height", fullH)
-        .attr("viewBox", `0 0 ${fullW} ${fullH}`)
-        .style("max-width", "100%");
-      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-      const x = d3.scaleTime().domain(d3.extent(chart3Data, d => d.d)).range([0, iw]);
-      const spo2Min = Math.min(d3.min(chart3Data, d => d.spo2), 88) - 1;
-      const spo2Max = Math.max(d3.max(chart3Data, d => d.spo2), 100);
-      const yLeft = d3.scaleLinear().domain([spo2Min, spo2Max]).range([ih, 0]);
-      const deepMax = d3.max(chart3Data, d => d.deep) * 1.2 || 2;
-      const yRight = d3.scaleLinear().domain([0, deepMax]).range([ih, 0]);
-
-      // Deep sleep bars
-      const barW = Math.max(1, iw / chart3Data.length - 1);
-      g.selectAll("rect.deep").data(chart3Data).join("rect")
-        .attr("x", d => x(d.d) - barW / 2)
-        .attr("y", d => yRight(d.deep))
-        .attr("width", barW).attr("height", d => ih - yRight(d.deep))
-        .attr("fill", "#444").attr("opacity", 0.4);
-
-      // Danger threshold at 88%
-      g.append("line")
-        .attr("x1", 0).attr("x2", iw)
-        .attr("y1", yLeft(88)).attr("y2", yLeft(88))
-        .attr("stroke", "#b44").attr("stroke-width", 0.8).attr("stroke-dasharray", "2,2");
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", yLeft(88)).attr("dy", "0.35em")
-        .style("fill", "#b44")
-        .text("88% danger");
-
-      // SpO2 connecting line
-      const line = d3.line().x(d => x(d.d)).y(d => yLeft(d.spo2)).curve(d3.curveMonotoneX);
-      g.append("path").attr("d", line(chart3Data))
-        .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1);
-
-      // SpO2 scatter dots (red if < 90%)
-      g.selectAll("circle.spo2").data(chart3Data).join("circle")
-        .attr("cx", d => x(d.d)).attr("cy", d => yLeft(d.spo2))
-        .attr("r", 2.5)
-        .attr("fill", d => d.spo2 < 90 ? "#b44" : "#333");
-
-      tufteYAxis(g, yLeft, iw, d3.format(".0f"));
-      // Right axis labels for deep sleep
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", yRight(deepMax)).attr("dy", "0.35em")
-        .text(d3.format(".1f")(deepMax) + "h");
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", yRight(0)).attr("dy", "0.35em")
-        .text("0");
-      tufteXAxis(g, x, ih, "%b '%y");
-
-      container.appendChild(div);
-    }
-  }
-}
-
-// ═══════════════════════════════════════════
-// SECTION 4: Cardiovascular Detail
-// ═══════════════════════════════════════════
-function buildCardioDetail(data) {
-  const container = document.getElementById("cardio-detail");
-  const w = 440, h = 180;
-  const margin = { top: 8, right: 50, bottom: 22, left: 36 };
-  const iw = w - margin.left - margin.right;
-  const ih = h - margin.top - margin.bottom;
-
-  // ── VO2 Max Chart ──
-  const vo2Div = document.createElement("div");
-  vo2Div.className = "cardio-chart";
-  const vo2Title = document.createElement("div");
-  vo2Title.className = "chart-title";
-  vo2Title.textContent = "VO2 Max over time";
-  vo2Div.appendChild(vo2Title);
-
-  const vo2Data = data.vo2.map(d => ({ d: parseDate(d.d), v: d.v }));
-
-  if (vo2Data.length >= 2) {
-    const svg1 = d3.select(vo2Div).append("svg").attr("width", w).attr("height", h);
-    const g1 = svg1.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // Extend x-axis to Dec 2026 to show projection
-    const dataEnd = d3.max(vo2Data, d => d.d);
-    const projEnd = new Date(2026, 11, 31);
-    const x1 = d3.scaleTime()
-      .domain([d3.min(vo2Data, d => d.d), projEnd])
-      .range([0, iw]);
-    const y1 = d3.scaleLinear().domain([24, 45]).range([ih, 0]);
-
-    // Data points (scatter since sparse)
-    g1.selectAll("circle.vo2dot").data(vo2Data).join("circle")
-      .attr("cx", d => x1(d.d)).attr("cy", d => y1(d.v))
-      .attr("r", 3).attr("fill", "#333");
-
-    // Connect with line
-    const line1 = d3.line().x(d => x1(d.d)).y(d => y1(d.v));
-    g1.append("path").attr("d", line1(vo2Data))
-      .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1);
-
-    // Projection line: last data point → Year 1 target (35) by Dec 2026
-    const lastVo2 = vo2Data[vo2Data.length - 1];
-    g1.append("line")
-      .attr("x1", x1(lastVo2.d)).attr("y1", y1(lastVo2.v))
-      .attr("x2", x1(projEnd)).attr("y2", y1(35))
-      .attr("stroke", "#5b8a5e").attr("stroke-width", 1.2)
-      .attr("stroke-dasharray", "4,3")
-      .attr("opacity", 0.7);
-
-    // Target lines
-    [{ v: 35, label: "Year 1 target" }, { v: 40, label: "Longevity target" }].forEach(t => {
-      g1.append("line").attr("class", "target-line")
-        .attr("x1", 0).attr("x2", iw).attr("y1", y1(t.v)).attr("y2", y1(t.v));
-      g1.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", y1(t.v)).attr("dy", "0.35em")
-        .text(t.v + " " + t.label);
-    });
-
-    // Last value annotation
-    g1.append("text").attr("class", "annotation-text")
-      .attr("x", x1(lastVo2.d)).attr("y", y1(lastVo2.v) - 8).attr("text-anchor", "middle")
-      .style("font-weight", "600").style("fill", "#333")
-      .text(fmt1(lastVo2.v));
-
-    // Projection label
-    g1.append("text").attr("class", "annotation-text")
-      .attr("x", x1(projEnd)).attr("y", y1(35) + 12).attr("text-anchor", "end")
-      .style("fill", "#5b8a5e")
-      .text("Dec '26");
-
-    tufteYAxis(g1, y1, iw, d3.format(".0f"));
-    tufteXAxis(g1, x1, ih, "%b '%y");
-  }
-
-  container.appendChild(vo2Div);
-
-  // ── HR Zone Distribution ──
-  const hrDiv = document.createElement("div");
-  hrDiv.className = "cardio-chart";
-  const hrTitle = document.createElement("div");
-  hrTitle.className = "chart-title";
-  hrTitle.textContent = "Heart rate zone 2+ minutes per week";
-  hrDiv.appendChild(hrTitle);
-
-  const hrData = data.hrzones.map(d => ({
-    d: parseDate(d.d),
-    z2: d.z2,
-    z4: d.z4,
-    other: Math.max(0, (d.total || 0) - d.z2 - d.z4)
-  }));
-
-  if (hrData.length >= 2) {
-    const svg2 = d3.select(hrDiv).append("svg").attr("width", w).attr("height", h);
-    const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const x2 = d3.scaleBand()
-      .domain(hrData.map(d => d.d))
-      .range([0, iw])
-      .padding(0.3);
-
-    const maxY = d3.max(hrData, d => d.z2 + d.z4 + d.other) || 30;
-    const y2 = d3.scaleLinear().domain([0, Math.max(maxY * 1.1, 30)]).range([ih, 0]);
-
-    // Stacked bars
-    hrData.forEach(d => {
-      const barW = x2.bandwidth();
-      const xPos = x2(d.d);
-      let yPos = ih;
-
-      // Other (light gray)
-      if (d.other > 0) {
-        const barH = ih - y2(d.other);
-        yPos -= barH;
-        g2.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
-          .attr("fill", "#ccc");
-      }
-
-      // Z2 (medium gray)
-      if (d.z2 > 0) {
-        const barH = ih - y2(d.z2);
-        yPos -= barH;
-        g2.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
-          .attr("fill", "#777");
-      }
-
-      // Z4 (dark)
-      if (d.z4 > 0) {
-        const barH = ih - y2(d.z4);
-        yPos -= barH;
-        g2.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
-          .attr("fill", "#333");
-      }
-
-      // Total label on top
-      const total = d.z2 + d.z4 + d.other;
-      if (total > 0) {
-        g2.append("text").attr("class", "annotation-text")
-          .attr("x", xPos + barW / 2).attr("y", y2(total) - 3)
-          .attr("text-anchor", "middle").style("font-size", "8px")
-          .text(Math.round(total));
-      }
-    });
-
-    // Legend (inline, Tufte-style)
-    const leg = g2.append("g").attr("transform", `translate(${iw - 100}, 0)`);
-    [{ label: "Zone 2", color: "#777" }, { label: "Other", color: "#ccc" }].forEach((l, i) => {
-      leg.append("rect").attr("x", 0).attr("y", i * 13).attr("width", 10).attr("height", 8).attr("fill", l.color);
-      leg.append("text").attr("class", "annotation-text").attr("x", 14).attr("y", i * 13 + 7).text(l.label);
-    });
-
-    tufteYAxis(g2, y2, iw, d3.format(".0f"));
-
-    // X axis: first and last week label
-    const dfmt = d3.timeFormat("%b %d");
-    g2.append("text").attr("class", "axis-label")
-      .attr("x", 0).attr("y", ih + 14).attr("text-anchor", "start")
-      .text(dfmt(hrData[0].d));
-    g2.append("text").attr("class", "axis-label")
-      .attr("x", iw).attr("y", ih + 14).attr("text-anchor", "end")
-      .text(dfmt(hrData[hrData.length - 1].d));
-  }
-
-  container.appendChild(hrDiv);
-}
-
-// ═══════════════════════════════════════════
-// SECTION 5: Sleep Architecture
-// ═══════════════════════════════════════════
-function buildSleepArchitecture(data) {
-  const container = document.getElementById("sleep-architecture");
-  const fullW = 920, fullH = 200;
-  const margin = { top: 10, right: 50, bottom: 22, left: 36 };
-  const iw = fullW - margin.left - margin.right;
-  const ih = fullH - margin.top - margin.bottom;
-
-  const sleepData = data.sleep.filter(d => d.total > 0.5).map(d => ({
-    d: parseDate(d.d),
-    deep: d.deep ?? 0,
-    rem: d.rem ?? 0,
-    light: Math.max(0, d.total - (d.deep ?? 0) - (d.rem ?? 0)),
-    total: d.total
-  }));
-
-  if (sleepData.length < 2) return;
-
-  const titleEl = document.createElement("div");
-  titleEl.className = "chart-title";
-  titleEl.textContent = "Nightly sleep composition: deep, REM, and light sleep";
-  container.appendChild(titleEl);
-
-  const svg = d3.select(container).append("svg")
-    .attr("width", fullW).attr("height", fullH)
-    .attr("viewBox", `0 0 ${fullW} ${fullH}`)
-    .style("max-width", "100%");
-
-  const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-  const x = d3.scaleBand()
-    .domain(sleepData.map(d => d.d))
-    .range([0, iw])
-    .padding(0.15);
-
-  const y = d3.scaleLinear().domain([0, 10]).range([ih, 0]);
-
-  // Stacked bars
-  sleepData.forEach(d => {
-    const barW = x.bandwidth();
-    const xPos = x(d.d);
-
-    // Light sleep (lightest)
-    const lightH = ih - y(d.light);
-    const lightY = y(d.light + d.rem + d.deep);
-    g.append("rect").attr("x", xPos).attr("y", lightY).attr("width", barW).attr("height", lightH)
-      .attr("fill", "#c8c8be");
-
-    // REM (medium)
-    const remH = ih - y(d.rem);
-    const remY = y(d.rem + d.deep);
-    g.append("rect").attr("x", xPos).attr("y", remY).attr("width", barW).attr("height", remH)
-      .attr("fill", "#888");
-
-    // Deep (darkest)
-    const deepH = ih - y(d.deep);
-    const deepY = y(d.deep);
-    g.append("rect").attr("x", xPos).attr("y", deepY).attr("width", barW).attr("height", deepH)
-      .attr("fill", "#444");
+// ══════════════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════════════
+let rawData = null;
+let dataSource = "json";
+let dbConn = null;
+
+function renderAll(days) {
+  currentRange = days;
+  const { filtered } = filterByRange(rawData, days);
+
+  // Update range toggle styling
+  document.querySelectorAll("#range-toggle a").forEach(a => {
+    a.style.fontWeight = a.dataset.days == String(days ?? "all") ? "600" : "400";
   });
 
-  // Target line at 7.5 hours
-  g.append("line").attr("class", "target-line")
-    .attr("x1", 0).attr("x2", iw)
-    .attr("y1", y(7.5)).attr("y2", y(7.5));
-  g.append("text").attr("class", "annotation-text")
-    .attr("x", iw + 3).attr("y", y(7.5)).attr("dy", "0.35em")
-    .text("7.5 target");
+  buildDailyBrief(filtered);
+  buildRecoveryCard(filtered);
+  buildTrainingCard(filtered);
+  buildFitnessCard(filtered);
+  buildBloodworkCard(filtered);
 
-  // Legend (inline)
-  const leg = g.append("g").attr("transform", `translate(${iw - 180}, ${ih - 40})`);
-  [{ label: "Deep", color: "#444" }, { label: "REM", color: "#888" }, { label: "Light", color: "#c8c8be" }].forEach((l, i) => {
-    leg.append("rect").attr("x", i * 60).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
-    leg.append("text").attr("class", "annotation-text").attr("x", i * 60 + 14).attr("y", 7).text(l.label);
-  });
-
-  tufteYAxis(g, y, iw, d3.format(".0f"));
-  tufteXAxis(g, d3.scaleTime()
-    .domain(d3.extent(sleepData, d => d.d))
-    .range([0, iw]), ih, "%b %d");
-
-  // ── SpO2 Companion Chart ──
-  const spo2Data = data.spo2.map(d => ({ d: parseDate(d.d), min: d.min, avg: d.avg }));
-  if (spo2Data.length >= 2) {
-    const spo2H = 130;
-    const spo2Title = document.createElement("div");
-    spo2Title.className = "chart-title";
-    spo2Title.style.marginTop = "1.5rem";
-    spo2Title.textContent = "Nightly SpO2: minimum and average oxygen saturation";
-    container.appendChild(spo2Title);
-
-    const svg2 = d3.select(container).append("svg")
-      .attr("width", fullW).attr("height", spo2H)
-      .attr("viewBox", `0 0 ${fullW} ${spo2H}`)
-      .style("max-width", "100%");
-
-    const spo2Margin = { top: 8, right: 50, bottom: 22, left: 36 };
-    const siw = fullW - spo2Margin.left - spo2Margin.right;
-    const sih = spo2H - spo2Margin.top - spo2Margin.bottom;
-
-    const g2 = svg2.append("g").attr("transform", `translate(${spo2Margin.left},${spo2Margin.top})`);
-
-    const x2 = d3.scaleTime().domain(d3.extent(spo2Data, d => d.d)).range([0, siw]);
-    const y2 = d3.scaleLinear().domain([82, 100]).range([sih, 0]);
-
-    // Average line (lighter)
-    const avgLine = d3.line().x(d => x2(d.d)).y(d => y2(d.avg)).curve(d3.curveMonotoneX);
-    g2.append("path").attr("d", avgLine(spo2Data))
-      .attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
-
-    // Min line (darker, bolder)
-    const minLine = d3.line().x(d => x2(d.d)).y(d => y2(d.min)).curve(d3.curveMonotoneX);
-    g2.append("path").attr("d", minLine(spo2Data))
-      .attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1.3);
-
-    // Area between avg and min
-    const areaBetween = d3.area()
-      .x(d => x2(d.d)).y0(d => y2(d.avg)).y1(d => y2(d.min))
-      .curve(d3.curveMonotoneX);
-    g2.append("path").attr("d", areaBetween(spo2Data))
-      .attr("fill", "#333").attr("opacity", 0.05);
-
-    // Target line at 90%
-    g2.append("line").attr("class", "target-line")
-      .attr("x1", 0).attr("x2", siw)
-      .attr("y1", y2(90)).attr("y2", y2(90));
-    g2.append("text").attr("class", "annotation-text")
-      .attr("x", siw + 3).attr("y", y2(90)).attr("dy", "0.35em")
-      .text("90% target");
-
-    // Danger threshold at 88%
-    g2.append("line")
-      .attr("x1", 0).attr("x2", siw)
-      .attr("y1", y2(88)).attr("y2", y2(88))
-      .attr("stroke", "#b44").attr("stroke-width", 0.8).attr("stroke-dasharray", "2,2");
-    g2.append("text").attr("class", "annotation-text")
-      .attr("x", siw + 3).attr("y", y2(88)).attr("dy", "0.35em")
-      .style("fill", "#b44")
-      .text("88% danger");
-
-    // Mark lowest point
-    const lowestSpo2 = spo2Data.reduce((a, b) => a.min < b.min ? a : b);
-    g2.append("circle")
-      .attr("cx", x2(lowestSpo2.d)).attr("cy", y2(lowestSpo2.min))
-      .attr("r", 3).attr("fill", "#b44");
-    g2.append("text").attr("class", "annotation-text")
-      .attr("x", x2(lowestSpo2.d)).attr("y", y2(lowestSpo2.min) + 12)
-      .attr("text-anchor", "middle").style("fill", "#b44").style("font-weight", "600")
-      .text(lowestSpo2.min + "%");
-
-    // Legend
-    const sLeg = g2.append("g").attr("transform", `translate(${siw - 120}, 0)`);
-    [{ label: "Min", color: "#333" }, { label: "Avg", color: "#999" }].forEach((l, i) => {
-      sLeg.append("line").attr("x1", 0).attr("x2", 12).attr("y1", i * 13 + 4).attr("y2", i * 13 + 4)
-        .attr("stroke", l.color).attr("stroke-width", l.color === "#333" ? 1.3 : 0.8);
-      sLeg.append("text").attr("class", "annotation-text").attr("x", 16).attr("y", i * 13 + 7).text(l.label);
-    });
-
-    tufteYAxis(g2, y2, siw, d3.format(".0f"));
-    tufteXAxis(g2, x2, sih, "%b %d");
-  }
+  // Re-render expanded card if one is open
+  if (expandedDomain) expandDomain(expandedDomain);
 }
 
-// ── Sidebar builders (stubs) ──
-function buildSidebarScorecard(el, data) {
-  const sc = data.scorecard;
-
-  const metrics = [
-    { name: "Daily Steps", unit: "", fmt: d3.format(","),
-      arr: sc, arrKey: "steps", target: "10,000" },
-    { name: "Total Sleep", unit: " hrs", fmt: d3.format(".1f"),
-      arr: data.sleep.filter(d => d.total > 0.5), arrKey: "total", target: "7.5 hrs" },
-    { name: "Deep Sleep", unit: " hrs", fmt: d3.format(".1f"),
-      arr: data.sleep.filter(d => d.total > 0.5), arrKey: "deep", target: "1.5 hrs" },
-    { name: "REM Sleep", unit: " hrs", fmt: d3.format(".1f"),
-      arr: data.sleep.filter(d => d.total > 0.5), arrKey: "rem", target: "1.5 hrs" },
-    { name: "Resting HR", unit: " bpm", fmt: d3.format(".0f"),
-      arr: data.rhr, arrKey: "v", target: "65 bpm" },
-    { name: "HRV", unit: " ms", fmt: d3.format(".0f"),
-      arr: data.hrv, arrKey: "v", target: "50 ms" },
-    { name: "SpO2 Min", unit: "%", fmt: d3.format(".0f"),
-      arr: data.spo2, arrKey: "min", target: "90%" },
-    { name: "VO2 Max", unit: "", fmt: d3.format(".1f"),
-      arr: data.vo2, arrKey: "v", target: "40" },
-    { name: "Body Fat", unit: "%", fmt: d3.format(".1f"),
-      arr: data.bodyfat, arrKey: "v", target: "25%" },
-    { name: "Exercise", unit: " min/wk", fmt: d3.format(".0f"),
-      arr: data.exercise, arrKey: "v", target: "150 min" },
-  ];
-
-  for (const m of metrics) {
-    const values = m.arr.map(d => d[m.arrKey]).filter(v => v != null && v > 0);
-    if (values.length === 0) continue;
-
-    const current = values[values.length - 1];
-    const avg7 = d3.mean(values.slice(-7)) ?? current;
-    const avg30 = d3.mean(values.slice(-30)) ?? current;
-
-    const div = document.createElement("div");
-    div.className = "sidebar-metric";
-
-    const label = document.createElement("div");
-    label.className = "metric-label";
-    label.textContent = m.name;
-    div.appendChild(label);
-
-    const sparkContainer = document.createElement("div");
-    sparkContainer.innerHTML = sparklineSVG(values.slice(-90), 200, 40);
-    div.appendChild(sparkContainer);
-
-    const stats = document.createElement("div");
-    stats.className = "metric-stats";
-
-    const curSpan = document.createElement("span");
-    curSpan.className = "current";
-    curSpan.textContent = m.fmt(current) + m.unit;
-    stats.appendChild(curSpan);
-
-    const avg7Span = document.createElement("span");
-    avg7Span.textContent = "7d: " + m.fmt(avg7);
-    stats.appendChild(avg7Span);
-
-    const avg30Span = document.createElement("span");
-    avg30Span.textContent = "30d: " + m.fmt(avg30);
-    stats.appendChild(avg30Span);
-
-    const targetSpan = document.createElement("span");
-    targetSpan.style.color = "#999";
-    targetSpan.textContent = "target: " + m.target;
-    stats.appendChild(targetSpan);
-
-    div.appendChild(stats);
-    el.appendChild(div);
-  }
-}
-function buildSidebarBiomarkers(el, data) {
-  const labs = data.labs;
-  if (!labs || !labs.groups || Object.keys(labs.groups).length === 0) {
-    const p = document.createElement("p");
-    p.style.cssText = "color:#888;font-style:italic";
-    p.textContent = "No lab data available.";
-    el.appendChild(p);
-    return;
-  }
-
-  const dateDiv = document.createElement("div");
-  dateDiv.style.cssText = "font-size:0.82rem;color:#888;margin-bottom:1rem";
-  dateDiv.textContent = "Last panel: " + labs.date;
-  el.appendChild(dateDiv);
-
-  for (const [group, tests] of Object.entries(labs.groups)) {
-    const groupDiv = document.createElement("div");
-    groupDiv.className = "sidebar-chart";
-
-    const title = document.createElement("div");
-    title.className = "sidebar-section-title";
-    title.textContent = group;
-    groupDiv.appendChild(title);
-
-    const counts = { green: 0, amber: 0, red: 0 };
-    for (const t of tests) counts[t.status]++;
-
-    const summary = document.createElement("div");
-    summary.style.cssText = "font-size:0.78rem;margin-bottom:0.5rem;color:#888";
-    const parts = [];
-    if (counts.green > 0) parts.push(counts.green + " optimal");
-    if (counts.amber > 0) parts.push(counts.amber + " borderline");
-    if (counts.red > 0) parts.push(counts.red + " out of range");
-    summary.textContent = parts.join(", ");
-    groupDiv.appendChild(summary);
-
-    for (const t of tests) {
-      const row = document.createElement("div");
-      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:0.15rem 0;font-size:0.82rem;border-bottom:1px solid #f5f5f0";
-
-      const nameSpan = document.createElement("span");
-      nameSpan.textContent = t.test;
-      nameSpan.style.color = "#444";
-
-      const valContainer = document.createElement("span");
-      valContainer.style.cssText = "font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:0.4rem";
-
-      const valText = document.createElement("span");
-      valText.textContent = t.value + (t.unit ? " " + t.unit : "");
-      valContainer.appendChild(valText);
-
-      const dot = document.createElement("span");
-      dot.className = "dot dot-" + t.status;
-      valContainer.appendChild(dot);
-
-      row.appendChild(nameSpan);
-      row.appendChild(valContainer);
-      groupDiv.appendChild(row);
+// ══════════════════════════════════════════════════
+// DATA LOADING & INITIALIZATION
+// ══════════════════════════════════════════════════
+(async () => {
+  try {
+    try {
+      dbConn = await initDB();
+      rawData = await loadFromDuckDB(dbConn);
+      rawData.labs = transformLabs(rawData.labs, null);
+      dataSource = "duckdb";
+    } catch (dbErr) {
+      console.warn("DuckDB-WASM load failed, falling back to JSON:", dbErr.message);
+      const resp = await fetch("data/embedded_data.json");
+      rawData = await resp.json();
     }
 
-    el.appendChild(groupDiv);
-  }
-}
-function buildSidebarTrends(el, data) {
-  const w = 340, h = 160;
-  const margin = { top: 8, right: 40, bottom: 20, left: 34 };
-  const iw = w - margin.left - margin.right;
-  const ih = h - margin.top - margin.bottom;
-
-  const charts = [
-    { title: "Steps (30d avg)", rawData: data.steps,
-      mapFn: d => ({ d: parseDate(d.d), v: d.r30, r7: d.r7 }),
-      target: 10000, yFmt: d3.format(",.0f") },
-    { title: "Sleep", rawData: data.sleep.filter(d => d.total > 0.5),
-      mapFn: d => ({ d: parseDate(d.d), v: d.total }),
-      target: 7.5, yFmt: d3.format(".1f") },
-    { title: "Resting HR", rawData: data.rhr,
-      mapFn: d => ({ d: parseDate(d.d), v: d.v }),
-      target: 65, yFmt: d3.format(".0f"), lowerBetter: true },
-    { title: "HRV (30d avg)", rawData: data.hrv,
-      mapFn: d => ({ d: parseDate(d.d), v: d.r30 || d.v, r7: d.r7 }),
-      target: 50, yFmt: d3.format(".0f") },
-    { title: "SpO2 Min", rawData: data.spo2,
-      mapFn: d => ({ d: parseDate(d.d), v: d.min }),
-      target: 90, yFmt: d3.format(".0f") },
-    { title: "Body Fat", rawData: data.bodyfat,
-      mapFn: d => ({ d: parseDate(d.d), v: d.v }),
-      target: 25, yFmt: d3.format(".1f"), lowerBetter: true },
-    { title: "Weight", rawData: data.weight,
-      mapFn: d => ({ d: parseDate(d.d), v: d.v }),
-      target: null, yFmt: d3.format(".0f") },
-    { title: "Respiratory Rate", rawData: data.respiratory_rate || [],
-      mapFn: d => ({ d: parseDate(d.d), v: d.v }),
-      target: null, yFmt: d3.format(".1f") },
-  ];
-
-  for (const ch of charts) {
-    const chartData = ch.rawData.map(ch.mapFn).filter(d => d.d && d.v != null);
-    if (chartData.length < 2) continue;
-
-    const div = document.createElement("div");
-    div.className = "sidebar-chart";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "chart-title";
-    titleEl.textContent = ch.title;
-    div.appendChild(titleEl);
-
-    const values = chartData.map(d => d.v);
-    const statsDiv = document.createElement("div");
-    statsDiv.style.cssText = "font-size:0.78rem;color:#888;margin-bottom:0.3rem;font-variant-numeric:tabular-nums";
-    statsDiv.textContent = "min " + ch.yFmt(d3.min(values)) + "  max " + ch.yFmt(d3.max(values)) + "  avg " + ch.yFmt(d3.mean(values));
-    div.appendChild(statsDiv);
-
-    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const xExt = d3.extent(chartData, d => d.d);
-    const yExt = d3.extent(chartData, d => d.v);
-    let yMin = yExt[0], yMax = yExt[1];
-    if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
-    yMin *= 0.95; yMax *= 1.05;
-
-    const x = d3.scaleTime().domain(xExt).range([0, iw]);
-    const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
-
-    const area = d3.area().x(d => x(d.d)).y0(ih).y1(d => y(d.v)).curve(d3.curveMonotoneX);
-    g.append("path").attr("class", "data-area").attr("d", area(chartData));
-    const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
-    g.append("path").attr("class", "data-line").attr("d", line(chartData));
-
-    const r7Data = chartData.filter(d => d.r7 != null && d.r7 > 0);
-    if (r7Data.length >= 2) {
-      const r7Line = d3.line().x(d => x(d.d)).y(d => y(d.r7)).curve(d3.curveMonotoneX);
-      g.append("path").attr("d", r7Line(r7Data))
-        .attr("fill", "none").attr("stroke", "#5b8a5e").attr("stroke-width", 1)
-        .attr("stroke-dasharray", "4,3").attr("opacity", 0.7);
-    }
-
-    if (ch.target != null) {
-      g.append("line").attr("class", "target-line")
-        .attr("x1", 0).attr("x2", iw)
-        .attr("y1", y(ch.target)).attr("y2", y(ch.target));
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", y(ch.target)).attr("dy", "0.35em")
-        .text(ch.yFmt(ch.target));
-    }
-
-    const last = chartData[chartData.length - 1];
-    g.append("circle").attr("class", "endpoint-dot")
-      .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
-    g.append("text").attr("class", "annotation-text")
-      .attr("x", x(last.d)).attr("y", y(last.v) - 6).attr("text-anchor", "end")
-      .style("font-weight", "600").style("fill", "#333")
-      .text(ch.yFmt(last.v));
-
-    tufteYAxis(g, y, iw, ch.yFmt);
-    tufteXAxis(g, x, ih, "%b '%y");
-    addLineTooltip(g, chartData, x, y, ch.yFmt, iw, ih);
-
-    el.appendChild(div);
-  }
-}
-function buildSidebarGait(el, data) {
-  const w = 340, h = 140;
-  const margin = { top: 8, right: 40, bottom: 20, left: 34 };
-  const iw = w - margin.left - margin.right;
-  const ih = h - margin.top - margin.bottom;
-
-  const charts = [
-    { title: "Walking Speed", data: (data.walking_speed || []).map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: 3.0, yFmt: d3.format(".2f") },
-    { title: "Walking Asymmetry", data: (data.walking_asymmetry || []).map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: 10, yFmt: d3.format(".1f"), lowerBetter: true },
-    { title: "Daily Steps", data: data.steps.map(d => ({ d: parseDate(d.d), v: d.v })),
-      target: 10000, yFmt: d3.format(",.0f") },
-  ];
-
-  for (const ch of charts) {
-    const chartData = ch.data.filter(d => d.d && d.v != null);
-    if (chartData.length < 2) continue;
-
-    const div = document.createElement("div");
-    div.className = "sidebar-chart";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "chart-title";
-    titleEl.textContent = ch.title;
-    div.appendChild(titleEl);
-
-    const values = chartData.map(d => d.v);
-    const statsDiv = document.createElement("div");
-    statsDiv.style.cssText = "font-size:0.78rem;color:#888;margin-bottom:0.3rem;font-variant-numeric:tabular-nums";
-    statsDiv.textContent = "min " + ch.yFmt(d3.min(values)) + "  max " + ch.yFmt(d3.max(values)) + "  avg " + ch.yFmt(d3.mean(values));
-    div.appendChild(statsDiv);
-
-    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const xExt = d3.extent(chartData, d => d.d);
-    const yExt = d3.extent(chartData, d => d.v);
-    let yMin = yExt[0], yMax = yExt[1];
-    if (ch.target != null) { yMin = Math.min(yMin, ch.target); yMax = Math.max(yMax, ch.target); }
-    yMin *= 0.95; yMax *= 1.05;
-
-    const x = d3.scaleTime().domain(xExt).range([0, iw]);
-    const y = d3.scaleLinear().domain([yMin, yMax]).range([ih, 0]);
-
-    if (chartData.length < 20) {
-      const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
-      g.append("path").attr("d", line(chartData)).attr("fill", "none").attr("stroke", "#999").attr("stroke-width", 0.8);
-      g.selectAll("circle.scatter").data(chartData).join("circle")
-        .attr("cx", d => x(d.d)).attr("cy", d => y(d.v)).attr("r", 3).attr("fill", "#333");
-    } else {
-      const area = d3.area().x(d => x(d.d)).y0(ih).y1(d => y(d.v)).curve(d3.curveMonotoneX);
-      g.append("path").attr("class", "data-area").attr("d", area(chartData));
-      const line = d3.line().x(d => x(d.d)).y(d => y(d.v)).curve(d3.curveMonotoneX);
-      g.append("path").attr("class", "data-line").attr("d", line(chartData));
-    }
-
-    if (ch.target != null) {
-      g.append("line").attr("class", "target-line")
-        .attr("x1", 0).attr("x2", iw).attr("y1", y(ch.target)).attr("y2", y(ch.target));
-      g.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", y(ch.target)).attr("dy", "0.35em")
-        .text(ch.yFmt(ch.target));
-    }
-
-    const last = chartData[chartData.length - 1];
-    g.append("circle").attr("class", "endpoint-dot")
-      .attr("cx", x(last.d)).attr("cy", y(last.v)).attr("r", 2.5);
-
-    tufteYAxis(g, y, iw, ch.yFmt);
-    tufteXAxis(g, x, ih, "%b '%y");
-    addLineTooltip(g, chartData, x, y, ch.yFmt, iw, ih);
-    el.appendChild(div);
-  }
-}
-function buildSidebarCorrelations(el, data) {
-  const p = document.createElement("p");
-  p.style.cssText = "color:#888;font-style:italic";
-  p.textContent = "Tier 2 correlation pairs coming soon.";
-  el.appendChild(p);
-}
-function buildSidebarCardio(el, data) {
-  const w = 340, h = 180;
-  const margin = { top: 8, right: 12, bottom: 24, left: 34 };
-  const iw = w - margin.left - margin.right;
-  const ih = h - margin.top - margin.bottom;
-
-  // ── RHR vs HRV Scatter ──
-  const rhrMap = new Map(data.rhr.map(d => [d.d, d.v]));
-  const hrvMap = new Map(data.hrv.map(d => [d.d, d.v]));
-
-  const scatterData = [];
-  for (const [dateStr, rhr] of rhrMap) {
-    const hrv = hrvMap.get(dateStr);
-    if (rhr && hrv && rhr > 0 && hrv > 0) {
-      scatterData.push({ d: parseDate(dateStr), rhr, hrv });
-    }
-  }
-
-  if (scatterData.length >= 3) {
-    const div = document.createElement("div");
-    div.className = "sidebar-chart";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "chart-title";
-    titleEl.textContent = "Resting HR vs HRV (daily)";
-    div.appendChild(titleEl);
-
-    const svg = d3.select(div).append("svg").attr("width", w).attr("height", h);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-    const xExt = d3.extent(scatterData, d => d.rhr);
-    const yExt = d3.extent(scatterData, d => d.hrv);
-    const x = d3.scaleLinear().domain([xExt[0] * 0.95, xExt[1] * 1.05]).range([0, iw]);
-    const y = d3.scaleLinear().domain([yExt[0] * 0.9, yExt[1] * 1.1]).range([ih, 0]);
-
-    const dateExt = d3.extent(scatterData, d => d.d);
-    const colorScale = d3.scaleLinear()
-      .domain([dateExt[0], dateExt[1]])
-      .range([0.15, 0.8]);
-
-    g.selectAll("circle").data(scatterData).join("circle")
-      .attr("cx", d => x(d.rhr))
-      .attr("cy", d => y(d.hrv))
-      .attr("r", 2.5)
-      .attr("fill", "#333")
-      .attr("opacity", d => colorScale(d.d));
-
-    g.append("text").attr("class", "axis-label")
-      .attr("x", iw / 2).attr("y", ih + 16).attr("text-anchor", "middle")
-      .text("Resting HR (bpm)");
-    g.append("text").attr("class", "axis-label")
-      .attr("transform", "rotate(-90)")
-      .attr("x", -ih / 2).attr("y", -24).attr("text-anchor", "middle")
-      .text("HRV (ms)");
-
-    tufteYAxis(g, y, iw, d3.format(".0f"));
-
-    g.append("text").attr("class", "axis-label")
-      .attr("x", 0).attr("y", ih + 16).attr("text-anchor", "start")
-      .text(d3.format(".0f")(x.domain()[0]));
-    g.append("text").attr("class", "axis-label")
-      .attr("x", iw).attr("y", ih + 16).attr("text-anchor", "end")
-      .text(d3.format(".0f")(x.domain()[1]));
-
-    el.appendChild(div);
-  }
-
-  // ── HR Zone weekly breakdown ──
-  const hrData = data.hrzones.map(d => ({
-    d: parseDate(d.d),
-    z2: d.z2,
-    z4: d.z4,
-    total: d.total || 0,
-  }));
-
-  if (hrData.length >= 2) {
-    const div2 = document.createElement("div");
-    div2.className = "sidebar-chart";
-
-    const titleEl2 = document.createElement("div");
-    titleEl2.className = "chart-title";
-    titleEl2.textContent = "Weekly HR zone minutes";
-    div2.appendChild(titleEl2);
-
-    const svg2 = d3.select(div2).append("svg").attr("width", w).attr("height", 140);
-    const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-    const ih2 = 140 - margin.top - margin.bottom;
-
-    const x2 = d3.scaleBand().domain(hrData.map(d => d.d)).range([0, iw]).padding(0.3);
-    const maxY = d3.max(hrData, d => d.z2 + d.z4) || 30;
-    const y2 = d3.scaleLinear().domain([0, Math.max(maxY * 1.1, 30)]).range([ih2, 0]);
-
-    hrData.forEach(d => {
-      const barW = x2.bandwidth();
-      const xPos = x2(d.d);
-      if (d.z2 > 0) {
-        g2.append("rect").attr("x", xPos).attr("y", y2(d.z2)).attr("width", barW)
-          .attr("height", ih2 - y2(d.z2)).attr("fill", "#777");
+    let maxDate = "", minDate = "9999";
+    for (const key of Object.keys(rawData)) {
+      if (!Array.isArray(rawData[key])) continue;
+      for (const row of rawData[key]) {
+        if (row.d && row.d > maxDate) maxDate = row.d;
+        if (row.d && row.d < minDate) minDate = row.d;
       }
-      if (d.z4 > 0) {
-        g2.append("rect").attr("x", xPos).attr("y", y2(d.z2 + d.z4)).attr("width", barW)
-          .attr("height", ih2 - y2(d.z4)).attr("fill", "#333");
-      }
+    }
+    const sourceLabel = dataSource === "duckdb" ? "via DuckDB" : "from snapshot";
+    document.getElementById("last-updated").textContent =
+      `${maxDate} \u00b7 ${sourceLabel}`;
+
+    // Build toggle
+    const toggleEl = document.getElementById("range-toggle");
+    const ranges = [
+      { label: "30d", days: 30 },
+      { label: "90d", days: 90 },
+      { label: "1y", days: 365 },
+      { label: "All", days: null },
+    ];
+    toggleEl.innerHTML = ranges.map(r => {
+      const key = r.days ?? "all";
+      const bold = r.days === currentRange ? "font-weight:600" : "";
+      return `<a href="#" data-days="${key}" style="${bold}">${r.label}</a>`;
+    }).join(" \u00b7 ");
+    toggleEl.addEventListener("click", e => {
+      e.preventDefault();
+      const a = e.target.closest("a");
+      if (!a) return;
+      const d = a.dataset.days === "all" ? null : parseInt(a.dataset.days);
+      renderAll(d);
     });
 
-    tufteYAxis(g2, y2, iw, d3.format(".0f"));
-    const dfmt = d3.timeFormat("%b %d");
-    g2.append("text").attr("class", "axis-label")
-      .attr("x", 0).attr("y", ih2 + 14).attr("text-anchor", "start").text(dfmt(hrData[0].d));
-    g2.append("text").attr("class", "axis-label")
-      .attr("x", iw).attr("y", ih2 + 14).attr("text-anchor", "end").text(dfmt(hrData[hrData.length - 1].d));
-
-    const leg = g2.append("g").attr("transform", `translate(${iw - 80}, 0)`);
-    [{ label: "Zone 2", color: "#777" }, { label: "Zone 4+", color: "#333" }].forEach((l, i) => {
-      leg.append("rect").attr("x", 0).attr("y", i * 13).attr("width", 10).attr("height", 8).attr("fill", l.color);
-      leg.append("text").attr("class", "annotation-text").attr("x", 14).attr("y", i * 13 + 7).text(l.label);
-    });
-
-    el.appendChild(div2);
+    renderAll(currentRange);
+  } catch (err) {
+    document.getElementById("daily-brief").innerHTML =
+      `<p style="color:#ef4444">Error loading data: ${err.message}</p>`;
   }
+})();
 
-  // ── VO2 Max trend ──
-  const vo2Data = data.vo2.map(d => ({ d: parseDate(d.d), v: d.v }));
-  if (vo2Data.length >= 2) {
-    const div3 = document.createElement("div");
-    div3.className = "sidebar-chart";
-
-    const titleEl3 = document.createElement("div");
-    titleEl3.className = "chart-title";
-    titleEl3.textContent = "VO2 Max trend";
-    div3.appendChild(titleEl3);
-
-    const svg3 = d3.select(div3).append("svg").attr("width", w).attr("height", 120);
-    const g3 = svg3.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-    const ih3 = 120 - margin.top - margin.bottom;
-
-    const x3 = d3.scaleTime().domain(d3.extent(vo2Data, d => d.d)).range([0, iw]);
-    const y3 = d3.scaleLinear().domain([24, 45]).range([ih3, 0]);
-
-    g3.selectAll("circle").data(vo2Data).join("circle")
-      .attr("cx", d => x3(d.d)).attr("cy", d => y3(d.v)).attr("r", 3).attr("fill", "#333");
-    const line3 = d3.line().x(d => x3(d.d)).y(d => y3(d.v));
-    g3.append("path").attr("d", line3(vo2Data)).attr("fill", "none").attr("stroke", "#333").attr("stroke-width", 1);
-
-    [35, 40].forEach(t => {
-      g3.append("line").attr("class", "target-line")
-        .attr("x1", 0).attr("x2", iw).attr("y1", y3(t)).attr("y2", y3(t));
-      g3.append("text").attr("class", "annotation-text")
-        .attr("x", iw + 3).attr("y", y3(t)).attr("dy", "0.35em").text(t);
-    });
-
-    tufteYAxis(g3, y3, iw, d3.format(".0f"));
-    tufteXAxis(g3, x3, ih3, "%b '%y");
-    el.appendChild(div3);
-  }
-}
-function buildSidebarSleep(el, data) {
-  const w = 340, h = 160;
-  const margin = { top: 8, right: 40, bottom: 20, left: 34 };
-  const iw = w - margin.left - margin.right;
-  const ih = h - margin.top - margin.bottom;
-
-  const sleepData = data.sleep.filter(d => d.total > 0.5).map(d => ({
-    d: parseDate(d.d),
-    deep: d.deep ?? 0,
-    rem: d.rem ?? 0,
-    light: Math.max(0, d.total - (d.deep ?? 0) - (d.rem ?? 0)),
-    total: d.total
-  }));
-
-  if (sleepData.length < 2) {
-    const p = document.createElement("p");
-    p.style.cssText = "color:#888;font-style:italic";
-    p.textContent = "Not enough sleep data.";
-    el.appendChild(p);
-    return;
-  }
-
-  // ── Sleep stage percentages over time ──
-  const div1 = document.createElement("div");
-  div1.className = "sidebar-chart";
-
-  const title1 = document.createElement("div");
-  title1.className = "chart-title";
-  title1.textContent = "Sleep stage % (7-day rolling)";
-  div1.appendChild(title1);
-
-  const pctData = [];
-  for (let i = 0; i < sleepData.length; i++) {
-    const win = sleepData.slice(Math.max(0, i - 6), i + 1);
-    const avgDeep = d3.mean(win, d => d.deep / d.total * 100);
-    const avgRem = d3.mean(win, d => d.rem / d.total * 100);
-    const avgLight = d3.mean(win, d => d.light / d.total * 100);
-    pctData.push({ d: sleepData[i].d, deep: avgDeep, rem: avgRem, light: avgLight });
-  }
-
-  const svg1 = d3.select(div1).append("svg").attr("width", w).attr("height", h);
-  const g1 = svg1.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-
-  const x1 = d3.scaleTime().domain(d3.extent(pctData, d => d.d)).range([0, iw]);
-  const y1 = d3.scaleLinear().domain([0, 60]).range([ih, 0]);
-
-  const stages = [
-    { key: "deep", color: "#444", label: "Deep" },
-    { key: "rem", color: "#888", label: "REM" },
-    { key: "light", color: "#c8c8be", label: "Light" },
-  ];
-
-  for (const stage of stages) {
-    const line = d3.line()
-      .x(d => x1(d.d)).y(d => y1(d[stage.key]))
-      .curve(d3.curveMonotoneX);
-    g1.append("path").attr("d", line(pctData))
-      .attr("fill", "none").attr("stroke", stage.color).attr("stroke-width", 1.3);
-
-    const last = pctData[pctData.length - 1];
-    g1.append("text").attr("class", "annotation-text")
-      .attr("x", iw + 3).attr("y", y1(last[stage.key])).attr("dy", "0.35em")
-      .text(d3.format(".0f")(last[stage.key]) + "% " + stage.label);
-  }
-
-  tufteYAxis(g1, y1, iw, d => d + "%");
-  tufteXAxis(g1, x1, ih, "%b '%y");
-  el.appendChild(div1);
-
-  // ── Total sleep trend ──
-  const div2 = document.createElement("div");
-  div2.className = "sidebar-chart";
-
-  const title2 = document.createElement("div");
-  title2.className = "chart-title";
-  title2.textContent = "Total sleep (hours)";
-  div2.appendChild(title2);
-
-  const svg2 = d3.select(div2).append("svg").attr("width", w).attr("height", 120);
-  const g2 = svg2.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-  const ih2 = 120 - margin.top - margin.bottom;
-
-  const x2 = d3.scaleTime().domain(d3.extent(sleepData, d => d.d)).range([0, iw]);
-  const y2 = d3.scaleLinear().domain([4, 10]).range([ih2, 0]);
-
-  const area2 = d3.area().x(d => x2(d.d)).y0(ih2).y1(d => y2(d.total)).curve(d3.curveMonotoneX);
-  g2.append("path").attr("class", "data-area").attr("d", area2(sleepData));
-  const line2 = d3.line().x(d => x2(d.d)).y(d => y2(d.total)).curve(d3.curveMonotoneX);
-  g2.append("path").attr("class", "data-line").attr("d", line2(sleepData));
-
-  g2.append("line").attr("class", "target-line")
-    .attr("x1", 0).attr("x2", iw).attr("y1", y2(7.5)).attr("y2", y2(7.5));
-  g2.append("text").attr("class", "annotation-text")
-    .attr("x", iw + 3).attr("y", y2(7.5)).attr("dy", "0.35em").text("7.5 target");
-
-  tufteYAxis(g2, y2, iw, d3.format(".1f"));
-  tufteXAxis(g2, x2, ih2, "%b '%y");
-  addLineTooltip(g2, sleepData.map(d => ({ d: d.d, v: d.total })), x2, y2, d3.format(".1f"), iw, ih2);
-  el.appendChild(div2);
-
-  // ── Summary stats ──
-  const statsDiv = document.createElement("div");
-  statsDiv.style.cssText = "font-size:0.82rem;color:#666;margin-top:0.5rem;line-height:1.6";
-  const avgTotal = d3.mean(sleepData, d => d.total);
-  const avgDeep = d3.mean(sleepData, d => d.deep);
-  const avgRem = d3.mean(sleepData, d => d.rem);
-  const avgDeepPct = d3.mean(sleepData, d => d.deep / d.total * 100);
-  const avgRemPct = d3.mean(sleepData, d => d.rem / d.total * 100);
-
-  const strong = document.createElement("strong");
-  strong.textContent = "Period averages:";
-  statsDiv.appendChild(strong);
-  statsDiv.appendChild(document.createElement("br"));
-  statsDiv.appendChild(document.createTextNode(
-    "Total: " + d3.format(".1f")(avgTotal) + " hrs \u00b7 " +
-    "Deep: " + d3.format(".1f")(avgDeep) + " hrs (" + d3.format(".0f")(avgDeepPct) + "%) \u00b7 " +
-    "REM: " + d3.format(".1f")(avgRem) + " hrs (" + d3.format(".0f")(avgRemPct) + "%)"
-  ));
-  el.appendChild(statsDiv);
-}
-
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════════
 // QUERY CONSOLE
-// ═══════════════════════════════════════════
-
+// ══════════════════════════════════════════════════
 function initQueryConsole() {
   const input = document.getElementById("query-input");
   const runBtn = document.getElementById("query-run");
@@ -2750,12 +1883,12 @@ function initQueryConsole() {
     if (!sql) return;
     if (!dbConn) {
       statusEl.textContent = "DuckDB not available (using JSON fallback)";
-      statusEl.style.color = "#b44";
+      statusEl.style.color = "#ef4444";
       return;
     }
 
     statusEl.textContent = "Running...";
-    statusEl.style.color = "#888";
+    statusEl.style.color = "#9ca3af";
     resultEl.innerHTML = "";
     chartEl.innerHTML = "";
 
@@ -2779,11 +1912,10 @@ function initQueryConsole() {
 
       const cols = rows.length ? Object.keys(rows[0]) : [];
       statusEl.textContent = `${rows.length} row${rows.length !== 1 ? "s" : ""} \u00b7 ${elapsed}s`;
-      statusEl.style.color = "#5b8a5e";
+      statusEl.style.color = "#334155";
 
-      // Render table
       if (rows.length > 0) {
-        let html = `<table class="system-status" style="font-size:0.78rem">
+        let html = `<table>
           <thead><tr>${cols.map(c =>
             `<th style="text-align:${typeof rows[0][c] === "number" ? "right" : "left"}">${c}</th>`
           ).join("")}</tr></thead><tbody>`;
@@ -2798,10 +1930,9 @@ function initQueryConsole() {
           }).join("")}</tr>`;
         }
         html += "</tbody></table>";
-        if (rows.length > 200) html += `<p style="color:#888;font-size:0.75rem">${rows.length - 200} more rows not shown</p>`;
+        if (rows.length > 200) html += `<p style="color:#9ca3af;font-size:0.72rem">${rows.length - 200} more rows not shown</p>`;
         resultEl.innerHTML = html;
 
-        // Auto-chart: if there's a date-like column and a numeric column, draw a line chart
         const dateCol = cols.find(c => c === "date" || c === "d" || c.includes("date"));
         const numCols = cols.filter(c => c !== dateCol && typeof rows[0][c] === "number");
         if (dateCol && numCols.length > 0 && rows.length >= 2) {
@@ -2810,7 +1941,7 @@ function initQueryConsole() {
       }
     } catch (err) {
       statusEl.textContent = err.message;
-      statusEl.style.color = "#b44";
+      statusEl.style.color = "#ef4444";
     }
   }
 
@@ -2835,8 +1966,7 @@ function initQueryConsole() {
 
     const x = d3.scaleTime().domain(d3.extent(parsed, d => d._d)).range([0, iw]);
 
-    // One line per numeric column
-    const colors = ["#333", "#5b8a5e", "#b44", "#b8860b", "#666", "#888"];
+    const colors = ["#334155", "#d97706", "#ef4444", "#9ca3af", "#1a1a2e", "#e2e4e9"];
     for (let i = 0; i < Math.min(numCols.length, 6); i++) {
       const col = numCols[i];
       const vals = parsed.filter(d => d[col] != null);
@@ -2852,7 +1982,6 @@ function initQueryConsole() {
       g.append("path").attr("d", line(vals))
         .attr("fill", "none").attr("stroke", colors[i]).attr("stroke-width", 1.3);
 
-      // Label at end
       const last = vals[vals.length - 1];
       g.append("text").attr("class", "annotation-text")
         .attr("x", iw + 3).attr("y", y(last[col])).attr("dy", "0.35em")
@@ -2879,9 +2008,25 @@ ORDER BY table_name, ordinal_position`;
   });
 }
 
+// ── Console toggle (Cmd+K) ──
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+    e.preventDefault();
+    const consoleEl = document.getElementById("query-console");
+    consoleEl.style.display = consoleEl.style.display === "none" ? "block" : "none";
+    if (consoleEl.style.display === "block") {
+      document.getElementById("query-input").focus();
+    }
+  }
+});
+
+document.getElementById("console-hint")?.addEventListener("click", () => {
+  const consoleEl = document.getElementById("query-console");
+  consoleEl.style.display = consoleEl.style.display === "none" ? "block" : "none";
+});
+
 // Initialize console after data loads
 document.addEventListener("DOMContentLoaded", () => {
-  // Console init is deferred until after the main IIFE runs
   setTimeout(initQueryConsole, 100);
 });
 </script>
