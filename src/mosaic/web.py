@@ -22,6 +22,10 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             self._handle_get_profile()
         elif self.path == "/api/readiness":
             self._handle_get_readiness()
+        elif self.path == "/api/training-plan":
+            self._handle_get_training_plan()
+        elif self.path == "/api/goals":
+            self._handle_get_goals()
         else:
             super().do_GET()
 
@@ -30,6 +34,10 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             self._handle_post_profile()
         elif self.path == "/api/import":
             self._handle_import()
+        elif self.path == "/api/training-plan":
+            self._handle_post_training_plan()
+        elif self.path == "/api/goals":
+            self._handle_post_goals()
         else:
             self.send_error(404)
 
@@ -95,6 +103,118 @@ class MosaicHandler(SimpleHTTPRequestHandler):
                 conn.close()
 
             self._json_response({"status": "saved", "fields": len(data)})
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_get_training_plan(self) -> None:
+        try:
+            conn = duckdb.connect(DB_PATH, read_only=True)
+            try:
+                rows = conn.sql(
+                    "SELECT id, name, phase, start_date, end_date, "
+                    "volume_target, notes "
+                    "FROM training_blocks ORDER BY start_date"
+                ).fetchall()
+                blocks = [
+                    {
+                        "id": r[0], "name": r[1], "phase": r[2],
+                        "start_date": str(r[3]), "end_date": str(r[4]),
+                        "volume_target": r[5], "notes": r[6],
+                    }
+                    for r in rows
+                ]
+            except duckdb.CatalogException:
+                blocks = []
+            finally:
+                conn.close()
+            self._json_response(blocks)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_post_training_plan(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            data = json.loads(self.rfile.read(length))
+            conn = duckdb.connect(DB_PATH)
+            try:
+                conn.sql("""
+                    CREATE TABLE IF NOT EXISTS training_blocks (
+                        id INTEGER NOT NULL PRIMARY KEY,
+                        name VARCHAR NOT NULL, phase VARCHAR NOT NULL,
+                        start_date DATE NOT NULL, end_date DATE NOT NULL,
+                        volume_target INTEGER, notes VARCHAR)
+                """)
+                conn.sql("DELETE FROM training_blocks")
+                for i, block in enumerate(data):
+                    conn.execute(
+                        "INSERT INTO training_blocks VALUES "
+                        "(?, ?, ?, ?, ?, ?, ?)",
+                        [
+                            i, block["name"], block["phase"],
+                            block["start_date"], block["end_date"],
+                            block.get("volume_target"),
+                            block.get("notes", ""),
+                        ],
+                    )
+            finally:
+                conn.close()
+            self._json_response({"status": "saved", "blocks": len(data)})
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_get_goals(self) -> None:
+        try:
+            conn = duckdb.connect(DB_PATH, read_only=True)
+            try:
+                rows = conn.sql(
+                    "SELECT id, name, target_date, metric, "
+                    "target_value, notes FROM goals ORDER BY target_date"
+                ).fetchall()
+                goals = [
+                    {
+                        "id": r[0], "name": r[1],
+                        "target_date": str(r[2]) if r[2] else None,
+                        "metric": r[3], "target_value": r[4],
+                        "notes": r[5],
+                    }
+                    for r in rows
+                ]
+            except duckdb.CatalogException:
+                goals = []
+            finally:
+                conn.close()
+            self._json_response(goals)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_post_goals(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            data = json.loads(self.rfile.read(length))
+            conn = duckdb.connect(DB_PATH)
+            try:
+                conn.sql("""
+                    CREATE TABLE IF NOT EXISTS goals (
+                        id INTEGER NOT NULL PRIMARY KEY,
+                        name VARCHAR NOT NULL, target_date DATE,
+                        metric VARCHAR, target_value DOUBLE,
+                        notes VARCHAR)
+                """)
+                conn.sql("DELETE FROM goals")
+                for i, goal in enumerate(data):
+                    conn.execute(
+                        "INSERT INTO goals VALUES (?, ?, ?, ?, ?, ?)",
+                        [
+                            i, goal["name"],
+                            goal.get("target_date"),
+                            goal.get("metric"),
+                            goal.get("target_value"),
+                            goal.get("notes", ""),
+                        ],
+                    )
+            finally:
+                conn.close()
+            self._json_response({"status": "saved", "goals": len(data)})
         except Exception as e:
             self._json_response({"error": str(e)}, 500)
 

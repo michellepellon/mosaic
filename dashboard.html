@@ -745,6 +745,97 @@ table.workout-table td {
   padding: 1rem 0; text-align: center;
 }
 
+#plan-toggle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  letter-spacing: 0.04em;
+}
+#plan-toggle:hover { color: #334155; }
+
+#plan-panel {
+  display: none; background: #fff;
+  border-bottom: 1px solid #e2e4e9;
+  padding: 1.5rem 2rem;
+}
+#plan-panel.open { display: block; }
+
+.plan-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: #9ca3af;
+  margin-bottom: 0.6rem; margin-top: 1.2rem;
+}
+.plan-section-title:first-child { margin-top: 0; }
+
+.block-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px 120px 80px 40px;
+  gap: 0.5rem; align-items: center;
+  margin-bottom: 0.4rem;
+}
+.block-row input, .block-row select {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem; padding: 0.3rem 0.4rem;
+  border: 1px solid #e2e4e9; background: #f7f8fa; color: #1a1a2e;
+}
+.block-row input:focus, .block-row select:focus {
+  outline: none; border-color: #334155;
+}
+.block-row .remove-btn {
+  font-size: 0.8rem; color: #9ca3af; cursor: pointer;
+  background: none; border: none; text-align: center;
+}
+.block-row .remove-btn:hover { color: #ef4444; }
+
+.goal-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px 100px 40px;
+  gap: 0.5rem; align-items: center;
+  margin-bottom: 0.4rem;
+}
+.goal-row input, .goal-row select {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem; padding: 0.3rem 0.4rem;
+  border: 1px solid #e2e4e9; background: #f7f8fa; color: #1a1a2e;
+}
+.goal-row input:focus, .goal-row select:focus {
+  outline: none; border-color: #334155;
+}
+.goal-row .remove-btn {
+  font-size: 0.8rem; color: #9ca3af; cursor: pointer;
+  background: none; border: none; text-align: center;
+}
+.goal-row .remove-btn:hover { color: #ef4444; }
+
+.add-row-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  background: none; border: 1px dashed #e2e4e9;
+  padding: 0.3rem 0.8rem; margin-top: 0.3rem;
+}
+.add-row-btn:hover { color: #334155; border-color: #334155; }
+
+.current-block-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem; color: #334155;
+  background: #f0f1f3; padding: 0.15rem 0.4rem;
+  display: inline-block; margin-top: 0.3rem;
+  letter-spacing: 0.03em;
+}
+
+.goals-bar {
+  display: flex; gap: 1.2rem; padding: 0.5rem 1.5rem;
+  background: #fff; border-bottom: 1px solid #e2e4e9;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+  color: #9ca3af; overflow-x: auto;
+}
+.goals-bar .goal-item {
+  white-space: nowrap; display: flex; align-items: center; gap: 0.4rem;
+}
+.goals-bar .goal-name { color: #334155; }
+.goals-bar .goal-date { color: #9ca3af; }
+.goals-bar .goal-countdown { color: #d97706; }
+
 #logout-btn {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem; color: #9ca3af; cursor: pointer;
@@ -833,6 +924,7 @@ table.workout-table td {
     <div class="header-meta">
       <span id="range-toggle"></span>
       <span id="last-updated"></span>
+      <span id="plan-toggle">Plan</span>
       <span id="import-toggle">Import</span>
       <span id="profile-toggle">Profile</span>
       <span id="logout-btn">Log Out</span>
@@ -850,6 +942,37 @@ table.workout-table td {
     </div>
     <div id="import-status" style="display:none">
       <div class="import-progress" id="import-progress">Importing...</div>
+    </div>
+  </div>
+
+  <!-- Plan Panel -->
+  <div id="plan-panel">
+    <div class="plan-section-title">Training Blocks</div>
+    <div class="block-row" style="margin-bottom:0.2rem">
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Name</span>
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Phase</span>
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Start</span>
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">End</span>
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Vol/wk</span>
+      <span></span>
+    </div>
+    <div id="blocks-list"></div>
+    <button class="add-row-btn" id="add-block">+ add block</button>
+
+    <div class="plan-section-title">Goals</div>
+    <div class="goal-row" style="margin-bottom:0.2rem">
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Goal</span>
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Target Date</span>
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Metric</span>
+      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Target</span>
+      <span></span>
+    </div>
+    <div id="goals-list"></div>
+    <button class="add-row-btn" id="add-goal">+ add goal</button>
+
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center">
+      <button class="btn-save" id="plan-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:#334155;color:#f7f8fa;border:none;cursor:pointer">Save</button>
+      <span id="plan-status" style="font-size:0.7rem;color:#9ca3af"></span>
     </div>
   </div>
 
@@ -963,6 +1086,9 @@ table.workout-table td {
 
   <!-- Daily Brief Banner -->
   <div id="daily-brief"></div>
+
+  <!-- Goals Bar -->
+  <div class="goals-bar" id="goals-bar" style="display:none"></div>
 
   <!-- Domain Grid -->
   <div id="domain-grid">
@@ -1579,8 +1705,14 @@ function buildTrainingCard(data) {
     sessionHtml = `<div class="domain-session-log" style="color:#9ca3af">No sessions logged</div>`;
   }
 
+  const currentBlock = getCurrentBlock();
+  const blockBadgeHtml = currentBlock
+    ? `<div><span class="current-block-badge">${currentBlock.phase.toUpperCase()}: ${currentBlock.name}</span></div>`
+    : "";
+
   body.innerHTML = `
     <div class="domain-primary${isOverload ? " sub-warn" : ""}" style="${isOverload ? "color:#d97706" : ""}">${weeklyMin != null ? Math.round(weeklyMin) : "\u2014"}<span class="domain-primary-unit"> min/wk</span></div>
+    ${blockBadgeHtml}
     ${sessionHtml}
     <div class="domain-sub" style="margin-top:0.3rem">
       <span><span class="sub-label">4wk avg </span><span class="sub-value">${ex4wk != null ? Math.round(ex4wk) : "\u2014"}</span></span>
@@ -2458,6 +2590,196 @@ function getProfile() {
   catch { return {}; }
 }
 
+// ═══════════════════════════════════════════
+// TRAINING PLAN & GOALS
+// ═══════════════════════════════════════════
+
+let trainingBlocks = [];
+let goalsList = [];
+
+async function loadTrainingPlan() {
+  try {
+    const resp = await fetch("/api/training-plan");
+    if (resp.ok) trainingBlocks = await resp.json();
+  } catch { trainingBlocks = []; }
+}
+
+async function loadGoals() {
+  try {
+    const resp = await fetch("/api/goals");
+    if (resp.ok) goalsList = await resp.json();
+  } catch { goalsList = []; }
+}
+
+function renderBlockRows() {
+  const list = document.getElementById("blocks-list");
+  if (!list) return;
+  list.innerHTML = "";
+  trainingBlocks.forEach((b, i) => {
+    const row = document.createElement("div");
+    row.className = "block-row";
+    row.innerHTML = `
+      <input type="text" value="${b.name || ""}" data-idx="${i}" data-field="name" placeholder="Block name">
+      <select data-idx="${i}" data-field="phase">
+        <option value="base" ${b.phase === "base" ? "selected" : ""}>Base</option>
+        <option value="build" ${b.phase === "build" ? "selected" : ""}>Build</option>
+        <option value="peak" ${b.phase === "peak" ? "selected" : ""}>Peak</option>
+        <option value="recovery" ${b.phase === "recovery" ? "selected" : ""}>Recovery</option>
+      </select>
+      <input type="date" value="${b.start_date || ""}" data-idx="${i}" data-field="start_date">
+      <input type="date" value="${b.end_date || ""}" data-idx="${i}" data-field="end_date">
+      <input type="number" value="${b.volume_target || ""}" data-idx="${i}" data-field="volume_target" placeholder="min">
+      <button class="remove-btn" data-idx="${i}">&times;</button>`;
+    row.addEventListener("change", (e) => {
+      const t = e.target;
+      const idx = parseInt(t.dataset.idx);
+      const field = t.dataset.field;
+      if (field === "volume_target") trainingBlocks[idx][field] = parseInt(t.value) || null;
+      else trainingBlocks[idx][field] = t.value;
+    });
+    row.querySelector(".remove-btn").addEventListener("click", (e) => {
+      trainingBlocks.splice(parseInt(e.target.dataset.idx), 1);
+      renderBlockRows();
+    });
+    list.appendChild(row);
+  });
+}
+
+function renderGoalRows() {
+  const list = document.getElementById("goals-list");
+  if (!list) return;
+  list.innerHTML = "";
+  goalsList.forEach((g, i) => {
+    const row = document.createElement("div");
+    row.className = "goal-row";
+    row.innerHTML = `
+      <input type="text" value="${g.name || ""}" data-idx="${i}" data-field="name" placeholder="e.g., Half marathon">
+      <input type="date" value="${g.target_date || ""}" data-idx="${i}" data-field="target_date">
+      <select data-idx="${i}" data-field="metric">
+        <option value="" ${!g.metric ? "selected" : ""}>—</option>
+        <option value="vo2_max" ${g.metric === "vo2_max" ? "selected" : ""}>VO2 Max</option>
+        <option value="body_fat" ${g.metric === "body_fat" ? "selected" : ""}>Body Fat %</option>
+        <option value="weight" ${g.metric === "weight" ? "selected" : ""}>Weight</option>
+        <option value="exercise" ${g.metric === "exercise" ? "selected" : ""}>Exercise min/wk</option>
+        <option value="race_time" ${g.metric === "race_time" ? "selected" : ""}>Race Time</option>
+        <option value="other" ${g.metric === "other" ? "selected" : ""}>Other</option>
+      </select>
+      <input type="text" value="${g.target_value || ""}" data-idx="${i}" data-field="target_value" placeholder="target">
+      <button class="remove-btn" data-idx="${i}">&times;</button>`;
+    row.addEventListener("change", (e) => {
+      const t = e.target;
+      const idx = parseInt(t.dataset.idx);
+      goalsList[idx][t.dataset.field] = t.value;
+    });
+    row.querySelector(".remove-btn").addEventListener("click", (e) => {
+      goalsList.splice(parseInt(e.target.dataset.idx), 1);
+      renderGoalRows();
+    });
+    list.appendChild(row);
+  });
+}
+
+function getCurrentBlock() {
+  const today = new Date().toISOString().slice(0, 10);
+  return trainingBlocks.find(b => b.start_date <= today && b.end_date >= today) || null;
+}
+
+function renderGoalsBar() {
+  const bar = document.getElementById("goals-bar");
+  if (!bar) return;
+  if (!goalsList.length && !getCurrentBlock()) {
+    bar.style.display = "none";
+    return;
+  }
+  bar.style.display = "flex";
+  let html = "";
+
+  const block = getCurrentBlock();
+  if (block) {
+    const today = new Date();
+    const start = new Date(block.start_date);
+    const end = new Date(block.end_date);
+    const total = Math.max(1, (end - start) / 86400000);
+    const elapsed = Math.max(0, (today - start) / 86400000);
+    const week = Math.ceil(elapsed / 7);
+    const totalWeeks = Math.ceil(total / 7);
+    const phase = block.phase.charAt(0).toUpperCase() + block.phase.slice(1);
+    html += `<div class="goal-item"><span class="goal-name">${phase}: ${block.name}</span><span class="goal-date">Wk ${week}/${totalWeeks}</span></div>`;
+  }
+
+  for (const g of goalsList) {
+    let countdown = "";
+    if (g.target_date) {
+      const days = Math.ceil((new Date(g.target_date) - new Date()) / 86400000);
+      if (days > 0) countdown = `${days}d`;
+      else if (days === 0) countdown = "today";
+      else countdown = "past";
+    }
+    html += `<div class="goal-item"><span class="goal-name">${g.name}</span>`;
+    if (g.target_date) html += `<span class="goal-date">${g.target_date}</span>`;
+    if (countdown) html += `<span class="goal-countdown">${countdown}</span>`;
+    html += `</div>`;
+  }
+  bar.innerHTML = html;
+}
+
+function initPlan() {
+  const toggle = document.getElementById("plan-toggle");
+  const panel = document.getElementById("plan-panel");
+  const saveBtn = document.getElementById("plan-save");
+  const status = document.getElementById("plan-status");
+  const addBlock = document.getElementById("add-block");
+  const addGoal = document.getElementById("add-goal");
+
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener("click", async () => {
+    // Close other panels
+    document.getElementById("import-panel")?.classList.remove("open");
+    document.getElementById("profile-panel")?.classList.remove("open");
+    panel.classList.toggle("open");
+    if (panel.classList.contains("open")) {
+      await loadTrainingPlan();
+      await loadGoals();
+      renderBlockRows();
+      renderGoalRows();
+    }
+  });
+
+  addBlock?.addEventListener("click", () => {
+    const last = trainingBlocks[trainingBlocks.length - 1];
+    const start = last ? last.end_date : new Date().toISOString().slice(0, 10);
+    const end = new Date(new Date(start).getTime() + 28 * 86400000).toISOString().slice(0, 10);
+    trainingBlocks.push({ name: "", phase: "base", start_date: start, end_date: end, volume_target: null, notes: "" });
+    renderBlockRows();
+  });
+
+  addGoal?.addEventListener("click", () => {
+    goalsList.push({ name: "", target_date: "", metric: "", target_value: null, notes: "" });
+    renderGoalRows();
+  });
+
+  saveBtn?.addEventListener("click", async () => {
+    status.textContent = "saving...";
+    try {
+      await fetch("/api/training-plan", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(trainingBlocks),
+      });
+      await fetch("/api/goals", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(goalsList),
+      });
+      status.textContent = "saved";
+      renderGoalsBar();
+      if (rawData) renderAll(currentRange);
+    } catch (err) {
+      status.textContent = "error: " + err.message;
+    }
+    setTimeout(() => { status.textContent = ""; }, 2000);
+  });
+}
+
 function initProfile() {
   const toggle = document.getElementById("profile-toggle");
   const panel = document.getElementById("profile-panel");
@@ -2467,6 +2789,9 @@ function initProfile() {
   if (!toggle || !panel) return;
 
   toggle.addEventListener("click", () => {
+    // Close other panels
+    document.getElementById("import-panel")?.classList.remove("open");
+    document.getElementById("plan-panel")?.classList.remove("open");
     panel.classList.toggle("open");
     if (panel.classList.contains("open")) loadProfile();
   });
@@ -2486,6 +2811,8 @@ document.addEventListener("DOMContentLoaded", () => {
     initQueryConsole();
     initProfile();
     loadProfile();
+    initPlan();
+    loadTrainingPlan().then(() => loadGoals().then(renderGoalsBar));
   }, 100);
 
   // Import panel
@@ -2500,8 +2827,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (importToggle && importPanel) {
     importToggle.addEventListener("click", () => {
       importPanel.classList.toggle("open");
-      // Close profile panel if open
+      // Close other panels if open
       document.getElementById("profile-panel")?.classList.remove("open");
+      document.getElementById("plan-panel")?.classList.remove("open");
     });
   }
 
