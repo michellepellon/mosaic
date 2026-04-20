@@ -1131,6 +1131,36 @@ function addLineTooltip(g, data, x, y, yFmt, w, h) {
   });
 }
 
+function addBarTooltip(g, data, x, y, fmtFn, w, h) {
+  const overlay = g.append("rect")
+    .attr("width", w).attr("height", h)
+    .attr("fill", "none").attr("pointer-events", "all");
+  const vline = g.append("line")
+    .attr("y1", 0).attr("y2", h)
+    .attr("stroke", "#9ca3af").attr("stroke-width", 0.5)
+    .attr("stroke-dasharray", "2,2")
+    .style("display", "none");
+
+  overlay.on("mousemove", function(event) {
+    const [mx] = d3.pointer(event);
+    // Find closest bar by x position
+    const domain = x.domain();
+    const step = x.step();
+    const idx = Math.min(Math.floor(mx / step), domain.length - 1);
+    if (idx < 0 || idx >= data.length) return;
+    const d = data[idx];
+    const px = x(domain[idx]) + x.bandwidth() / 2;
+    vline.attr("x1", px).attr("x2", px).style("display", null);
+    const label = fmtFn(d);
+    const rect = overlay.node().closest("svg").getBoundingClientRect();
+    const margin = g.node().transform.baseVal[0];
+    tooltip.show(rect.left + px + (margin ? margin.matrix.e : 36), rect.top + 30, label);
+  }).on("mouseleave", function() {
+    vline.style("display", "none");
+    tooltip.hide();
+  });
+}
+
 // ── DuckDB-WASM ──
 import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
 
@@ -1715,6 +1745,12 @@ function buildExpandedRecovery(el, data) {
 
     tufteYAxis(g, yLeft, iw, d3.format(".0f"));
     tufteXAxis(g, d3.scaleTime().domain(d3.extent(sleepData, d => d.d)).range([0, iw]), ih, "%b %d");
+
+    // Tooltip on sleep bars
+    addBarTooltip(g, sleepData, x, yLeft, d => {
+      const dt = d3.timeFormat("%b %d")(d.d);
+      return `${dt}  ${fmt1(d.total)} hrs (deep ${fmt1(d.deep)}, REM ${fmt1(d.rem)})`;
+    }, iw, ih);
   }
 
   // Stats sidebar
@@ -1853,6 +1889,13 @@ function buildExpandedTraining(el, data) {
       .attr("x", 0).attr("y", ih + 14).attr("text-anchor", "start").text(dfmt(barData[0].d));
     g.append("text").attr("class", "axis-label")
       .attr("x", iw).attr("y", ih + 14).attr("text-anchor", "end").text(dfmt(barData[barData.length - 1].d));
+
+    // Tooltip on training bars
+    addBarTooltip(g, barData, x, y, d => {
+      const dt = d3.timeFormat("%b %d")(d.d);
+      const total = Math.round((d.z2 || 0) + (d.z4 || 0) + (d.other || 0));
+      return `${dt}  ${total} min (Z2 ${Math.round(d.z2 || 0)}, Z4+ ${Math.round(d.z4 || 0)})`;
+    }, iw, ih);
   }
 
   // Stats
@@ -1949,6 +1992,9 @@ function buildExpandedFitness(el, data) {
 
     tufteYAxis(g, y, iw, d3.format(".0f"));
     tufteXAxis(g, x, ih, "%b '%y");
+
+    // Tooltip on VO2 Max scatter
+    addLineTooltip(g, vo2Data, x, y, d3.format(".1f"), iw, ih);
   }
 
   // Body fat trend chart
@@ -1985,6 +2031,9 @@ function buildExpandedFitness(el, data) {
 
     tufteYAxis(g2, y2, iw2, d3.format(".1f"));
     tufteXAxis(g2, x2, ih2, "%b '%y");
+
+    // Tooltip on body fat line
+    addLineTooltip(g2, bfData, x2, y2, d => fmt1(d) + "%", iw2, ih2);
   }
 
   // Stats
