@@ -693,6 +693,58 @@ table.workout-table td {
 }
 #profile-toggle:hover { color: #334155; }
 
+#import-toggle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  letter-spacing: 0.04em;
+}
+#import-toggle:hover { color: #334155; }
+
+#import-panel {
+  display: none; background: #fff;
+  border-bottom: 1px solid #e2e4e9;
+  padding: 1.5rem 2rem;
+}
+#import-panel.open { display: block; }
+
+#import-dropzone {
+  border: 2px dashed #e2e4e9;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+#import-dropzone.dragover {
+  border-color: #334155;
+  background: #f0f1f3;
+}
+.dropzone-icon {
+  font-size: 1.8rem; color: #9ca3af; margin-bottom: 0.4rem;
+}
+.dropzone-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem; color: #334155; margin-bottom: 0.2rem;
+}
+.dropzone-hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: #9ca3af;
+  margin-bottom: 0.8rem;
+}
+#import-browse {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 0.35rem 1rem;
+  background: transparent; color: #9ca3af;
+  border: 1px solid #e2e4e9; cursor: pointer;
+}
+#import-browse:hover { color: #334155; border-color: #334155; }
+
+.import-progress {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem; color: #334155;
+  padding: 1rem 0; text-align: center;
+}
+
 #logout-btn {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem; color: #9ca3af; cursor: pointer;
@@ -781,10 +833,25 @@ table.workout-table td {
     <div class="header-meta">
       <span id="range-toggle"></span>
       <span id="last-updated"></span>
+      <span id="import-toggle">Import</span>
       <span id="profile-toggle">Profile</span>
       <span id="logout-btn">Log Out</span>
     </div>
   </header>
+
+  <!-- Import Panel -->
+  <div id="import-panel">
+    <div id="import-dropzone">
+      <div class="dropzone-icon">↑</div>
+      <div class="dropzone-text">Drop Apple Health export here</div>
+      <div class="dropzone-hint">export.zip or export.xml</div>
+      <input type="file" id="import-file" accept=".zip,.xml" style="display:none">
+      <button id="import-browse">or choose file</button>
+    </div>
+    <div id="import-status" style="display:none">
+      <div class="import-progress" id="import-progress">Importing...</div>
+    </div>
+  </div>
 
   <!-- Profile Panel -->
   <div id="profile-panel">
@@ -2420,6 +2487,82 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfile();
     loadProfile();
   }, 100);
+
+  // Import panel
+  const importToggle = document.getElementById("import-toggle");
+  const importPanel = document.getElementById("import-panel");
+  const dropzone = document.getElementById("import-dropzone");
+  const fileInput = document.getElementById("import-file");
+  const browseBtn = document.getElementById("import-browse");
+  const importStatus = document.getElementById("import-status");
+  const importProgress = document.getElementById("import-progress");
+
+  if (importToggle && importPanel) {
+    importToggle.addEventListener("click", () => {
+      importPanel.classList.toggle("open");
+      // Close profile panel if open
+      document.getElementById("profile-panel")?.classList.remove("open");
+    });
+  }
+
+  if (browseBtn && fileInput) {
+    browseBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length) uploadFile(fileInput.files[0]);
+    });
+  }
+
+  if (dropzone) {
+    dropzone.addEventListener("click", () => fileInput?.click());
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.classList.remove("dragover");
+    });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+    });
+  }
+
+  async function uploadFile(file) {
+    if (!file.name.endsWith(".zip") && !file.name.endsWith(".xml")) {
+      importProgress.textContent = "Error: file must be .zip or .xml";
+      importProgress.style.color = "#ef4444";
+      importStatus.style.display = "block";
+      return;
+    }
+
+    dropzone.style.display = "none";
+    importStatus.style.display = "block";
+    importProgress.textContent = `Importing ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)...`;
+    importProgress.style.color = "#334155";
+
+    try {
+      const resp = await fetch("/api/import", {
+        method: "POST",
+        headers: { "Content-Type": file.type || "application/octet-stream" },
+        body: file,
+      });
+      const result = await resp.json();
+      if (result.error) throw new Error(result.error);
+
+      importProgress.textContent = `Imported ${result.records.toLocaleString()} records, ${result.labs} lab results. Reloading...`;
+      importProgress.style.color = "#334155";
+
+      setTimeout(() => location.reload(), 1500);
+    } catch (err) {
+      importProgress.textContent = `Error: ${err.message}`;
+      importProgress.style.color = "#ef4444";
+      dropzone.style.display = "";
+    }
+  }
 
   document.getElementById("logout-btn")?.addEventListener("click", () => {
     sessionStorage.removeItem("mosaic_auth");
