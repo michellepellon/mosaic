@@ -29,6 +29,8 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             self._handle_get_goals()
         elif self.path == "/api/regimens":
             self._handle_get_regimens()
+        elif self.path.startswith("/api/regimen-events"):
+            self._handle_get_regimen_events()
         else:
             super().do_GET()
 
@@ -43,6 +45,8 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             self._handle_post_goals()
         elif self.path == "/api/regimens":
             self._handle_post_regimens()
+        elif self.path == "/api/regimen-events":
+            self._handle_post_regimen_event()
         else:
             self.send_error(404)
 
@@ -51,9 +55,18 @@ class MosaicHandler(SimpleHTTPRequestHandler):
         self._cors_headers()
         self.end_headers()
 
+    def do_DELETE(self) -> None:
+        path = self.path.split("?")[0]
+        if path == "/api/regimen-events":
+            self._handle_delete_regimen_event()
+        else:
+            self.send_error(404)
+
     def _cors_headers(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header(
+            "Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS"
+        )
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
     def _json_response(self, data: object, status: int = 200) -> None:
@@ -285,6 +298,113 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             finally:
                 conn.close()
             self._json_response({"status": "saved", "regimens": len(regimen_list)})
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_get_regimen_events(self) -> None:
+        try:
+            from datetime import date, timedelta
+            from urllib.parse import parse_qs, urlparse
+
+            qs = parse_qs(urlparse(self.path).query)
+            since = qs.get("since", [None])[0]
+            if since is None:
+                since = (date.today() - timedelta(days=30)).isoformat()
+
+            conn = duckdb.connect(DB_PATH, read_only=True)
+            try:
+                rows = conn.sql(
+                    "SELECT id, regimen_id, event_date, event_type, slot, "
+                    "substance, brand, dose_amount, dose_unit, notes "
+                    "FROM regimen_events WHERE event_date >= ? "
+                    "ORDER BY event_date DESC, id DESC",
+                    params=[since],
+                ).fetchall()
+                events = [
+                    {
+                        "id": r[0], "regimen_id": r[1],
+                        "event_date": str(r[2]), "event_type": r[3],
+                        "slot": r[4], "substance": r[5], "brand": r[6],
+                        "dose_amount": r[7], "dose_unit": r[8],
+                        "notes": r[9],
+                    }
+                    for r in rows
+                ]
+            except duckdb.CatalogException:
+                events = []
+            finally:
+                conn.close()
+            self._json_response(events)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_post_regimen_event(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            try:
+                data: Any = json.loads(self.rfile.read(length))
+            except json.JSONDecodeError:
+                self._json_response({"error": "invalid json"}, 400)
+                return
+            if not isinstance(data, dict):
+                self._json_response({"error": "expected object"}, 400)
+                return
+            for required in ("event_date", "event_type"):
+                if required not in data:
+                    self._json_response(
+                        {"error": f"missing field: {required}"}, 400
+                    )
+                    return
+
+            conn = duckdb.connect(DB_PATH)
+            try:
+                from mosaic.schema import create_tables
+                create_tables(conn)
+                next_id_row = conn.sql(
+                    "SELECT COALESCE(MAX(id), 0) + 1 FROM regimen_events"
+                ).fetchone()
+                new_id = next_id_row[0] if next_id_row else 1
+                event_dict: dict[str, Any] = cast(dict[str, Any], data)
+                conn.execute(
+                    "INSERT INTO regimen_events VALUES "
+                    "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    [
+                        new_id, event_dict.get("regimen_id"), event_dict["event_date"],
+                        event_dict["event_type"], event_dict.get("slot"),
+                        event_dict.get("substance"), event_dict.get("brand"),
+                        event_dict.get("dose_amount"), event_dict.get("dose_unit"),
+                        event_dict.get("notes", ""),
+                    ],
+                )
+            finally:
+                conn.close()
+            self._json_response({"id": new_id})
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_delete_regimen_event(self) -> None:
+        try:
+            from urllib.parse import parse_qs, urlparse
+
+            qs = parse_qs(urlparse(self.path).query)
+            id_str = qs.get("id", [None])[0]
+            if id_str is None:
+                self._json_response({"error": "missing id"}, 400)
+                return
+            try:
+                event_id = int(id_str)
+            except ValueError:
+                self._json_response({"error": "id must be integer"}, 400)
+                return
+
+            conn = duckdb.connect(DB_PATH)
+            try:
+                conn.execute(
+                    "DELETE FROM regimen_events WHERE id = ?", [event_id]
+                )
+            finally:
+                conn.close()
+            self._json_response({"status": "deleted"})
         except Exception as e:
             self._json_response({"error": str(e)}, 500)
 

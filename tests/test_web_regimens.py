@@ -98,3 +98,92 @@ def test_regimens_post_non_list_returns_400(server: int):
     status, body = _request(server, "POST", "/api/regimens", {"name": "x"})
     assert status == 400
     assert body == {"error": "expected list of regimens"}
+
+
+def _seed_regimen(port: int) -> int:
+    """POST one regimen and return its id."""
+    payload = [{
+        "name": "Magnesium", "brand": "Thorne", "category": "supplement",
+        "dose_amount": 400.0, "dose_unit": "mg", "schedule": "both",
+        "start_date": "2026-01-15", "end_date": None, "notes": "",
+    }]
+    _request(port, "POST", "/api/regimens", payload)
+    _, body = _request(port, "GET", "/api/regimens")
+    return body[0]["id"]
+
+
+def test_events_get_empty_default_30d(server: int):
+    status, body = _request(server, "GET", "/api/regimen-events")
+    assert status == 200
+    assert body == []
+
+
+def test_event_post_then_get(server: int):
+    rid = _seed_regimen(server)
+    status, body = _request(server, "POST", "/api/regimen-events", {
+        "regimen_id": rid, "event_date": "2026-04-28",
+        "event_type": "miss", "slot": "morning",
+    })
+    assert status == 200
+    assert "id" in body
+    new_id = body["id"]
+
+    status, events = _request(
+        server, "GET", "/api/regimen-events?since=2026-04-01"
+    )
+    assert status == 200
+    assert len(events) == 1
+    assert events[0]["id"] == new_id
+    assert events[0]["regimen_id"] == rid
+    assert events[0]["event_type"] == "miss"
+    assert events[0]["slot"] == "morning"
+
+
+def test_event_delete(server: int):
+    rid = _seed_regimen(server)
+    _, body = _request(server, "POST", "/api/regimen-events", {
+        "regimen_id": rid, "event_date": "2026-04-28",
+        "event_type": "miss", "slot": "morning",
+    })
+    eid = body["id"]
+
+    status, delete_response = _request(
+        server, "DELETE", f"/api/regimen-events?id={eid}"
+    )
+    assert status == 200
+    assert delete_response == {"status": "deleted"}
+
+    _, events = _request(
+        server, "GET", "/api/regimen-events?since=2026-04-01"
+    )
+    assert events == []
+
+
+def test_event_post_adhoc(server: int):
+    """Ad-hoc event with no regimen_id."""
+    status, _body = _request(server, "POST", "/api/regimen-events", {
+        "regimen_id": None,
+        "event_date": "2026-04-28",
+        "event_type": "taken",
+        "substance": "Ibuprofen",
+        "dose_amount": 200,
+        "dose_unit": "mg",
+        "notes": "post-workout knee",
+    })
+    assert status == 200
+    _, events = _request(
+        server, "GET", "/api/regimen-events?since=2026-04-01"
+    )
+    assert len(events) == 1
+    assert events[0]["substance"] == "Ibuprofen"
+    assert events[0]["regimen_id"] is None
+
+
+def test_event_post_missing_field_400(server: int):
+    status, body = _request(server, "POST", "/api/regimen-events", {
+        "regimen_id": None,
+        # missing event_date
+        "event_type": "taken",
+    })
+    assert status == 400
+    assert "missing field" in body["error"]
