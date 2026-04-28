@@ -167,6 +167,64 @@ body {
   gap: 0;
   margin-bottom: 0;
 }
+#stack-strip {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  padding: 0.7rem 1rem;
+  margin-top: 0.6rem;
+  background: #f5f7fa;
+  border: 1px solid #e2e4e9;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+#stack-strip:hover { background: #ecf0f5; }
+#stack-strip.active {
+  background: #1a1a2e;
+  color: #f7f8fa;
+  border-color: #1a1a2e;
+}
+.stack-strip-left {
+  display: flex; flex-direction: column; gap: 2px; min-width: 110px;
+}
+.stack-strip-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.stack-strip-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+#stack-strip.active .stack-strip-count { color: #94a3b8; }
+.stack-strip-slots { display: flex; gap: 1.6rem; flex: 1; }
+.stack-slot { display: flex; align-items: center; gap: 0.5rem; }
+.stack-slot-pill {
+  font-size: 0.55rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.stack-slot-pill.am { background: #dbeafe; color: #1e3a8a; }
+.stack-slot-pill.pm { background: #ede9fe; color: #5b21b6; }
+.stack-slot-checks { display: inline-flex; gap: 4px; }
+.stack-slot-checks .chk {
+  width: 12px; height: 12px;
+  border: 1.5px solid #94a3b8;
+  border-radius: 2px;
+  display: inline-block;
+}
+.stack-slot-checks .chk.done { background: #10b981; border-color: #10b981; }
+.stack-slot-checks .chk.miss { background: transparent; border-color: #ef4444; }
+@media (max-width: 560px) {
+  #stack-strip { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
 
 .domain-card {
   background: #ffffff;
@@ -1107,6 +1165,24 @@ table.workout-table td {
     <div class="domain-card" id="card-bloodwork" data-domain="bloodwork">
       <div class="domain-label">Bloodwork</div>
       <div class="domain-body"></div>
+    </div>
+  </div>
+
+  <!-- Stack Strip -->
+  <div id="stack-strip" style="display:none">
+    <div class="stack-strip-left">
+      <div class="stack-strip-label">Stack</div>
+      <div class="stack-strip-count" id="stack-strip-count">0 active</div>
+    </div>
+    <div class="stack-strip-slots">
+      <div class="stack-slot">
+        <span class="stack-slot-pill am">AM</span>
+        <span class="stack-slot-checks" id="stack-strip-am"></span>
+      </div>
+      <div class="stack-slot">
+        <span class="stack-slot-pill pm">PM</span>
+        <span class="stack-slot-checks" id="stack-strip-pm"></span>
+      </div>
     </div>
   </div>
 
@@ -2364,6 +2440,9 @@ function renderAll(days) {
       renderAll(d);
     });
 
+    await loadRegimens();
+    await loadRegimenEvents();
+    renderStackStrip();
     renderAll(currentRange);
   } catch (err) {
     document.getElementById("daily-brief").innerHTML =
@@ -2602,6 +2681,78 @@ async function loadTrainingPlan() {
     const resp = await fetch("/api/training-plan");
     if (resp.ok) trainingBlocks = await resp.json();
   } catch { trainingBlocks = []; }
+}
+
+let regimens = [];
+let regimenEvents = [];
+
+async function loadRegimens() {
+  try {
+    const resp = await fetch("/api/regimens");
+    if (resp.ok) regimens = await resp.json();
+  } catch { regimens = []; }
+}
+
+async function loadRegimenEvents(sinceISO) {
+  try {
+    const since = sinceISO || new Date(Date.now() - 30 * 86400000)
+      .toISOString().slice(0, 10);
+    const resp = await fetch(`/api/regimen-events?since=${since}`);
+    if (resp.ok) regimenEvents = await resp.json();
+  } catch { regimenEvents = []; }
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function isRegimenActive(r) {
+  return !r.end_date || r.end_date >= todayISO();
+}
+
+function activeRegimensForSlot(slot) {
+  return regimens.filter(r => {
+    if (!isRegimenActive(r)) return false;
+    return r.schedule === slot || r.schedule === "both";
+  });
+}
+
+function regimenEventToday(regimenId, slot) {
+  const today = todayISO();
+  return regimenEvents.find(e =>
+    e.event_date === today && e.regimen_id === regimenId && e.slot === slot
+  );
+}
+
+function renderStackStrip() {
+  const strip = document.getElementById("stack-strip");
+  if (!strip) return;
+  if (!regimens.length) {
+    strip.style.display = "none";
+    return;
+  }
+  strip.style.display = "flex";
+
+  const activeCount = regimens.filter(isRegimenActive).length;
+  const countEl = document.getElementById("stack-strip-count");
+  countEl.textContent = `${activeCount} active`;
+
+  const renderSlot = (containerId, slot) => {
+    const container = document.getElementById(containerId);
+    while (container.firstChild) container.removeChild(container.firstChild);
+    activeRegimensForSlot(slot).forEach(r => {
+      const ev = regimenEventToday(r.id, slot);
+      const span = document.createElement("span");
+      span.className = "chk" + (ev ? " miss" : " done");
+      const dose = r.dose_amount
+        ? ` ${r.dose_amount}${r.dose_unit || ""}`
+        : "";
+      span.title = `${r.name}${dose} (${slot})`;
+      container.appendChild(span);
+    });
+  };
+  renderSlot("stack-strip-am", "morning");
+  renderSlot("stack-strip-pm", "evening");
 }
 
 async function loadGoals() {
