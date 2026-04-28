@@ -187,3 +187,18 @@ def test_event_post_missing_field_400(server: int):
     })
     assert status == 400
     assert "missing field" in body["error"]
+
+
+def test_events_get_respects_since_filter(server: int):
+    """Verify that since query parameter correctly filters events."""
+    rid = _seed_regimen(server)
+    _request(server, "POST", "/api/regimen-events", {
+        "regimen_id": rid, "event_date": "2026-04-28",
+        "event_type": "miss", "slot": "morning",
+    })
+    # Future since cutoff filters out the event we just inserted
+    status, events = _request(
+        server, "GET", "/api/regimen-events?since=2099-01-01"
+    )
+    assert status == 200
+    assert events == []

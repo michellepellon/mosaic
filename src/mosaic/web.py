@@ -29,7 +29,7 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             self._handle_get_goals()
         elif self.path == "/api/regimens":
             self._handle_get_regimens()
-        elif self.path.startswith("/api/regimen-events"):
+        elif self.path.split("?")[0] == "/api/regimen-events":
             self._handle_get_regimen_events()
         else:
             super().do_GET()
