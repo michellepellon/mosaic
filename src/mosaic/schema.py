@@ -70,6 +70,16 @@ TABLE_NAMES: frozenset[str] = frozenset({
     "regimen_events",
 })
 
+USER_DATA_TABLES: frozenset[str] = frozenset({
+    "athlete_profile",
+    "training_blocks",
+    "goals",
+    "regimens",
+    "regimen_events",
+})
+
+HEALTH_DATA_TABLES: frozenset[str] = TABLE_NAMES - USER_DATA_TABLES
+
 
 def table_for_record_type(hk_type: str) -> str | None:
     """Return the target table name for an Apple Health record type, or None if unknown."""
@@ -275,8 +285,8 @@ def create_tables(conn: duckdb.DuckDBPyConnection) -> None:
 
 
 def truncate_tables(conn: duckdb.DuckDBPyConnection) -> None:
-    """Truncate all health data tables."""
-    for table_name in _TABLE_DDL:
+    """Truncate health-data tables only. User data is preserved."""
+    for table_name in HEALTH_DATA_TABLES:
         conn.sql(f"TRUNCATE TABLE {table_name}")
 
 

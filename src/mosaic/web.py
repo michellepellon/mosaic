@@ -243,16 +243,6 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             try:
                 xml_path, clinical_dir, cleanup = resolve_xml_path(tmp_path)
 
-                # Preserve existing profile before truncating
-                profile: dict[str, str] = {}
-                try:
-                    conn = duckdb.connect(DB_PATH, read_only=True)
-                    rows = conn.sql("SELECT key, value FROM athlete_profile").fetchall()
-                    profile = dict(rows)
-                    conn.close()
-                except Exception:
-                    pass
-
                 conn = duckdb.connect(DB_PATH)
                 create_tables(conn)
                 truncate_tables(conn)
@@ -263,13 +253,6 @@ class MosaicHandler(SimpleHTTPRequestHandler):
 
                 if clinical_dir:
                     parse_clinical_records(conn, clinical_dir)
-
-                # Restore profile
-                for key, value in profile.items():
-                    conn.execute(
-                        "INSERT OR REPLACE INTO athlete_profile VALUES (?, ?)",
-                        [key, value],
-                    )
 
                 total = stats.get("total", 0)
                 labs = conn.sql("SELECT COUNT(*) FROM clinical_labs").fetchone()
