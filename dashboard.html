@@ -2743,7 +2743,7 @@ function renderStackStrip() {
     activeRegimensForSlot(slot).forEach(r => {
       const ev = regimenEventToday(r.id, slot);
       const span = document.createElement("span");
-      span.className = "chk" + (ev ? " miss" : " done");
+      span.className = "chk" + (ev && ev.event_type === "miss" ? " miss" : " done");
       const dose = r.dose_amount
         ? ` ${r.dose_amount}${r.dose_unit || ""}`
         : "";
