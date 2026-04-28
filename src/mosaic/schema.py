@@ -214,7 +214,7 @@ _TABLE_DDL: dict[str, str] = {
     )""",
     "regimen_events": """CREATE TABLE IF NOT EXISTS regimen_events (
         id           INTEGER NOT NULL PRIMARY KEY,
-        regimen_id   INTEGER REFERENCES regimens(id),
+        regimen_id   INTEGER,
         event_date   DATE NOT NULL,
         event_type   VARCHAR NOT NULL,
         slot         VARCHAR,

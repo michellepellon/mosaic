@@ -38,6 +38,10 @@ def test_truncate_preserves_user_data(db: duckdb.DuckDBPyConnection):
          "morning", "2025-09-12", None, ""],
     )
     db.execute(
+        "INSERT INTO training_blocks VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [1, "Base", "base", "2026-04-01", "2026-04-30", 180, ""],
+    )
+    db.execute(
         "INSERT INTO step_counts VALUES (?, ?, ?, ?, ?, ?, ?)",
         ["Watch", "1.0", "count", 1234.0,
          "2026-04-27 08:00:00-06:00", "2026-04-27 08:01:00-06:00", None],
@@ -60,3 +64,7 @@ def test_truncate_preserves_user_data(db: duckdb.DuckDBPyConnection):
     regimens_result = db.sql("SELECT COUNT(*) FROM regimens").fetchone()
     assert regimens_result is not None
     assert regimens_result[0] == 1
+
+    training_blocks_result = db.sql("SELECT COUNT(*) FROM training_blocks").fetchone()
+    assert training_blocks_result is not None
+    assert training_blocks_result[0] == 1

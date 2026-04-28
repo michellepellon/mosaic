@@ -3384,7 +3384,15 @@ function renderRegimenRows() {
       }
     });
     removeBtn.addEventListener("click", e => {
-      regimens.splice(parseInt(e.target.dataset.idx), 1);
+      const ri = parseInt(e.target.dataset.idx);
+      const reg = regimens[ri];
+      const hasEvents = reg.id != null && regimenEvents.some(ev => ev.regimen_id === reg.id);
+      if (hasEvents) {
+        alert(`${reg.name} has logged events and cannot be deleted. End the regimen by setting an end date instead.`);
+        return;
+      }
+      if (!confirm(`Remove ${reg.name || "this regimen"}?`)) return;
+      regimens.splice(ri, 1);
       renderRegimenRows();
     });
 
@@ -3408,6 +3416,7 @@ function initStack() {
     panel.classList.toggle("open");
     if (panel.classList.contains("open")) {
       await loadRegimens();
+      await loadRegimenEvents();
       renderRegimenRows();
     }
   });
@@ -3425,11 +3434,12 @@ function initStack() {
   saveBtn?.addEventListener("click", async () => {
     status.textContent = "saving...";
     try {
-      await fetch("/api/regimens", {
+      const resp = await fetch("/api/regimens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(regimens),
       });
+      if (!resp.ok) throw new Error(`save failed: ${resp.status}`);
       status.textContent = "saved";
       await loadRegimens();
       await loadRegimenEvents();
