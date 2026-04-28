@@ -91,3 +91,10 @@ def test_regimens_post_invalid_json_returns_400(server: int):
     with pytest.raises(urllib.error.HTTPError) as exc_info:
         urllib.request.urlopen(req)
     assert exc_info.value.code == 400
+
+
+def test_regimens_post_non_list_returns_400(server: int):
+    """Valid JSON but not a list should return 400."""
+    status, body = _request(server, "POST", "/api/regimens", {"name": "x"})
+    assert status == 400
+    assert body == {"error": "expected list of regimens"}
