@@ -225,6 +225,66 @@ body {
 @media (max-width: 560px) {
   #stack-strip { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }
+.expanded-stack { padding: 0; }
+.es-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 1rem;
+}
+.es-meta { color: #64748b; font-size: 0.75rem; }
+.es-section { margin-bottom: 1.4rem; }
+.es-section h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0 0 0.6rem;
+}
+.es-row {
+  display: flex; align-items: center; gap: 0.9rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+.es-row:last-child { border-bottom: 0; }
+.es-pill {
+  font-size: 0.55rem; padding: 2px 7px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  display: inline-block; min-width: 32px; text-align: center;
+}
+.es-pill.am { background: #dbeafe; color: #1e3a8a; }
+.es-pill.pm { background: #ede9fe; color: #5b21b6; }
+.es-pill.any { background: #d1fae5; color: #065f46; }
+.es-pill.prn { background: #fee2e2; color: #991b1b; }
+.es-check {
+  width: 18px; height: 18px;
+  border: 1.5px solid #94a3b8;
+  border-radius: 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 12px;
+}
+.es-check.done { background: #10b981; border-color: #10b981; color: #fff; }
+.es-check.miss { background: transparent; border-color: #ef4444; color: #ef4444; }
+.es-name { font-weight: 600; min-width: 200px; }
+.es-dose { color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.es-brand { color: #94a3b8; font-size: 0.7rem; }
+.es-table-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 0.7fr 0.7fr 0.8fr 0.7fr;
+  gap: 0.6rem; padding: 0.4rem 0; font-size: 0.75rem;
+  border-bottom: 1px solid #f0f2f5;
+}
+.es-table-row.head {
+  color: #94a3b8; text-transform: uppercase;
+  letter-spacing: 0.06em; font-size: 0.65rem; font-weight: 600;
+  border-bottom: 1px solid #e2e4e9;
+}
+.es-miss-row { padding: 0.3rem 0; font-size: 0.78rem; color: #475569; }
+.es-date {
+  font-family: 'JetBrains Mono', monospace;
+  color: #94a3b8; min-width: 70px; display: inline-block;
+}
 
 .domain-card {
   background: #ffffff;
@@ -1940,6 +2000,7 @@ let expandedDomain = null;
 let currentRange = 365;
 
 function expandDomain(domain) {
+  document.getElementById("stack-strip")?.classList.remove("active");
   expandedDomain = domain;
   const el = document.getElementById("expanded-card");
   el.style.display = "block";
@@ -1967,6 +2028,7 @@ function collapseDomain() {
   el.style.display = "none";
   el.innerHTML = "";
   document.querySelectorAll(".domain-card").forEach(c => c.classList.remove("active"));
+  document.getElementById("stack-strip")?.classList.remove("active");
 }
 
 // Domain card click handlers
@@ -1978,6 +2040,22 @@ document.getElementById("domain-grid").addEventListener("click", e => {
     collapseDomain();
   } else {
     expandDomain(domain);
+  }
+});
+
+document.getElementById("stack-strip")?.addEventListener("click", () => {
+  document.querySelectorAll(".domain-card").forEach(c => c.classList.remove("active"));
+  const strip = document.getElementById("stack-strip");
+  const isActive = strip.classList.contains("active");
+  const el = document.getElementById("expanded-card");
+  if (isActive) {
+    strip.classList.remove("active");
+    el.style.display = "none";
+    while (el.firstChild) el.removeChild(el.firstChild);
+  } else {
+    strip.classList.add("active");
+    expandedDomain = null;
+    buildExpandedStack();
   }
 });
 
@@ -2812,6 +2890,184 @@ function renderStackStrip() {
   };
   renderSlot("stack-strip-am", "morning");
   renderSlot("stack-strip-pm", "evening");
+}
+
+function fmtDose(r) {
+  if (r.dose_amount && r.dose_unit) return `${r.dose_amount} ${r.dose_unit}`;
+  if (r.dose_amount) return String(r.dose_amount);
+  return r.dose_unit || "—";
+}
+
+function _slotPillLabel(slot) {
+  if (slot === "morning") return ["AM", "am"];
+  if (slot === "evening") return ["PM", "pm"];
+  if (slot === "anytime") return ["·", "any"];
+  return ["PRN", "prn"];
+}
+
+function _makeCheckinRow(r, slot) {
+  const ev = regimenEventToday(r.id, slot);
+  const isPRN = r.schedule === "as_needed";
+  const taken = isPRN ? !!ev : !ev;
+
+  const row = document.createElement("div");
+  row.className = "es-row";
+  row.dataset.rid = String(r.id);
+  row.dataset.slot = slot;
+  row.dataset.prn = isPRN ? "1" : "0";
+
+  const [pillText, pillCls] = _slotPillLabel(slot);
+  const pill = document.createElement("span");
+  pill.className = `es-pill ${pillCls}`;
+  pill.textContent = pillText;
+  row.appendChild(pill);
+
+  const check = document.createElement("span");
+  check.className = "es-check" + (taken ? " done" : (isPRN ? "" : " miss"));
+  check.textContent = taken ? "✓" : (isPRN ? "" : "✕");
+  row.appendChild(check);
+
+  const nameEl = document.createElement("span");
+  nameEl.className = "es-name";
+  nameEl.textContent = r.name;
+  row.appendChild(nameEl);
+
+  const doseEl = document.createElement("span");
+  doseEl.className = "es-dose";
+  doseEl.textContent = fmtDose(r);
+  row.appendChild(doseEl);
+
+  const brandEl = document.createElement("span");
+  brandEl.className = "es-brand";
+  brandEl.textContent = r.brand || "—";
+  row.appendChild(brandEl);
+
+  return row;
+}
+
+function _makeRosterRow(r) {
+  const row = document.createElement("div");
+  row.className = "es-table-row";
+  for (const text of [r.name, r.brand || "—", fmtDose(r), r.schedule, r.start_date, r.category]) {
+    const cell = document.createElement("div");
+    cell.textContent = text == null ? "—" : String(text);
+    row.appendChild(cell);
+  }
+  return row;
+}
+
+function _makeRosterHead() {
+  const head = document.createElement("div");
+  head.className = "es-table-row head";
+  for (const text of ["Name", "Brand", "Dose", "Slot", "Started", "Category"]) {
+    const cell = document.createElement("div");
+    cell.textContent = text;
+    head.appendChild(cell);
+  }
+  return head;
+}
+
+function _makeActivityRow(e) {
+  const r = regimens.find(x => x.id === e.regimen_id);
+  const row = document.createElement("div");
+  row.className = "es-miss-row";
+  const date = document.createElement("span");
+  date.className = "es-date";
+  date.textContent = e.event_date;
+  row.appendChild(date);
+
+  const label = e.event_type === "miss"
+    ? ` · missed ${r ? r.name : "?"} ${e.slot || ""}`
+    : ` · took ${r ? r.name : (e.substance || "?")} ${e.dose_amount || ""}${e.dose_unit || ""}`;
+  row.appendChild(document.createTextNode(label));
+
+  if (e.notes) {
+    const note = document.createElement("span");
+    note.style.color = "#94a3b8";
+    note.textContent = ` — ${e.notes}`;
+    row.appendChild(note);
+  }
+  return row;
+}
+
+function buildExpandedStack() {
+  const el = document.getElementById("expanded-card");
+  el.style.display = "block";
+  while (el.firstChild) el.removeChild(el.firstChild);
+
+  const today = new Date();
+  const todayStr = today.toLocaleDateString(undefined,
+    { weekday: "short", month: "short", day: "numeric" });
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "expanded-stack";
+
+  // Header
+  const header = document.createElement("div");
+  header.className = "es-header";
+  const h2 = document.createElement("h2");
+  h2.textContent = "Stack";
+  const meta = document.createElement("div");
+  meta.className = "es-meta";
+  meta.textContent = `${regimens.filter(isRegimenActive).length} active regimens`;
+  header.appendChild(h2);
+  header.appendChild(meta);
+  wrapper.appendChild(header);
+
+  // Section 1: Today
+  const section1 = document.createElement("section");
+  section1.className = "es-section";
+  const s1h = document.createElement("h3");
+  s1h.textContent = `Today · ${todayStr}`;
+  section1.appendChild(s1h);
+
+  for (const r of activeRegimensForSlot("morning")) {
+    section1.appendChild(_makeCheckinRow(r, "morning"));
+  }
+  for (const r of activeRegimensForSlot("evening")) {
+    section1.appendChild(_makeCheckinRow(r, "evening"));
+  }
+  for (const r of regimens.filter(x => isRegimenActive(x) && x.schedule === "anytime")) {
+    section1.appendChild(_makeCheckinRow(r, "anytime"));
+  }
+  for (const r of regimens.filter(x => isRegimenActive(x) && x.schedule === "as_needed")) {
+    section1.appendChild(_makeCheckinRow(r, "as_needed"));
+  }
+  wrapper.appendChild(section1);
+
+  // Section 2: Active roster
+  const section2 = document.createElement("section");
+  section2.className = "es-section";
+  const s2h = document.createElement("h3");
+  s2h.textContent = "Active stack";
+  section2.appendChild(s2h);
+  section2.appendChild(_makeRosterHead());
+  for (const r of regimens.filter(isRegimenActive)) {
+    section2.appendChild(_makeRosterRow(r));
+  }
+  wrapper.appendChild(section2);
+
+  // Section 3: Recent activity
+  const section3 = document.createElement("section");
+  section3.className = "es-section";
+  const s3h = document.createElement("h3");
+  s3h.textContent = "Recent activity (14 days)";
+  section3.appendChild(s3h);
+  const cutoff = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10);
+  const recent = regimenEvents.filter(e => e.event_date >= cutoff);
+  if (!recent.length) {
+    const empty = document.createElement("div");
+    empty.className = "es-miss-row";
+    const em = document.createElement("em");
+    em.textContent = "No events logged in the last 14 days.";
+    empty.appendChild(em);
+    section3.appendChild(empty);
+  } else {
+    for (const e of recent) section3.appendChild(_makeActivityRow(e));
+  }
+  wrapper.appendChild(section3);
+
+  el.appendChild(wrapper);
 }
 
 async function loadGoals() {
