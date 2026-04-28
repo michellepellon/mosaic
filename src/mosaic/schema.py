@@ -459,6 +459,27 @@ _VIEW_SQL: list[str] = [
     """CREATE OR REPLACE VIEW dashboard_respiratory_rate AS
     SELECT start_date::TIMESTAMP::DATE AS date, AVG(value) AS v
     FROM respiratory_rate GROUP BY 1 ORDER BY 1""",
+
+    """CREATE OR REPLACE VIEW dashboard_active_stack AS
+    SELECT id, name, brand, category, dose_amount, dose_unit, schedule,
+           start_date, notes
+    FROM regimens
+    WHERE end_date IS NULL OR end_date >= CURRENT_DATE
+    ORDER BY schedule, name""",
+
+    """CREATE OR REPLACE VIEW dashboard_stack_history AS
+    SELECT id, name, brand, category, dose_amount, dose_unit, schedule,
+           start_date, end_date, notes,
+           (end_date IS NULL OR end_date >= CURRENT_DATE) AS is_active
+    FROM regimens
+    ORDER BY start_date""",
+
+    """CREATE OR REPLACE VIEW dashboard_stack_adherence AS
+    SELECT event_date, slot, COUNT(*) AS miss_count
+    FROM regimen_events
+    WHERE event_type = 'miss'
+    GROUP BY event_date, slot
+    ORDER BY event_date DESC, slot""",
 ]
 
 
