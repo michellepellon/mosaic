@@ -8,6 +8,7 @@ import sys
 from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
+from typing import Any, cast
 
 import duckdb
 
@@ -26,6 +27,8 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             self._handle_get_training_plan()
         elif self.path == "/api/goals":
             self._handle_get_goals()
+        elif self.path == "/api/regimens":
+            self._handle_get_regimens()
         else:
             super().do_GET()
 
@@ -38,6 +41,8 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             self._handle_post_training_plan()
         elif self.path == "/api/goals":
             self._handle_post_goals()
+        elif self.path == "/api/regimens":
+            self._handle_post_regimens()
         else:
             self.send_error(404)
 
@@ -215,6 +220,71 @@ class MosaicHandler(SimpleHTTPRequestHandler):
             finally:
                 conn.close()
             self._json_response({"status": "saved", "goals": len(data)})
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_get_regimens(self) -> None:
+        try:
+            conn = duckdb.connect(DB_PATH, read_only=True)
+            try:
+                rows = conn.sql(
+                    "SELECT id, name, brand, category, dose_amount, "
+                    "dose_unit, schedule, start_date, end_date, notes "
+                    "FROM regimens ORDER BY start_date"
+                ).fetchall()
+                regimens = [
+                    {
+                        "id": r[0], "name": r[1], "brand": r[2],
+                        "category": r[3], "dose_amount": r[4],
+                        "dose_unit": r[5], "schedule": r[6],
+                        "start_date": str(r[7]),
+                        "end_date": str(r[8]) if r[8] else None,
+                        "notes": r[9],
+                    }
+                    for r in rows
+                ]
+            except duckdb.CatalogException:
+                regimens = []
+            finally:
+                conn.close()
+            self._json_response(regimens)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_post_regimens(self) -> None:
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            try:
+                data: Any = json.loads(self.rfile.read(length))
+            except json.JSONDecodeError:
+                self._json_response({"error": "invalid json"}, 400)
+                return
+            if not isinstance(data, list):
+                self._json_response(
+                    {"error": "expected list of regimens"}, 400
+                )
+                return
+
+            conn = duckdb.connect(DB_PATH)
+            try:
+                from mosaic.schema import create_tables
+                create_tables(conn)
+                conn.sql("DELETE FROM regimens")
+                regimen_list: list[dict[str, Any]] = cast(list[dict[str, Any]], data)
+                for i, regimen in enumerate(regimen_list):
+                    conn.execute(
+                        "INSERT INTO regimens VALUES "
+                        "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        [
+                            i, regimen["name"], regimen.get("brand"), regimen["category"],
+                            regimen.get("dose_amount"), regimen.get("dose_unit"),
+                            regimen["schedule"], regimen["start_date"],
+                            regimen.get("end_date"), regimen.get("notes", ""),
+                        ],
+                    )
+            finally:
+                conn.close()
+            self._json_response({"status": "saved", "regimens": len(regimen_list)})
         except Exception as e:
             self._json_response({"error": str(e)}, 500)
 
