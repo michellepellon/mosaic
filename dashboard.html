@@ -3083,9 +3083,10 @@ function buildExpandedStack() {
 
       try {
         if (existing) {
-          await fetch(`/api/regimen-events?id=${existing.id}`, {
+          const delResp = await fetch(`/api/regimen-events?id=${existing.id}`, {
             method: "DELETE",
           });
+          if (!delResp.ok) throw new Error("DELETE failed");
           regimenEvents = regimenEvents.filter(e => e.id !== existing.id);
         } else {
           const eventType = isPRN ? "taken" : "miss";
