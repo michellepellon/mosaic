@@ -810,12 +810,26 @@ table.workout-table td {
 }
 #plan-toggle:hover { color: #334155; }
 
+#stack-toggle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  letter-spacing: 0.04em;
+}
+#stack-toggle:hover { color: #334155; }
+
 #plan-panel {
   display: none; background: #fff;
   border-bottom: 1px solid #e2e4e9;
   padding: 1.5rem 2rem;
 }
 #plan-panel.open { display: block; }
+
+#stack-panel {
+  display: none; background: #fff;
+  border-bottom: 1px solid #e2e4e9;
+  padding: 1.5rem 2rem;
+}
+#stack-panel.open { display: block; }
 
 .plan-section-title {
   font-family: 'Barlow Condensed', sans-serif;
@@ -844,6 +858,27 @@ table.workout-table td {
   background: none; border: none; text-align: center;
 }
 .block-row .remove-btn:hover { color: #ef4444; }
+
+.regimen-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 0.9fr 0.5fr 0.5fr 0.9fr 0.9fr 0.9fr 0.4fr;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+  align-items: center;
+}
+.regimen-row.regimen-row-head > span {
+  font-size: 0.55rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.regimen-row input,
+.regimen-row select {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid #d4d8de;
+  border-radius: 3px;
+}
 
 .goal-row {
   display: grid;
@@ -982,6 +1017,7 @@ table.workout-table td {
     <div class="header-meta">
       <span id="range-toggle"></span>
       <span id="last-updated"></span>
+      <span id="stack-toggle">Stack</span>
       <span id="plan-toggle">Plan</span>
       <span id="import-toggle">Import</span>
       <span id="profile-toggle">Profile</span>
@@ -1139,6 +1175,29 @@ table.workout-table td {
     <div class="profile-actions">
       <button class="btn-save" id="profile-save">Save</button>
       <span class="save-status" id="profile-status"></span>
+    </div>
+  </div>
+
+  <!-- Stack Panel -->
+  <div id="stack-panel">
+    <div class="plan-section-title">Active Regimens</div>
+    <div class="regimen-row regimen-row-head">
+      <span>Name</span>
+      <span>Brand</span>
+      <span>Category</span>
+      <span>Amt</span>
+      <span>Unit</span>
+      <span>Schedule</span>
+      <span>Start</span>
+      <span>End</span>
+      <span></span>
+    </div>
+    <div id="regimens-list"></div>
+    <button class="add-row-btn" id="add-regimen">+ add regimen</button>
+
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center">
+      <button class="btn-save" id="stack-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:#334155;color:#f7f8fa;border:none;cursor:pointer">Save</button>
+      <span id="stack-status" style="font-size:0.7rem;color:#9ca3af"></span>
     </div>
   </div>
 
@@ -2830,6 +2889,143 @@ function renderGoalRows() {
   });
 }
 
+function makeOption(value, label, selected) {
+  const o = document.createElement("option");
+  o.value = value;
+  o.textContent = label;
+  if (selected) o.selected = true;
+  return o;
+}
+
+function makeInput(type, value, dataset, placeholder) {
+  const inp = document.createElement("input");
+  inp.type = type;
+  if (value !== null && value !== undefined) inp.value = value;
+  Object.assign(inp.dataset, dataset);
+  if (placeholder) inp.placeholder = placeholder;
+  return inp;
+}
+
+function renderRegimenRows() {
+  const list = document.getElementById("regimens-list");
+  if (!list) return;
+  while (list.firstChild) list.removeChild(list.firstChild);
+
+  const CATEGORIES = [
+    ["supplement", "Supplement"],
+    ["medication", "Medication"],
+    ["peptide", "Peptide"],
+    ["hormone", "Hormone"],
+    ["cannabis", "Cannabis"],
+    ["other", "Other"],
+  ];
+  const SCHEDULES = [
+    ["morning", "Morning"],
+    ["evening", "Evening"],
+    ["both", "AM+PM"],
+    ["anytime", "Anytime"],
+    ["as_needed", "As needed"],
+  ];
+
+  regimens.forEach((r, i) => {
+    const row = document.createElement("div");
+    row.className = "regimen-row";
+
+    const idx = String(i);
+    row.appendChild(makeInput("text", r.name, { idx, field: "name" }, "e.g., Creatine"));
+    row.appendChild(makeInput("text", r.brand, { idx, field: "brand" }, "brand"));
+
+    const catSel = document.createElement("select");
+    Object.assign(catSel.dataset, { idx, field: "category" });
+    CATEGORIES.forEach(([v, l]) => catSel.appendChild(makeOption(v, l, r.category === v)));
+    row.appendChild(catSel);
+
+    row.appendChild(makeInput("number", r.dose_amount ?? "", { idx, field: "dose_amount" }, "amt"));
+    row.appendChild(makeInput("text", r.dose_unit, { idx, field: "dose_unit" }, "mg"));
+
+    const schedSel = document.createElement("select");
+    Object.assign(schedSel.dataset, { idx, field: "schedule" });
+    SCHEDULES.forEach(([v, l]) => schedSel.appendChild(makeOption(v, l, r.schedule === v)));
+    row.appendChild(schedSel);
+
+    row.appendChild(makeInput("date", r.start_date, { idx, field: "start_date" }));
+    row.appendChild(makeInput("date", r.end_date, { idx, field: "end_date" }));
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "×";
+    removeBtn.dataset.idx = idx;
+    row.appendChild(removeBtn);
+
+    row.addEventListener("change", e => {
+      const t = e.target;
+      const ri = parseInt(t.dataset.idx);
+      const field = t.dataset.field;
+      if (field === "dose_amount") {
+        const n = parseFloat(t.value);
+        regimens[ri][field] = isNaN(n) ? null : n;
+      } else {
+        regimens[ri][field] = t.value || null;
+      }
+    });
+    removeBtn.addEventListener("click", e => {
+      regimens.splice(parseInt(e.target.dataset.idx), 1);
+      renderRegimenRows();
+    });
+
+    list.appendChild(row);
+  });
+}
+
+function initStack() {
+  const toggle = document.getElementById("stack-toggle");
+  const panel = document.getElementById("stack-panel");
+  const saveBtn = document.getElementById("stack-save");
+  const status = document.getElementById("stack-status");
+  const addBtn = document.getElementById("add-regimen");
+
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener("click", async () => {
+    document.getElementById("import-panel")?.classList.remove("open");
+    document.getElementById("plan-panel")?.classList.remove("open");
+    document.getElementById("profile-panel")?.classList.remove("open");
+    panel.classList.toggle("open");
+    if (panel.classList.contains("open")) {
+      await loadRegimens();
+      renderRegimenRows();
+    }
+  });
+
+  addBtn?.addEventListener("click", () => {
+    regimens.push({
+      name: "", brand: "", category: "supplement",
+      dose_amount: null, dose_unit: "",
+      schedule: "morning", start_date: todayISO(),
+      end_date: null, notes: "",
+    });
+    renderRegimenRows();
+  });
+
+  saveBtn?.addEventListener("click", async () => {
+    status.textContent = "saving...";
+    try {
+      await fetch("/api/regimens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(regimens),
+      });
+      status.textContent = "saved";
+      await loadRegimens();
+      await loadRegimenEvents();
+      renderStackStrip();
+    } catch (err) {
+      status.textContent = "error: " + err.message;
+    }
+    setTimeout(() => { status.textContent = ""; }, 2000);
+  });
+}
+
 function getCurrentBlock() {
   const today = new Date().toISOString().slice(0, 10);
   return trainingBlocks.find(b => b.start_date <= today && b.end_date >= today) || null;
@@ -2888,6 +3084,7 @@ function initPlan() {
     // Close other panels
     document.getElementById("import-panel")?.classList.remove("open");
     document.getElementById("profile-panel")?.classList.remove("open");
+    document.getElementById("stack-panel")?.classList.remove("open");
     panel.classList.toggle("open");
     if (panel.classList.contains("open")) {
       await loadTrainingPlan();
@@ -2943,6 +3140,7 @@ function initProfile() {
     // Close other panels
     document.getElementById("import-panel")?.classList.remove("open");
     document.getElementById("plan-panel")?.classList.remove("open");
+    document.getElementById("stack-panel")?.classList.remove("open");
     panel.classList.toggle("open");
     if (panel.classList.contains("open")) loadProfile();
   });
@@ -2963,6 +3161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfile();
     loadProfile();
     initPlan();
+    initStack();
     loadTrainingPlan().then(() => loadGoals().then(renderGoalsBar));
   }, 100);
 
@@ -2981,6 +3180,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Close other panels if open
       document.getElementById("profile-panel")?.classList.remove("open");
       document.getElementById("plan-panel")?.classList.remove("open");
+      document.getElementById("stack-panel")?.classList.remove("open");
     });
   }
 
