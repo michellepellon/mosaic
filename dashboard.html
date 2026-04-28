@@ -1549,6 +1549,63 @@ function addBarTooltip(g, data, x, y, fmtFn, w, h) {
   });
 }
 
+let showStackOverlay = true;
+
+function addRegimenMarkers(g, x, h) {
+  if (!regimens || !regimens.length) return;
+  const xDomain = x.domain();
+  const xMin = xDomain[0];
+  const xMax = xDomain[1];
+
+  const markers = [];
+  for (const r of regimens) {
+    const start = new Date(r.start_date);
+    if (start >= xMin && start <= xMax) {
+      markers.push({ date: start, label: `+ ${r.name}`, type: "start", regimen: r });
+    }
+    if (r.end_date) {
+      const end = new Date(r.end_date);
+      if (end >= xMin && end <= xMax) {
+        markers.push({ date: end, label: `– ${r.name}`, type: "end", regimen: r });
+      }
+    }
+  }
+  if (!markers.length) return;
+
+  const layer = g.append("g").attr("class", "regimen-markers");
+  layer.selectAll("line")
+    .data(markers)
+    .enter()
+    .append("line")
+    .attr("x1", d => x(d.date))
+    .attr("x2", d => x(d.date))
+    .attr("y1", 0)
+    .attr("y2", h)
+    .attr("stroke", d => d.type === "start" ? "#10b981" : "#94a3b8")
+    .attr("stroke-width", 1)
+    .attr("stroke-dasharray", "2,3")
+    .attr("opacity", 0.7);
+
+  layer.selectAll("rect.hit")
+    .data(markers)
+    .enter()
+    .append("rect")
+    .attr("class", "hit")
+    .attr("x", d => x(d.date) - 4)
+    .attr("y", 0)
+    .attr("width", 8)
+    .attr("height", h)
+    .attr("fill", "transparent")
+    .style("cursor", "help")
+    .append("title")
+    .text(d => {
+      const r = d.regimen;
+      const dose = r.dose_amount ? `${r.dose_amount} ${r.dose_unit || ""}` : "";
+      const range = `${r.start_date}${r.end_date ? " → " + r.end_date : ""}`;
+      return `${d.label} ${dose}\n${range}`;
+    });
+}
+
 // ── DuckDB-WASM ──
 import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
 
@@ -2006,6 +2063,26 @@ function expandDomain(domain) {
   el.style.display = "block";
   el.innerHTML = "";
 
+  // Stack-overlay toggle (rebuilt each render; preserves showStackOverlay state across re-renders)
+  const controls = document.createElement("div");
+  controls.style.cssText = "display:flex;justify-content:flex-end;padding:0.4rem 0;font-size:0.7rem;color:#64748b";
+  const label = document.createElement("label");
+  label.style.cursor = "pointer";
+  label.style.userSelect = "none";
+  const cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.id = "stack-overlay-toggle";
+  cb.checked = showStackOverlay;
+  cb.style.verticalAlign = "middle";
+  cb.addEventListener("change", e => {
+    showStackOverlay = e.target.checked;
+    expandDomain(domain);  // re-render
+  });
+  label.appendChild(cb);
+  label.appendChild(document.createTextNode(" Show stack changes"));
+  controls.appendChild(label);
+  el.appendChild(controls);
+
   // Highlight active card
   document.querySelectorAll(".domain-card").forEach(c => c.classList.remove("active"));
   document.getElementById("card-" + domain)?.classList.add("active");
@@ -2163,6 +2240,7 @@ function buildExpandedRecovery(el, data) {
       const dt = d3.timeFormat("%b %d")(d.d);
       return `${dt}  ${fmt1(d.total)} hrs (deep ${fmt1(d.deep)}, REM ${fmt1(d.rem)})`;
     }, iw, ih);
+    if (showStackOverlay) addRegimenMarkers(g, x, ih);
   }
 
   // Stats sidebar
@@ -2308,6 +2386,7 @@ function buildExpandedTraining(el, data) {
       const total = Math.round((d.z2 || 0) + (d.z4 || 0) + (d.other || 0));
       return `${dt}  ${total} min (Z2 ${Math.round(d.z2 || 0)}, Z4+ ${Math.round(d.z4 || 0)})`;
     }, iw, ih);
+    if (showStackOverlay) addRegimenMarkers(g, x, ih);
   }
 
   // Stats
@@ -2407,6 +2486,7 @@ function buildExpandedFitness(el, data) {
 
     // Tooltip on VO2 Max scatter
     addLineTooltip(g, vo2Data, x, y, d3.format(".1f"), iw, ih);
+    if (showStackOverlay) addRegimenMarkers(g, x, ih);
   }
 
   // Body fat trend chart
@@ -2446,6 +2526,7 @@ function buildExpandedFitness(el, data) {
 
     // Tooltip on body fat line
     addLineTooltip(g2, bfData, x2, y2, d => fmt1(d) + "%", iw2, ih2);
+    if (showStackOverlay) addRegimenMarkers(g2, x2, ih2);
   }
 
   // Stats
