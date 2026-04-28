@@ -66,6 +66,8 @@ TABLE_NAMES: frozenset[str] = frozenset({
     "athlete_profile",
     "training_blocks",
     "goals",
+    "regimens",
+    "regimen_events",
 })
 
 
@@ -184,6 +186,30 @@ _TABLE_DDL: dict[str, str] = {
         metric      VARCHAR,
         target_value DOUBLE,
         notes       VARCHAR
+    )""",
+    "regimens": """CREATE TABLE IF NOT EXISTS regimens (
+        id          INTEGER NOT NULL PRIMARY KEY,
+        name        VARCHAR NOT NULL,
+        brand       VARCHAR,
+        category    VARCHAR NOT NULL,
+        dose_amount DOUBLE,
+        dose_unit   VARCHAR,
+        schedule    VARCHAR NOT NULL,
+        start_date  DATE NOT NULL,
+        end_date    DATE,
+        notes       VARCHAR
+    )""",
+    "regimen_events": """CREATE TABLE IF NOT EXISTS regimen_events (
+        id           INTEGER NOT NULL PRIMARY KEY,
+        regimen_id   INTEGER REFERENCES regimens(id),
+        event_date   DATE NOT NULL,
+        event_type   VARCHAR NOT NULL,
+        slot         VARCHAR,
+        substance    VARCHAR,
+        brand        VARCHAR,
+        dose_amount  DOUBLE,
+        dose_unit    VARCHAR,
+        notes        VARCHAR
     )""",
 }
 
