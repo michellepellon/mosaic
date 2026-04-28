@@ -3067,6 +3067,70 @@ function buildExpandedStack() {
   }
   wrapper.appendChild(section3);
 
+  wrapper.querySelectorAll(".es-row").forEach(rowEl => {
+    const checkEl = rowEl.querySelector(".es-check");
+    if (!checkEl) return;
+    checkEl.addEventListener("click", async () => {
+      const rid = parseInt(rowEl.dataset.rid);
+      const slot = rowEl.dataset.slot;
+      const isPRN = rowEl.dataset.prn === "1";
+      const today = todayISO();
+      const existing = regimenEvents.find(e =>
+        e.event_date === today && e.regimen_id === rid && e.slot === slot
+      );
+
+      const wasDone = checkEl.classList.contains("done");
+
+      try {
+        if (existing) {
+          await fetch(`/api/regimen-events?id=${existing.id}`, {
+            method: "DELETE",
+          });
+          regimenEvents = regimenEvents.filter(e => e.id !== existing.id);
+        } else {
+          const eventType = isPRN ? "taken" : "miss";
+          const resp = await fetch("/api/regimen-events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              regimen_id: rid,
+              event_date: today,
+              event_type: eventType,
+              slot,
+            }),
+          });
+          if (!resp.ok) throw new Error("POST failed");
+          const respBody = await resp.json();
+          regimenEvents.push({
+            id: respBody.id,
+            regimen_id: rid,
+            event_date: today,
+            event_type: eventType,
+            slot,
+            substance: null, brand: null,
+            dose_amount: null, dose_unit: null,
+            notes: "",
+          });
+        }
+        buildExpandedStack();
+        renderStackStrip();
+      } catch (err) {
+        console.error("Stack toggle failed:", err);
+        // Revert the visual state
+        checkEl.classList.remove("done", "miss");
+        if (wasDone) {
+          checkEl.classList.add("done");
+          checkEl.textContent = "✓";
+        } else if (!isPRN) {
+          checkEl.classList.add("miss");
+          checkEl.textContent = "✕";
+        } else {
+          checkEl.textContent = "";
+        }
+      }
+    });
+  });
+
   el.appendChild(wrapper);
 }
 
