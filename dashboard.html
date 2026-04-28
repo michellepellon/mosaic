@@ -3019,6 +3019,7 @@ function initStack() {
       await loadRegimens();
       await loadRegimenEvents();
       renderStackStrip();
+      renderRegimenRows();
     } catch (err) {
       status.textContent = "error: " + err.message;
     }
