@@ -78,6 +78,9 @@ USER_DATA_TABLES: frozenset[str] = frozenset({
     "regimen_events",
 })
 
+# HEALTH_DATA_TABLES is the complement. When adding a new table to TABLE_NAMES:
+# - User-managed data (profile, goals, training, regimens) → add to USER_DATA_TABLES
+# - Health imports (metrics, labs) → no action; auto-included in HEALTH_DATA_TABLES
 HEALTH_DATA_TABLES: frozenset[str] = TABLE_NAMES - USER_DATA_TABLES
 
 
