@@ -1553,20 +1553,33 @@ let showStackOverlay = true;
 
 function addRegimenMarkers(g, x, h) {
   if (!regimens || !regimens.length) return;
-  const xDomain = x.domain();
-  const xMin = xDomain[0];
-  const xMax = xDomain[1];
+
+  // x may be a band scale (discrete domain values) or a continuous scale
+  // ([min, max] domain). For band scales we derive a parallel time scale so
+  // markers can land on dates that aren't in the discrete domain.
+  const domain = x.domain();
+  let xMin, xMax, xPos;
+  if (domain.length > 2) {
+    xMin = d3.min(domain);
+    xMax = d3.max(domain);
+    const r = x.range();
+    xPos = d3.scaleTime().domain([xMin, xMax]).range([r[0], r[r.length - 1]]);
+  } else {
+    xMin = domain[0];
+    xMax = domain[1];
+    xPos = x;
+  }
 
   const markers = [];
-  for (const r of regimens) {
-    const start = new Date(r.start_date);
+  for (const reg of regimens) {
+    const start = new Date(reg.start_date);
     if (start >= xMin && start <= xMax) {
-      markers.push({ date: start, label: `+ ${r.name}`, type: "start", regimen: r });
+      markers.push({ date: start, label: `+ ${reg.name}`, type: "start", regimen: reg });
     }
-    if (r.end_date) {
-      const end = new Date(r.end_date);
+    if (reg.end_date) {
+      const end = new Date(reg.end_date);
       if (end >= xMin && end <= xMax) {
-        markers.push({ date: end, label: `– ${r.name}`, type: "end", regimen: r });
+        markers.push({ date: end, label: `– ${reg.name}`, type: "end", regimen: reg });
       }
     }
   }
@@ -1577,8 +1590,8 @@ function addRegimenMarkers(g, x, h) {
     .data(markers)
     .enter()
     .append("line")
-    .attr("x1", d => x(d.date))
-    .attr("x2", d => x(d.date))
+    .attr("x1", d => xPos(d.date))
+    .attr("x2", d => xPos(d.date))
     .attr("y1", 0)
     .attr("y2", h)
     .attr("stroke", d => d.type === "start" ? "#10b981" : "#94a3b8")
@@ -1591,7 +1604,7 @@ function addRegimenMarkers(g, x, h) {
     .enter()
     .append("rect")
     .attr("class", "hit")
-    .attr("x", d => x(d.date) - 4)
+    .attr("x", d => xPos(d.date) - 4)
     .attr("y", 0)
     .attr("width", 8)
     .attr("height", h)
@@ -1599,9 +1612,9 @@ function addRegimenMarkers(g, x, h) {
     .style("cursor", "help")
     .append("title")
     .text(d => {
-      const r = d.regimen;
-      const dose = r.dose_amount ? `${r.dose_amount} ${r.dose_unit || ""}` : "";
-      const range = `${r.start_date}${r.end_date ? " → " + r.end_date : ""}`;
+      const reg = d.regimen;
+      const dose = reg.dose_amount ? `${reg.dose_amount} ${reg.dose_unit || ""}` : "";
+      const range = `${reg.start_date}${reg.end_date ? " → " + reg.end_date : ""}`;
       return `${d.label} ${dose}\n${range}`;
     });
 }
