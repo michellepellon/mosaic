@@ -83,7 +83,7 @@
 }
 #auth-gate input:focus { outline: none; border-color: var(--ink-2); }
 #auth-gate .auth-error {
-  font-size: 0.75rem; color: #ef4444; height: 1rem;
+  font-size: 0.75rem; color: var(--alert); height: 1rem;
 }
 #auth-gate .auth-hint {
   font-size: 0.65rem; color: var(--ink-3); margin-top: 0.5rem;
@@ -271,8 +271,8 @@ body {
   border-radius: 2px;
   display: inline-block;
 }
-.stack-slot-checks .chk.done { background: #10b981; border-color: #10b981; }
-.stack-slot-checks .chk.miss { background: transparent; border-color: #ef4444; }
+.stack-slot-checks .chk.done { background: var(--good); border-color: var(--good); }
+.stack-slot-checks .chk.miss { background: transparent; border-color: var(--alert); }
 @media (max-width: 560px) {
   #stack-strip { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
 }
@@ -304,8 +304,8 @@ body {
 }
 .es-pill.am { background: #dbeafe; color: #1e3a8a; }
 .es-pill.pm { background: #ede9fe; color: #5b21b6; }
-.es-pill.any { background: #d1fae5; color: #065f46; }
-.es-pill.prn { background: #fee2e2; color: #991b1b; }
+.es-pill.any { background: var(--good-soft); color: var(--good-ink); }
+.es-pill.prn { background: var(--alert-soft); color: var(--alert-ink); }
 .es-check {
   width: 18px; height: 18px;
   border: 1.5px solid var(--ink-3);
@@ -315,8 +315,8 @@ body {
   cursor: pointer;
   font-size: 12px;
 }
-.es-check.done { background: #10b981; border-color: #10b981; color: var(--surface); }
-.es-check.miss { background: transparent; border-color: #ef4444; color: #ef4444; }
+.es-check.done { background: var(--good); border-color: var(--good); color: var(--surface); }
+.es-check.miss { background: transparent; border-color: var(--alert); color: var(--alert); }
 .es-name { font-weight: 600; min-width: 200px; }
 .es-dose { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
 .es-brand { color: var(--ink-3); font-size: 0.7rem; }
@@ -415,7 +415,7 @@ body {
 }
 
 .domain-sub .sub-danger {
-  color: #ef4444;
+  color: var(--alert);
 }
 
 .domain-sparkline {
@@ -460,7 +460,7 @@ body {
 
 .dot-green { background: var(--ink-2); }
 .dot-amber { background: var(--mod); }
-.dot-red { background: #ef4444; }
+.dot-red { background: var(--alert); }
 
 /* ── Expanded Card ── */
 #expanded-card {
@@ -968,7 +968,7 @@ table.workout-table td {
   font-size: 0.8rem; color: var(--ink-3); cursor: pointer;
   background: none; border: none; text-align: center;
 }
-.block-row .remove-btn:hover { color: #ef4444; }
+.block-row .remove-btn:hover { color: var(--alert); }
 
 .regimen-row {
   display: grid;
@@ -1009,7 +1009,7 @@ table.workout-table td {
   font-size: 0.8rem; color: var(--ink-3); cursor: pointer;
   background: none; border: none; text-align: center;
 }
-.goal-row .remove-btn:hover { color: #ef4444; }
+.goal-row .remove-btn:hover { color: var(--alert); }
 
 .add-row-btn {
   font-family: 'JetBrains Mono', monospace;
@@ -1045,7 +1045,7 @@ table.workout-table td {
   font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
   letter-spacing: 0.04em;
 }
-#logout-btn:hover { color: #ef4444; }
+#logout-btn:hover { color: var(--alert); }
 
 #profile-panel {
   display: none; background: var(--surface);
@@ -1520,7 +1520,7 @@ function bulletSVG(value, target, min, max, lowerBetter) {
   svg += `<line x1="${tx}" x2="${tx}" y1="${h/2-6}" y2="${h/2+6}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2,1"/>`;
   const vx = x(value);
   const isGood = lowerBetter ? value <= target : value >= target;
-  const color = isGood ? "var(--ink-2)" : "#ef4444";
+  const color = isGood ? "var(--ink-2)" : "var(--alert)";
   svg += `<line x1="${vx}" x2="${vx}" y1="${h/2-5}" y2="${h/2+5}" stroke="${color}" stroke-width="2.5"/>`;
   svg += `</svg>`;
   return svg;
@@ -1648,7 +1648,7 @@ function addRegimenMarkers(g, x, h) {
     .attr("x2", d => xPos(d.date))
     .attr("y1", 0)
     .attr("y2", h)
-    .attr("stroke", d => d.type === "start" ? "#10b981" : "var(--ink-3)")
+    .attr("stroke", d => d.type === "start" ? "var(--good)" : "var(--ink-3)")
     .attr("stroke-width", 1)
     .attr("stroke-dasharray", "2,3")
     .attr("opacity", 0.7);
@@ -1871,7 +1871,7 @@ function computeReadiness(data) {
     color = "var(--mod-ink)";
   } else {
     status = "RECOVER"; prescription = "Walk only. Prioritize sleep tonight. Watch for illness.";
-    color = "#ef4444";
+    color = "var(--alert)";
   }
 
   const alerts = [];
@@ -1917,7 +1917,7 @@ function buildDailyBrief(data) {
   let alertsHtml = "";
   if (r.alerts.length) {
     alertsHtml = r.alerts.map(a => {
-      const alertColor = a.level === "critical" ? "#ef4444"
+      const alertColor = a.level === "critical" ? "var(--alert)"
         : a.level === "warning" ? "var(--mod-ink)" : "var(--ink-3)";
       const icon = a.level === "critical" ? "\u25b2"
         : a.level === "warning" ? "\u25cf" : "\u25cb";
@@ -1994,7 +1994,7 @@ function buildRecoveryCard(data) {
       <span><span class="sub-label">RHR </span><span class="sub-value">${rhrLast != null ? Math.round(rhrLast) : "\u2014"}</span></span>
       <span><span class="sub-label">SpO2 </span><span class="sub-value${spo2Min != null && spo2Min < 90 ? " sub-danger" : ""}">${spo2Min != null ? Math.round(spo2Min) + "%" : "\u2014"}</span></span>
     </div>
-    <div class="domain-sparkline">${sparklineSVG(sleepSparkData, 200, 24, sleepDeclining ? "#ef4444" : "var(--ink-2)")}</div>`;
+    <div class="domain-sparkline">${sparklineSVG(sleepSparkData, 200, 24, sleepDeclining ? "var(--alert)" : "var(--ink-2)")}</div>`;
 }
 
 function buildTrainingCard(data) {
@@ -2062,7 +2062,7 @@ function buildFitnessCard(data) {
       <span><span class="sub-label">BF </span><span class="sub-value">${bfLast != null ? fmt1(bfLast) + "%" : "\u2014"}</span></span>
       <span><span class="sub-label">Speed </span><span class="sub-value">${wsLast != null ? fmt1(wsLast) + " mph" : "\u2014"}</span></span>
     </div>
-    <div class="domain-sparkline">${sparklineSVG(vo2Spark, 200, 24, vo2Declining ? "#ef4444" : "var(--ink-2)")}</div>`;
+    <div class="domain-sparkline">${sparklineSVG(vo2Spark, 200, 24, vo2Declining ? "var(--alert)" : "var(--ink-2)")}</div>`;
 }
 
 function buildBloodworkCard(data) {
@@ -2103,7 +2103,7 @@ function buildBloodworkCard(data) {
         if (found) return true;
       }
       return false;
-    }) ? "#ef4444" : "var(--mod-ink)";
+    }) ? "var(--alert)" : "var(--mod-ink)";
     flagHtml = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:${flagColor};margin-top:0.3rem">${flaggedTests.slice(0, 2).join(", ")}${flaggedTests.length > 2 ? ` +${flaggedTests.length - 2}` : ""}</div>`;
   }
 
@@ -2349,7 +2349,7 @@ function buildExpandedRecovery(el, data) {
   if (recoveryAlerts.length) {
     statsHtml += `<div class="expanded-flags">`;
     for (const a of recoveryAlerts) {
-      const c = a.level === "critical" ? "#ef4444" : a.level === "warning" ? "var(--mod-ink)" : "var(--ink-3)";
+      const c = a.level === "critical" ? "var(--alert)" : a.level === "warning" ? "var(--mod-ink)" : "var(--ink-3)";
       statsHtml += `<div class="expanded-flag" style="color:${c}">\u25cf ${a.message}</div>`;
     }
     statsHtml += `</div>`;
@@ -2731,7 +2731,7 @@ function renderAll(days) {
     renderAll(currentRange);
   } catch (err) {
     document.getElementById("daily-brief").innerHTML =
-      `<p style="color:#ef4444">Error loading data: ${err.message}</p>`;
+      `<p style="color:var(--alert)">Error loading data: ${err.message}</p>`;
   }
 })();
 
@@ -2753,7 +2753,7 @@ function initQueryConsole() {
     if (!sql) return;
     if (!dbConn) {
       statusEl.textContent = "DuckDB not available (using JSON fallback)";
-      statusEl.style.color = "#ef4444";
+      statusEl.style.color = "var(--alert)";
       return;
     }
 
@@ -2811,7 +2811,7 @@ function initQueryConsole() {
       }
     } catch (err) {
       statusEl.textContent = err.message;
-      statusEl.style.color = "#ef4444";
+      statusEl.style.color = "var(--alert)";
     }
   }
 
@@ -2836,7 +2836,7 @@ function initQueryConsole() {
 
     const x = d3.scaleTime().domain(d3.extent(parsed, d => d._d)).range([0, iw]);
 
-    const colors = ["var(--ink-2)", "var(--mod-ink)", "#ef4444", "var(--ink-3)", "var(--ink-1)", "var(--border-subtle)"];
+    const colors = ["var(--ink-2)", "var(--mod-ink)", "var(--alert)", "var(--ink-3)", "var(--ink-1)", "var(--border-subtle)"];
     for (let i = 0; i < Math.min(numCols.length, 6); i++) {
       const col = numCols[i];
       const vals = parsed.filter(d => d[col] != null);
@@ -3693,7 +3693,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function uploadFile(file) {
     if (!file.name.endsWith(".zip") && !file.name.endsWith(".xml")) {
       importProgress.textContent = "Error: file must be .zip or .xml";
-      importProgress.style.color = "#ef4444";
+      importProgress.style.color = "var(--alert)";
       importStatus.style.display = "block";
       return;
     }
@@ -3718,7 +3718,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => location.reload(), 1500);
     } catch (err) {
       importProgress.textContent = `Error: ${err.message}`;
-      importProgress.style.color = "#ef4444";
+      importProgress.style.color = "var(--alert)";
       dropzone.style.display = "";
     }
   }
