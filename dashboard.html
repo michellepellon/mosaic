@@ -411,7 +411,7 @@ body {
 }
 
 .domain-sub .sub-warn {
-  color: #d97706;
+  color: var(--mod-ink);
 }
 
 .domain-sub .sub-danger {
@@ -459,7 +459,7 @@ body {
 }
 
 .dot-green { background: var(--ink-2); }
-.dot-amber { background: #d97706; }
+.dot-amber { background: var(--mod); }
 .dot-red { background: #ef4444; }
 
 /* ── Expanded Card ── */
@@ -1038,7 +1038,7 @@ table.workout-table td {
 }
 .goals-bar .goal-name { color: var(--ink-2); }
 .goals-bar .goal-date { color: var(--ink-3); }
-.goals-bar .goal-countdown { color: #d97706; }
+.goals-bar .goal-countdown { color: var(--mod-ink); }
 
 #logout-btn {
   font-family: 'JetBrains Mono', monospace;
@@ -1106,6 +1106,9 @@ table.workout-table td {
   background: var(--accent); color: var(--bg);
 }
 .profile-actions .btn-save:hover { background: var(--ink-1); }
+.btn-save:hover {
+  background: var(--accent-hover);
+}
 .profile-actions .save-status {
   font-size: 0.7rem; color: var(--ink-3);
 }
@@ -1865,7 +1868,7 @@ function computeReadiness(data) {
     color = "var(--ink-2)";
   } else if (score >= 50) {
     status = "MODERATE"; prescription = "Light Zone 2, mobility work, yoga. Don\u2019t push today.";
-    color = "#d97706";
+    color = "var(--mod-ink)";
   } else {
     status = "RECOVER"; prescription = "Walk only. Prioritize sleep tonight. Watch for illness.";
     color = "#ef4444";
@@ -1915,7 +1918,7 @@ function buildDailyBrief(data) {
   if (r.alerts.length) {
     alertsHtml = r.alerts.map(a => {
       const alertColor = a.level === "critical" ? "#ef4444"
-        : a.level === "warning" ? "#d97706" : "var(--ink-3)";
+        : a.level === "warning" ? "var(--mod-ink)" : "var(--ink-3)";
       const icon = a.level === "critical" ? "\u25b2"
         : a.level === "warning" ? "\u25cf" : "\u25cb";
       return `<div class="brief-alert" style="color:${alertColor}">${icon} ${a.message}</div>`;
@@ -2027,7 +2030,7 @@ function buildTrainingCard(data) {
     : "";
 
   body.innerHTML = `
-    <div class="domain-primary${isOverload ? " sub-warn" : ""}" style="${isOverload ? "color:#d97706" : ""}">${weeklyMin != null ? Math.round(weeklyMin) : "\u2014"}<span class="domain-primary-unit"> min/wk</span></div>
+    <div class="domain-primary${isOverload ? " sub-warn" : ""}" style="${isOverload ? "color:var(--mod-ink)" : ""}">${weeklyMin != null ? Math.round(weeklyMin) : "\u2014"}<span class="domain-primary-unit"> min/wk</span></div>
     ${blockBadgeHtml}
     ${sessionHtml}
     <div class="domain-sub" style="margin-top:0.3rem">
@@ -2100,7 +2103,7 @@ function buildBloodworkCard(data) {
         if (found) return true;
       }
       return false;
-    }) ? "#ef4444" : "#d97706";
+    }) ? "#ef4444" : "var(--mod-ink)";
     flagHtml = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:${flagColor};margin-top:0.3rem">${flaggedTests.slice(0, 2).join(", ")}${flaggedTests.length > 2 ? ` +${flaggedTests.length - 2}` : ""}</div>`;
   }
 
@@ -2346,7 +2349,7 @@ function buildExpandedRecovery(el, data) {
   if (recoveryAlerts.length) {
     statsHtml += `<div class="expanded-flags">`;
     for (const a of recoveryAlerts) {
-      const c = a.level === "critical" ? "#ef4444" : a.level === "warning" ? "#d97706" : "var(--ink-3)";
+      const c = a.level === "critical" ? "#ef4444" : a.level === "warning" ? "var(--mod-ink)" : "var(--ink-3)";
       statsHtml += `<div class="expanded-flag" style="color:${c}">\u25cf ${a.message}</div>`;
     }
     statsHtml += `</div>`;
@@ -2833,7 +2836,7 @@ function initQueryConsole() {
 
     const x = d3.scaleTime().domain(d3.extent(parsed, d => d._d)).range([0, iw]);
 
-    const colors = ["var(--ink-2)", "#d97706", "#ef4444", "var(--ink-3)", "var(--ink-1)", "var(--border-subtle)"];
+    const colors = ["var(--ink-2)", "var(--mod-ink)", "#ef4444", "var(--ink-3)", "var(--ink-1)", "var(--border-subtle)"];
     for (let i = 0; i < Math.min(numCols.length, 6); i++) {
       const col = numCols[i];
       const vals = parsed.filter(d => d[col] != null);
