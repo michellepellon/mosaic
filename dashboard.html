@@ -73,20 +73,20 @@
 #auth-gate .auth-title {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 1.8rem; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: #1a1a2e;
+  text-transform: uppercase; color: var(--ink-1);
 }
 #auth-gate input {
   font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
   padding: 0.6rem 1rem; width: 240px;
-  border: 1px solid #e2e4e9; background: #fff; color: #1a1a2e;
+  border: 1px solid #e2e4e9; background: #fff; color: var(--ink-1);
   text-align: center; letter-spacing: 0.1em;
 }
-#auth-gate input:focus { outline: none; border-color: #334155; }
+#auth-gate input:focus { outline: none; border-color: var(--ink-2); }
 #auth-gate .auth-error {
   font-size: 0.75rem; color: #ef4444; height: 1rem;
 }
 #auth-gate .auth-hint {
-  font-size: 0.65rem; color: #9ca3af; margin-top: 0.5rem;
+  font-size: 0.65rem; color: var(--ink-3); margin-top: 0.5rem;
 }
 
 /* ── Base ── */
@@ -94,7 +94,7 @@ body {
   font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #1a1a2e;
+  color: var(--ink-1);
   background: #f7f8fa;
   -webkit-font-smoothing: antialiased;
 }
@@ -121,7 +121,7 @@ body {
   font-weight: 700;
   font-size: 1.5rem;
   letter-spacing: 0.12em;
-  color: #334155;
+  color: var(--ink-2);
 }
 
 .header-meta {
@@ -129,11 +129,11 @@ body {
   gap: 1.2rem;
   align-items: baseline;
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--ink-3);
 }
 
 .header-meta a {
-  color: #334155;
+  color: var(--ink-2);
   text-decoration: none;
   font-family: 'DM Sans', sans-serif;
   font-size: 0.8rem;
@@ -188,7 +188,7 @@ body {
   font-size: 0.95rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
-  color: #1a1a2e;
+  color: var(--ink-1);
 }
 
 .brief-factors {
@@ -197,7 +197,7 @@ body {
   flex-wrap: wrap;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: #9ca3af;
+  color: var(--ink-3);
 }
 
 .brief-right {
@@ -232,9 +232,9 @@ body {
 }
 #stack-strip:hover { background: #ecf0f5; }
 #stack-strip.active {
-  background: #1a1a2e;
+  background: var(--ink-1);
   color: #f7f8fa;
-  border-color: #1a1a2e;
+  border-color: var(--ink-1);
 }
 .stack-strip-left {
   display: flex; flex-direction: column; gap: 2px; min-width: 110px;
@@ -249,9 +249,9 @@ body {
 .stack-strip-count {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--ink-3);
 }
-#stack-strip.active .stack-strip-count { color: #94a3b8; }
+#stack-strip.active .stack-strip-count { color: var(--ink-3); }
 .stack-strip-slots { display: flex; gap: 1.6rem; flex: 1; }
 .stack-slot { display: flex; align-items: center; gap: 0.5rem; }
 .stack-slot-pill {
@@ -267,7 +267,7 @@ body {
 .stack-slot-checks { display: inline-flex; gap: 4px; }
 .stack-slot-checks .chk {
   width: 12px; height: 12px;
-  border: 1.5px solid #94a3b8;
+  border: 1.5px solid var(--ink-3);
   border-radius: 2px;
   display: inline-block;
 }
@@ -281,14 +281,14 @@ body {
   display: flex; justify-content: space-between; align-items: baseline;
   margin-bottom: 1rem;
 }
-.es-meta { color: #64748b; font-size: 0.75rem; }
+.es-meta { color: var(--ink-3); font-size: 0.75rem; }
 .es-section { margin-bottom: 1.4rem; }
 .es-section h3 {
   font-family: 'Barlow Condensed', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--ink-3);
   margin: 0 0 0.6rem;
 }
 .es-row {
@@ -308,7 +308,7 @@ body {
 .es-pill.prn { background: #fee2e2; color: #991b1b; }
 .es-check {
   width: 18px; height: 18px;
-  border: 1.5px solid #94a3b8;
+  border: 1.5px solid var(--ink-3);
   border-radius: 4px;
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -318,8 +318,8 @@ body {
 .es-check.done { background: #10b981; border-color: #10b981; color: #fff; }
 .es-check.miss { background: transparent; border-color: #ef4444; color: #ef4444; }
 .es-name { font-weight: 600; min-width: 200px; }
-.es-dose { color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
-.es-brand { color: #94a3b8; font-size: 0.7rem; }
+.es-dose { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.es-brand { color: var(--ink-3); font-size: 0.7rem; }
 .es-table-row {
   display: grid;
   grid-template-columns: 1.4fr 0.9fr 0.7fr 0.7fr 0.8fr 0.7fr;
@@ -327,14 +327,14 @@ body {
   border-bottom: 1px solid #f0f2f5;
 }
 .es-table-row.head {
-  color: #94a3b8; text-transform: uppercase;
+  color: var(--ink-3); text-transform: uppercase;
   letter-spacing: 0.06em; font-size: 0.65rem; font-weight: 600;
   border-bottom: 1px solid #e2e4e9;
 }
-.es-miss-row { padding: 0.3rem 0; font-size: 0.78rem; color: #475569; }
+.es-miss-row { padding: 0.3rem 0; font-size: 0.78rem; color: var(--ink-2); }
 .es-date {
   font-family: 'JetBrains Mono', monospace;
-  color: #94a3b8; min-width: 70px; display: inline-block;
+  color: var(--ink-3); min-width: 70px; display: inline-block;
 }
 
 .domain-card {
@@ -352,13 +352,13 @@ body {
 }
 
 .domain-card:hover {
-  border-color: #334155;
+  border-color: var(--ink-2);
   z-index: 1;
   position: relative;
 }
 
 .domain-card.active {
-  border-color: #334155;
+  border-color: var(--ink-2);
   border-bottom-color: #ffffff;
   z-index: 2;
   position: relative;
@@ -370,7 +370,7 @@ body {
   font-size: 0.85rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #334155;
+  color: var(--ink-2);
   margin-bottom: 0.6rem;
 }
 
@@ -379,14 +379,14 @@ body {
   font-size: 1.8rem;
   font-weight: 600;
   line-height: 1;
-  color: #1a1a2e;
+  color: var(--ink-1);
   margin-bottom: 0.1rem;
 }
 
 .domain-primary-unit {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.72rem;
-  color: #9ca3af;
+  color: var(--ink-3);
   font-weight: 400;
 }
 
@@ -396,17 +396,17 @@ body {
   gap: 0.6rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: #9ca3af;
+  color: var(--ink-3);
   margin-top: 0.5rem;
   line-height: 1.4;
 }
 
 .domain-sub .sub-label {
-  color: #9ca3af;
+  color: var(--ink-3);
 }
 
 .domain-sub .sub-value {
-  color: #1a1a2e;
+  color: var(--ink-1);
   font-weight: 500;
 }
 
@@ -424,7 +424,7 @@ body {
 
 .domain-session-log {
   font-size: 0.72rem;
-  color: #9ca3af;
+  color: var(--ink-3);
   margin-top: 0.4rem;
   line-height: 1.5;
 }
@@ -447,7 +447,7 @@ body {
   gap: 0.25rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem;
-  color: #9ca3af;
+  color: var(--ink-3);
 }
 
 /* ── Status Dots ── */
@@ -458,7 +458,7 @@ body {
   border-radius: 50%;
 }
 
-.dot-green { background: #334155; }
+.dot-green { background: var(--ink-2); }
 .dot-amber { background: #d97706; }
 .dot-red { background: #ef4444; }
 
@@ -466,7 +466,7 @@ body {
 #expanded-card {
   background: #ffffff;
   border: 1px solid #e2e4e9;
-  border-top: 2px solid #334155;
+  border-top: 2px solid var(--ink-2);
   margin-top: -1px;
   padding: 1.5rem;
 }
@@ -477,7 +477,7 @@ body {
   font-size: 1.1rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #334155;
+  color: var(--ink-2);
   margin-bottom: 1rem;
 }
 
@@ -507,14 +507,14 @@ body {
 }
 
 .stat-label {
-  color: #9ca3af;
+  color: var(--ink-3);
   font-family: 'DM Sans', sans-serif;
 }
 
 .stat-value {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 500;
-  color: #1a1a2e;
+  color: var(--ink-1);
 }
 
 .stat-section-title {
@@ -523,7 +523,7 @@ body {
   font-size: 0.85rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #334155;
+  color: var(--ink-2);
   margin-top: 1rem;
   margin-bottom: 0.4rem;
   padding-bottom: 0.3rem;
@@ -538,7 +538,7 @@ body {
   margin-top: 1.2rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
-  color: #9ca3af;
+  color: var(--ink-3);
   border-top: 1px solid #e2e4e9;
   padding-top: 0.6rem;
 }
@@ -566,7 +566,7 @@ table.bloodwork-table th {
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: var(--ink-3);
   padding: 0.3rem 0.5rem;
   border-bottom: 1px solid #e2e4e9;
 }
@@ -589,9 +589,9 @@ table.bloodwork-table tr.group-header td {
   font-weight: 600;
   font-size: 0.78rem;
   letter-spacing: 0.04em;
-  color: #334155;
+  color: var(--ink-2);
   padding-top: 0.8rem;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--ink-2);
   background: none;
 }
 
@@ -610,7 +610,7 @@ table.workout-table th {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: var(--ink-3);
   padding: 0.25rem 0.4rem;
   border-bottom: 1px solid #e2e4e9;
 }
@@ -640,7 +640,7 @@ table.workout-table td {
   margin: 0 auto;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--ink-3);
 }
 
 #console-hint .key {
@@ -648,7 +648,7 @@ table.workout-table td {
   background: #e2e4e9;
   padding: 0.1rem 0.4rem;
   font-size: 0.7rem;
-  color: #334155;
+  color: var(--ink-2);
 }
 
 #query-console {
@@ -657,7 +657,7 @@ table.workout-table td {
   left: 0;
   right: 0;
   background: #ffffff;
-  border-top: 2px solid #334155;
+  border-top: 2px solid var(--ink-2);
   padding: 1rem;
   z-index: 99;
   max-height: 50vh;
@@ -679,7 +679,7 @@ table.workout-table td {
   padding: 0.5rem 0.6rem;
   border: 1px solid #e2e4e9;
   background: #f7f8fa;
-  color: #1a1a2e;
+  color: var(--ink-1);
   resize: vertical;
   line-height: 1.5;
 }
@@ -697,14 +697,14 @@ table.workout-table td {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 0.4rem 1rem;
-  background: #334155;
+  background: var(--ink-2);
   color: #ffffff;
   border: none;
   cursor: pointer;
 }
 
 #query-run:hover {
-  background: #1a1a2e;
+  background: var(--ink-1);
 }
 
 #query-schema {
@@ -712,14 +712,14 @@ table.workout-table td {
   font-size: 0.72rem;
   padding: 0.3rem 0.8rem;
   background: transparent;
-  color: #9ca3af;
+  color: var(--ink-3);
   border: 1px solid #e2e4e9;
   cursor: pointer;
 }
 
 #query-schema:hover {
-  border-color: #334155;
-  color: #334155;
+  border-color: var(--ink-2);
+  color: var(--ink-2);
 }
 
 #query-status {
@@ -727,7 +727,7 @@ table.workout-table td {
   margin: 0 auto 0.5rem auto;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
-  color: #9ca3af;
+  color: var(--ink-3);
 }
 
 #query-chart {
@@ -756,7 +756,7 @@ table.workout-table td {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: var(--ink-3);
   padding: 0.3rem 0.5rem;
   border-bottom: 1px solid #e2e4e9;
 }
@@ -770,7 +770,7 @@ table.workout-table td {
 .axis-label {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  fill: #9ca3af;
+  fill: var(--ink-3);
 }
 
 .axis-label-right {
@@ -785,28 +785,28 @@ table.workout-table td {
 
 .data-line {
   fill: none;
-  stroke: #334155;
+  stroke: var(--ink-2);
   stroke-width: 1.3;
 }
 
 .data-area {
-  fill: #334155;
+  fill: var(--ink-2);
   opacity: 0.06;
 }
 
 .annotation-text {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  fill: #9ca3af;
+  fill: var(--ink-3);
 }
 
 .endpoint-dot {
-  fill: #334155;
+  fill: var(--ink-2);
   r: 2;
 }
 
 .range-frame line {
-  stroke: #9ca3af;
+  stroke: var(--ink-3);
   stroke-width: 0.7;
 }
 
@@ -816,7 +816,7 @@ table.workout-table td {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
   line-height: 1.4;
-  color: #1a1a2e;
+  color: var(--ink-1);
   background: #ffffff;
   border: 1px solid #e2e4e9;
   padding: 3px 7px;
@@ -857,17 +857,17 @@ table.workout-table td {
 /* ── Profile Panel ── */
 #profile-toggle {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
   letter-spacing: 0.04em;
 }
-#profile-toggle:hover { color: #334155; }
+#profile-toggle:hover { color: var(--ink-2); }
 
 #import-toggle {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
   letter-spacing: 0.04em;
 }
-#import-toggle:hover { color: #334155; }
+#import-toggle:hover { color: var(--ink-2); }
 
 #import-panel {
   display: none; background: #fff;
@@ -884,49 +884,49 @@ table.workout-table td {
   transition: border-color 0.2s, background 0.2s;
 }
 #import-dropzone.dragover {
-  border-color: #334155;
+  border-color: var(--ink-2);
   background: #f0f1f3;
 }
 .dropzone-icon {
-  font-size: 1.8rem; color: #9ca3af; margin-bottom: 0.4rem;
+  font-size: 1.8rem; color: var(--ink-3); margin-bottom: 0.4rem;
 }
 .dropzone-text {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem; color: #334155; margin-bottom: 0.2rem;
+  font-size: 0.85rem; color: var(--ink-2); margin-bottom: 0.2rem;
 }
 .dropzone-hint {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: #9ca3af;
+  font-size: 0.65rem; color: var(--ink-3);
   margin-bottom: 0.8rem;
 }
 #import-browse {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.7rem; letter-spacing: 0.08em;
   text-transform: uppercase; padding: 0.35rem 1rem;
-  background: transparent; color: #9ca3af;
+  background: transparent; color: var(--ink-3);
   border: 1px solid #e2e4e9; cursor: pointer;
 }
-#import-browse:hover { color: #334155; border-color: #334155; }
+#import-browse:hover { color: var(--ink-2); border-color: var(--ink-2); }
 
 .import-progress {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.78rem; color: #334155;
+  font-size: 0.78rem; color: var(--ink-2);
   padding: 1rem 0; text-align: center;
 }
 
 #plan-toggle {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
   letter-spacing: 0.04em;
 }
-#plan-toggle:hover { color: #334155; }
+#plan-toggle:hover { color: var(--ink-2); }
 
 #stack-toggle {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
   letter-spacing: 0.04em;
 }
-#stack-toggle:hover { color: #334155; }
+#stack-toggle:hover { color: var(--ink-2); }
 
 #plan-panel {
   display: none; background: #fff;
@@ -945,7 +945,7 @@ table.workout-table td {
 .plan-section-title {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.7rem; letter-spacing: 0.15em;
-  text-transform: uppercase; color: #9ca3af;
+  text-transform: uppercase; color: var(--ink-3);
   margin-bottom: 0.6rem; margin-top: 1.2rem;
 }
 .plan-section-title:first-child { margin-top: 0; }
@@ -959,13 +959,13 @@ table.workout-table td {
 .block-row input, .block-row select {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; padding: 0.3rem 0.4rem;
-  border: 1px solid #e2e4e9; background: #f7f8fa; color: #1a1a2e;
+  border: 1px solid #e2e4e9; background: #f7f8fa; color: var(--ink-1);
 }
 .block-row input:focus, .block-row select:focus {
-  outline: none; border-color: #334155;
+  outline: none; border-color: var(--ink-2);
 }
 .block-row .remove-btn {
-  font-size: 0.8rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.8rem; color: var(--ink-3); cursor: pointer;
   background: none; border: none; text-align: center;
 }
 .block-row .remove-btn:hover { color: #ef4444; }
@@ -979,7 +979,7 @@ table.workout-table td {
 }
 .regimen-row.regimen-row-head > span {
   font-size: 0.55rem;
-  color: #9ca3af;
+  color: var(--ink-3);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -1000,28 +1000,28 @@ table.workout-table td {
 .goal-row input, .goal-row select {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; padding: 0.3rem 0.4rem;
-  border: 1px solid #e2e4e9; background: #f7f8fa; color: #1a1a2e;
+  border: 1px solid #e2e4e9; background: #f7f8fa; color: var(--ink-1);
 }
 .goal-row input:focus, .goal-row select:focus {
-  outline: none; border-color: #334155;
+  outline: none; border-color: var(--ink-2);
 }
 .goal-row .remove-btn {
-  font-size: 0.8rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.8rem; color: var(--ink-3); cursor: pointer;
   background: none; border: none; text-align: center;
 }
 .goal-row .remove-btn:hover { color: #ef4444; }
 
 .add-row-btn {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
   background: none; border: 1px dashed #e2e4e9;
   padding: 0.3rem 0.8rem; margin-top: 0.3rem;
 }
-.add-row-btn:hover { color: #334155; border-color: #334155; }
+.add-row-btn:hover { color: var(--ink-2); border-color: var(--ink-2); }
 
 .current-block-badge {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem; color: #334155;
+  font-size: 0.55rem; color: var(--ink-2);
   background: #f0f1f3; padding: 0.15rem 0.4rem;
   display: inline-block; margin-top: 0.3rem;
   letter-spacing: 0.03em;
@@ -1031,18 +1031,18 @@ table.workout-table td {
   display: flex; gap: 1.2rem; padding: 0.5rem 1.5rem;
   background: #fff; border-bottom: 1px solid #e2e4e9;
   font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
-  color: #9ca3af; overflow-x: auto;
+  color: var(--ink-3); overflow-x: auto;
 }
 .goals-bar .goal-item {
   white-space: nowrap; display: flex; align-items: center; gap: 0.4rem;
 }
-.goals-bar .goal-name { color: #334155; }
-.goals-bar .goal-date { color: #9ca3af; }
+.goals-bar .goal-name { color: var(--ink-2); }
+.goals-bar .goal-date { color: var(--ink-3); }
 .goals-bar .goal-countdown { color: #d97706; }
 
 #logout-btn {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; color: #9ca3af; cursor: pointer;
+  font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
   letter-spacing: 0.04em;
 }
 #logout-btn:hover { color: #ef4444; }
@@ -1057,7 +1057,7 @@ table.workout-table td {
 #profile-panel h3 {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.7rem; letter-spacing: 0.15em;
-  text-transform: uppercase; color: #9ca3af;
+  text-transform: uppercase; color: var(--ink-3);
   margin-bottom: 0.8rem; margin-top: 1.2rem;
 }
 #profile-panel h3:first-child { margin-top: 0; }
@@ -1072,7 +1072,7 @@ table.workout-table td {
   display: block;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.6rem; letter-spacing: 0.1em;
-  text-transform: uppercase; color: #9ca3af;
+  text-transform: uppercase; color: var(--ink-3);
   margin-bottom: 0.2rem;
 }
 .profile-field input,
@@ -1081,7 +1081,7 @@ table.workout-table td {
   width: 100%; font-family: 'JetBrains Mono', monospace;
   font-size: 0.78rem; padding: 0.4rem 0.5rem;
   border: 1px solid #e2e4e9; background: #f7f8fa;
-  color: #1a1a2e;
+  color: var(--ink-1);
 }
 .profile-field textarea {
   font-family: 'DM Sans', sans-serif;
@@ -1090,7 +1090,7 @@ table.workout-table td {
 .profile-field input:focus,
 .profile-field select:focus,
 .profile-field textarea:focus {
-  outline: none; border-color: #334155;
+  outline: none; border-color: var(--ink-2);
 }
 
 .profile-actions {
@@ -1103,11 +1103,11 @@ table.workout-table td {
   cursor: pointer; border: none;
 }
 .profile-actions .btn-save {
-  background: #334155; color: #f7f8fa;
+  background: var(--accent); color: #f7f8fa;
 }
-.profile-actions .btn-save:hover { background: #1a1a2e; }
+.profile-actions .btn-save:hover { background: var(--ink-1); }
 .profile-actions .save-status {
-  font-size: 0.7rem; color: #9ca3af;
+  font-size: 0.7rem; color: var(--ink-3);
 }
 </style>
 </head>
@@ -1154,11 +1154,11 @@ table.workout-table td {
   <div id="plan-panel">
     <div class="plan-section-title">Training Blocks</div>
     <div class="block-row" style="margin-bottom:0.2rem">
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Name</span>
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Phase</span>
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Start</span>
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">End</span>
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Vol/wk</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Name</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Phase</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Start</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">End</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Vol/wk</span>
       <span></span>
     </div>
     <div id="blocks-list"></div>
@@ -1166,18 +1166,18 @@ table.workout-table td {
 
     <div class="plan-section-title">Goals</div>
     <div class="goal-row" style="margin-bottom:0.2rem">
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Goal</span>
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Target Date</span>
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Metric</span>
-      <span style="font-size:0.55rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em">Target</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Goal</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Target Date</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Metric</span>
+      <span style="font-size:0.55rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.08em">Target</span>
       <span></span>
     </div>
     <div id="goals-list"></div>
     <button class="add-row-btn" id="add-goal">+ add goal</button>
 
     <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center">
-      <button class="btn-save" id="plan-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:#334155;color:#f7f8fa;border:none;cursor:pointer">Save</button>
-      <span id="plan-status" style="font-size:0.7rem;color:#9ca3af"></span>
+      <button class="btn-save" id="plan-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:var(--accent);color:#f7f8fa;border:none;cursor:pointer">Save</button>
+      <span id="plan-status" style="font-size:0.7rem;color:var(--ink-3)"></span>
     </div>
   </div>
 
@@ -1307,8 +1307,8 @@ table.workout-table td {
     <button class="add-row-btn" id="add-regimen">+ add regimen</button>
 
     <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center">
-      <button class="btn-save" id="stack-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:#334155;color:#f7f8fa;border:none;cursor:pointer">Save</button>
-      <span id="stack-status" style="font-size:0.7rem;color:#9ca3af"></span>
+      <button class="btn-save" id="stack-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:var(--accent);color:#f7f8fa;border:none;cursor:pointer">Save</button>
+      <span id="stack-status" style="font-size:0.7rem;color:var(--ink-3)"></span>
     </div>
   </div>
 
@@ -1470,10 +1470,10 @@ function tufteYAxis(g, yScale, width, format) {
     .text(format(domain[1]));
   g.append("line").attr("class", "range-frame")
     .attr("x1", 0).attr("x2", 0).attr("y1", range[0]).attr("y2", range[0] + 4)
-    .attr("stroke", "#9ca3af").attr("stroke-width", 0.7);
+    .attr("stroke", "var(--ink-3)").attr("stroke-width", 0.7);
   g.append("line").attr("class", "range-frame")
     .attr("x1", 0).attr("x2", 0).attr("y1", range[1] - 4).attr("y2", range[1])
-    .attr("stroke", "#9ca3af").attr("stroke-width", 0.7);
+    .attr("stroke", "var(--ink-3)").attr("stroke-width", 0.7);
 }
 
 function tufteXAxis(g, xScale, height, dateFormat) {
@@ -1492,7 +1492,7 @@ function tufteXAxis(g, xScale, height, dateFormat) {
 function sparklineSVG(data, w, h, strokeColor) {
   const valid = (data || []).filter(d => d != null && !isNaN(d));
   if (valid.length < 2) return "";
-  const color = strokeColor || "#334155";
+  const color = strokeColor || "var(--ink-2)";
   const x = d3.scaleLinear().domain([0, valid.length - 1]).range([1, w - 1]);
   const ext = d3.extent(valid);
   const pad = (ext[1] - ext[0]) * 0.1 || 1;
@@ -1514,10 +1514,10 @@ function bulletSVG(value, target, min, max, lowerBetter) {
   let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
   svg += `<rect x="0" y="${h/2-2}" width="${w}" height="4" fill="#e2e4e9" rx="0"/>`;
   const tx = x(target);
-  svg += `<line x1="${tx}" x2="${tx}" y1="${h/2-6}" y2="${h/2+6}" stroke="#9ca3af" stroke-width="1" stroke-dasharray="2,1"/>`;
+  svg += `<line x1="${tx}" x2="${tx}" y1="${h/2-6}" y2="${h/2+6}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2,1"/>`;
   const vx = x(value);
   const isGood = lowerBetter ? value <= target : value >= target;
-  const color = isGood ? "#334155" : "#ef4444";
+  const color = isGood ? "var(--ink-2)" : "#ef4444";
   svg += `<line x1="${vx}" x2="${vx}" y1="${h/2-5}" y2="${h/2+5}" stroke="${color}" stroke-width="2.5"/>`;
   svg += `</svg>`;
   return svg;
@@ -1546,10 +1546,10 @@ function addLineTooltip(g, data, x, y, yFmt, w, h) {
     .attr("fill", "none").attr("pointer-events", "all");
   const vline = g.append("line")
     .attr("y1", 0).attr("y2", h)
-    .attr("stroke", "#9ca3af").attr("stroke-width", 0.5)
+    .attr("stroke", "var(--ink-3)").attr("stroke-width", 0.5)
     .attr("stroke-dasharray", "2,2")
     .style("display", "none");
-  const dot = g.append("circle").attr("r", 3).attr("fill", "#334155").style("display", "none");
+  const dot = g.append("circle").attr("r", 3).attr("fill", "var(--ink-2)").style("display", "none");
 
   overlay.on("mousemove", function(event) {
     const [mx] = d3.pointer(event);
@@ -1576,7 +1576,7 @@ function addBarTooltip(g, data, x, y, fmtFn, w, h) {
     .attr("fill", "none").attr("pointer-events", "all");
   const vline = g.append("line")
     .attr("y1", 0).attr("y2", h)
-    .attr("stroke", "#9ca3af").attr("stroke-width", 0.5)
+    .attr("stroke", "var(--ink-3)").attr("stroke-width", 0.5)
     .attr("stroke-dasharray", "2,2")
     .style("display", "none");
 
@@ -1645,7 +1645,7 @@ function addRegimenMarkers(g, x, h) {
     .attr("x2", d => xPos(d.date))
     .attr("y1", 0)
     .attr("y2", h)
-    .attr("stroke", d => d.type === "start" ? "#10b981" : "#94a3b8")
+    .attr("stroke", d => d.type === "start" ? "#10b981" : "var(--ink-3)")
     .attr("stroke-width", 1)
     .attr("stroke-dasharray", "2,3")
     .attr("opacity", 0.7);
@@ -1859,10 +1859,10 @@ function computeReadiness(data) {
   let status, prescription, color;
   if (score >= 85) {
     status = "PEAK"; prescription = "High-intensity intervals, heavy strength, or long endurance. Your best training day.";
-    color = "#334155";
+    color = "var(--ink-2)";
   } else if (score >= 70) {
     status = "READY"; prescription = "Zone 2 aerobic base, moderate strength. Solid training day.";
-    color = "#334155";
+    color = "var(--ink-2)";
   } else if (score >= 50) {
     status = "MODERATE"; prescription = "Light Zone 2, mobility work, yoga. Don\u2019t push today.";
     color = "#d97706";
@@ -1915,7 +1915,7 @@ function buildDailyBrief(data) {
   if (r.alerts.length) {
     alertsHtml = r.alerts.map(a => {
       const alertColor = a.level === "critical" ? "#ef4444"
-        : a.level === "warning" ? "#d97706" : "#9ca3af";
+        : a.level === "warning" ? "#d97706" : "var(--ink-3)";
       const icon = a.level === "critical" ? "\u25b2"
         : a.level === "warning" ? "\u25cf" : "\u25cb";
       return `<div class="brief-alert" style="color:${alertColor}">${icon} ${a.message}</div>`;
@@ -1991,7 +1991,7 @@ function buildRecoveryCard(data) {
       <span><span class="sub-label">RHR </span><span class="sub-value">${rhrLast != null ? Math.round(rhrLast) : "\u2014"}</span></span>
       <span><span class="sub-label">SpO2 </span><span class="sub-value${spo2Min != null && spo2Min < 90 ? " sub-danger" : ""}">${spo2Min != null ? Math.round(spo2Min) + "%" : "\u2014"}</span></span>
     </div>
-    <div class="domain-sparkline">${sparklineSVG(sleepSparkData, 200, 24, sleepDeclining ? "#ef4444" : "#334155")}</div>`;
+    <div class="domain-sparkline">${sparklineSVG(sleepSparkData, 200, 24, sleepDeclining ? "#ef4444" : "var(--ink-2)")}</div>`;
 }
 
 function buildTrainingCard(data) {
@@ -2018,7 +2018,7 @@ function buildTrainingCard(data) {
     if (other > 5) parts.push(`Other: ${Math.round(other)}m`);
     sessionHtml = `<div class="domain-session-log"><span class="session-entry">${parts.join(" \u00b7 ")}</span></div>`;
   } else {
-    sessionHtml = `<div class="domain-session-log" style="color:#9ca3af">No sessions logged</div>`;
+    sessionHtml = `<div class="domain-session-log" style="color:var(--ink-3)">No sessions logged</div>`;
   }
 
   const currentBlock = getCurrentBlock();
@@ -2059,7 +2059,7 @@ function buildFitnessCard(data) {
       <span><span class="sub-label">BF </span><span class="sub-value">${bfLast != null ? fmt1(bfLast) + "%" : "\u2014"}</span></span>
       <span><span class="sub-label">Speed </span><span class="sub-value">${wsLast != null ? fmt1(wsLast) + " mph" : "\u2014"}</span></span>
     </div>
-    <div class="domain-sparkline">${sparklineSVG(vo2Spark, 200, 24, vo2Declining ? "#ef4444" : "#334155")}</div>`;
+    <div class="domain-sparkline">${sparklineSVG(vo2Spark, 200, 24, vo2Declining ? "#ef4444" : "var(--ink-2)")}</div>`;
 }
 
 function buildBloodworkCard(data) {
@@ -2129,7 +2129,7 @@ function expandDomain(domain) {
 
   // Stack-overlay toggle (rebuilt each render; preserves showStackOverlay state across re-renders)
   const controls = document.createElement("div");
-  controls.style.cssText = "display:flex;justify-content:flex-end;padding:0.4rem 0;font-size:0.7rem;color:#64748b";
+  controls.style.cssText = "display:flex;justify-content:flex-end;padding:0.4rem 0;font-size:0.7rem;color:var(--ink-3)";
   const label = document.createElement("label");
   label.style.cursor = "pointer";
   label.style.userSelect = "none";
@@ -2250,12 +2250,12 @@ function buildExpandedRecovery(el, data) {
       const remH = ih - yLeft(d.rem);
       const remY = yLeft(d.rem + d.deep);
       g.append("rect").attr("x", xPos).attr("y", remY).attr("width", barW).attr("height", remH)
-        .attr("fill", "#9ca3af");
+        .attr("fill", "var(--ink-3)");
       // Deep
       const deepH = ih - yLeft(d.deep);
       const deepY = yLeft(d.deep);
       g.append("rect").attr("x", xPos).attr("y", deepY).attr("width", barW).attr("height", deepH)
-        .attr("fill", "#334155");
+        .attr("fill", "var(--ink-2)");
     });
 
     // Target line at 7.5
@@ -2280,7 +2280,7 @@ function buildExpandedRecovery(el, data) {
         .range([0, iw]);
       const hrvLine = d3.line().x(d => xTime(d.d)).y(d => yRight(d.v)).curve(d3.curveMonotoneX);
       g.append("path").attr("d", hrvLine(hrvFiltered))
-        .attr("fill", "none").attr("stroke", "#334155").attr("stroke-width", 1.5)
+        .attr("fill", "none").attr("stroke", "var(--ink-2)").attr("stroke-width", 1.5)
         .attr("stroke-dasharray", "4,2");
       // Right axis labels
       g.append("text").attr("class", "annotation-text")
@@ -2290,10 +2290,10 @@ function buildExpandedRecovery(el, data) {
 
     // Legend
     const leg = g.append("g").attr("transform", `translate(0, -2)`);
-    [{ label: "Deep", color: "#334155" }, { label: "REM", color: "#9ca3af" }, { label: "Light", color: "#e2e4e9" }].forEach((l, i) => {
+    [{ label: "Deep", color: "var(--ink-2)" }, { label: "REM", color: "var(--ink-3)" }, { label: "Light", color: "#e2e4e9" }].forEach((l, i) => {
       leg.append("rect").attr("x", i * 55).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
       leg.append("text").attr("class", "annotation-text").attr("x", i * 55 + 14).attr("y", 7)
-        .style("fill", "#334155").text(l.label);
+        .style("fill", "var(--ink-2)").text(l.label);
     });
 
     tufteYAxis(g, yLeft, iw, d3.format(".0f"));
@@ -2346,7 +2346,7 @@ function buildExpandedRecovery(el, data) {
   if (recoveryAlerts.length) {
     statsHtml += `<div class="expanded-flags">`;
     for (const a of recoveryAlerts) {
-      const c = a.level === "critical" ? "#ef4444" : a.level === "warning" ? "#d97706" : "#9ca3af";
+      const c = a.level === "critical" ? "#ef4444" : a.level === "warning" ? "#d97706" : "var(--ink-3)";
       statsHtml += `<div class="expanded-flag" style="color:${c}">\u25cf ${a.message}</div>`;
     }
     statsHtml += `</div>`;
@@ -2405,13 +2405,13 @@ function buildExpandedTraining(el, data) {
         const barH = ih - y(d.z2);
         yPos -= barH;
         g.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
-          .attr("fill", "#9ca3af");
+          .attr("fill", "var(--ink-3)");
       }
       if (d.z4 > 0) {
         const barH = ih - y(d.z4);
         yPos -= barH;
         g.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
-          .attr("fill", "#334155");
+          .attr("fill", "var(--ink-2)");
       }
 
       const total = (d.z2 || 0) + (d.z4 || 0) + (d.other || 0);
@@ -2431,10 +2431,10 @@ function buildExpandedTraining(el, data) {
 
     // Legend
     const leg = g.append("g").attr("transform", `translate(${iw - 150}, 0)`);
-    [{ label: "Zone 4+", color: "#334155" }, { label: "Zone 2", color: "#9ca3af" }, { label: "Other", color: "#e2e4e9" }].forEach((l, i) => {
+    [{ label: "Zone 4+", color: "var(--ink-2)" }, { label: "Zone 2", color: "var(--ink-3)" }, { label: "Other", color: "#e2e4e9" }].forEach((l, i) => {
       leg.append("rect").attr("x", i * 55).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
       leg.append("text").attr("class", "annotation-text").attr("x", i * 55 + 14).attr("y", 7)
-        .style("fill", "#334155").text(l.label);
+        .style("fill", "var(--ink-2)").text(l.label);
     });
 
     tufteYAxis(g, y, iw, d3.format(".0f"));
@@ -2517,17 +2517,17 @@ function buildExpandedFitness(el, data) {
     // Data points
     g.selectAll("circle.vo2dot").data(vo2Data).join("circle")
       .attr("cx", d => x(d.d)).attr("cy", d => y(d.v))
-      .attr("r", 3).attr("fill", "#334155");
+      .attr("r", 3).attr("fill", "var(--ink-2)");
     const line = d3.line().x(d => x(d.d)).y(d => y(d.v));
     g.append("path").attr("d", line(vo2Data))
-      .attr("fill", "none").attr("stroke", "#334155").attr("stroke-width", 1);
+      .attr("fill", "none").attr("stroke", "var(--ink-2)").attr("stroke-width", 1);
 
     // Projection to Dec 2026
     const lastVo2 = vo2Data[vo2Data.length - 1];
     g.append("line")
       .attr("x1", x(lastVo2.d)).attr("y1", y(lastVo2.v))
       .attr("x2", x(projEnd)).attr("y2", y(35))
-      .attr("stroke", "#334155").attr("stroke-width", 1.2)
+      .attr("stroke", "var(--ink-2)").attr("stroke-width", 1.2)
       .attr("stroke-dasharray", "4,3").attr("opacity", 0.5);
 
     // Targets
@@ -2542,7 +2542,7 @@ function buildExpandedFitness(el, data) {
     // Last value annotation
     g.append("text").attr("class", "annotation-text")
       .attr("x", x(lastVo2.d)).attr("y", y(lastVo2.v) - 8).attr("text-anchor", "middle")
-      .style("font-weight", "600").style("fill", "#334155")
+      .style("font-weight", "600").style("fill", "var(--ink-2)")
       .text(fmt1(lastVo2.v));
 
     tufteYAxis(g, y, iw, d3.format(".0f"));
@@ -2556,7 +2556,7 @@ function buildExpandedFitness(el, data) {
   // Body fat trend chart
   if (bfData.length >= 2) {
     const titleEl = document.createElement("div");
-    titleEl.style.cssText = "font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:0.78rem;letter-spacing:0.04em;text-transform:uppercase;color:#334155;margin-top:1rem;margin-bottom:0.3rem";
+    titleEl.style.cssText = "font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:0.78rem;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-2);margin-top:1rem;margin-bottom:0.3rem";
     titleEl.textContent = "Body Fat Trend";
     chartEl.appendChild(titleEl);
 
@@ -2576,9 +2576,9 @@ function buildExpandedFitness(el, data) {
     const y2 = d3.scaleLinear().domain([Math.min(yExt[0], 25) * 0.95, Math.max(yExt[1], 25) * 1.05]).range([ih2, 0]);
 
     const area = d3.area().x(d => x2(d.d)).y0(ih2).y1(d => y2(d.v)).curve(d3.curveMonotoneX);
-    g2.append("path").attr("d", area(bfData)).attr("fill", "#334155").attr("opacity", 0.06);
+    g2.append("path").attr("d", area(bfData)).attr("fill", "var(--ink-2)").attr("opacity", 0.06);
     const line2 = d3.line().x(d => x2(d.d)).y(d => y2(d.v)).curve(d3.curveMonotoneX);
-    g2.append("path").attr("d", line2(bfData)).attr("fill", "none").attr("stroke", "#334155").attr("stroke-width", 1.3);
+    g2.append("path").attr("d", line2(bfData)).attr("fill", "none").attr("stroke", "var(--ink-2)").attr("stroke-width", 1.3);
 
     g2.append("line").attr("class", "target-line")
       .attr("x1", 0).attr("x2", iw2).attr("y1", y2(25)).attr("y2", y2(25));
@@ -2624,11 +2624,11 @@ function buildExpandedBloodwork(el, data) {
   const labs = data.labs;
 
   if (!labs || !labs.groups || Object.keys(labs.groups).length === 0) {
-    contentEl.innerHTML = `<p style="color:#9ca3af">No lab data available.</p>`;
+    contentEl.innerHTML = `<p style="color:var(--ink-3)">No lab data available.</p>`;
     return;
   }
 
-  let html = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:#9ca3af;margin-bottom:1rem">Last draw: ${labs.date} &middot; ${labs.drawCount || 0} total draws</div>`;
+  let html = `<div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--ink-3);margin-bottom:1rem">Last draw: ${labs.date} &middot; ${labs.drawCount || 0} total draws</div>`;
   html += `<table class="bloodwork-table"><thead><tr><th>Test</th><th style="text-align:right">Value</th><th style="text-align:right">Unit</th><th style="text-align:right">Optimal</th><th style="width:24px"></th></tr></thead><tbody>`;
 
   for (const [group, tests] of Object.entries(labs.groups)) {
@@ -2637,8 +2637,8 @@ function buildExpandedBloodwork(el, data) {
       html += `<tr>
         <td>${t.test}</td>
         <td style="text-align:right">${t.value}</td>
-        <td style="text-align:right;color:#9ca3af">${t.unit || ""}</td>
-        <td style="text-align:right;color:#9ca3af">${t.optimal}</td>
+        <td style="text-align:right;color:var(--ink-3)">${t.unit || ""}</td>
+        <td style="text-align:right;color:var(--ink-3)">${t.optimal}</td>
         <td><span class="dot dot-${t.status}"></span></td>
       </tr>`;
     }
@@ -2755,7 +2755,7 @@ function initQueryConsole() {
     }
 
     statusEl.textContent = "Running...";
-    statusEl.style.color = "#9ca3af";
+    statusEl.style.color = "var(--ink-3)";
     resultEl.innerHTML = "";
     chartEl.innerHTML = "";
 
@@ -2779,7 +2779,7 @@ function initQueryConsole() {
 
       const cols = rows.length ? Object.keys(rows[0]) : [];
       statusEl.textContent = `${rows.length} row${rows.length !== 1 ? "s" : ""} \u00b7 ${elapsed}s`;
-      statusEl.style.color = "#334155";
+      statusEl.style.color = "var(--ink-2)";
 
       if (rows.length > 0) {
         let html = `<table>
@@ -2797,7 +2797,7 @@ function initQueryConsole() {
           }).join("")}</tr>`;
         }
         html += "</tbody></table>";
-        if (rows.length > 200) html += `<p style="color:#9ca3af;font-size:0.72rem">${rows.length - 200} more rows not shown</p>`;
+        if (rows.length > 200) html += `<p style="color:var(--ink-3);font-size:0.72rem">${rows.length - 200} more rows not shown</p>`;
         resultEl.innerHTML = html;
 
         const dateCol = cols.find(c => c === "date" || c === "d" || c.includes("date"));
@@ -2833,7 +2833,7 @@ function initQueryConsole() {
 
     const x = d3.scaleTime().domain(d3.extent(parsed, d => d._d)).range([0, iw]);
 
-    const colors = ["#334155", "#d97706", "#ef4444", "#9ca3af", "#1a1a2e", "#e2e4e9"];
+    const colors = ["var(--ink-2)", "#d97706", "#ef4444", "var(--ink-3)", "var(--ink-1)", "#e2e4e9"];
     for (let i = 0; i < Math.min(numCols.length, 6); i++) {
       const col = numCols[i];
       const vals = parsed.filter(d => d[col] != null);
@@ -3128,7 +3128,7 @@ function _makeActivityRow(e) {
 
   if (e.notes) {
     const note = document.createElement("span");
-    note.style.color = "#94a3b8";
+    note.style.color = "var(--ink-3)";
     note.textContent = ` — ${e.notes}`;
     row.appendChild(note);
   }
@@ -3698,7 +3698,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dropzone.style.display = "none";
     importStatus.style.display = "block";
     importProgress.textContent = `Importing ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)...`;
-    importProgress.style.color = "#334155";
+    importProgress.style.color = "var(--ink-2)";
 
     try {
       const resp = await fetch("/api/import", {
@@ -3710,7 +3710,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (result.error) throw new Error(result.error);
 
       importProgress.textContent = `Imported ${result.records.toLocaleString()} records, ${result.labs} lab results. Reloading...`;
-      importProgress.style.color = "#334155";
+      importProgress.style.color = "var(--ink-2)";
 
       setTimeout(() => location.reload(), 1500);
     } catch (err) {
