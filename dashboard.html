@@ -66,7 +66,7 @@
 /* ── Auth Gate ── */
 #auth-gate {
   position: fixed; inset: 0; z-index: 1000;
-  background: #f7f8fa;
+  background: var(--bg);
   display: flex; align-items: center; justify-content: center;
   flex-direction: column; gap: 1.2rem;
 }
@@ -78,7 +78,7 @@
 #auth-gate input {
   font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
   padding: 0.6rem 1rem; width: 240px;
-  border: 1px solid #e2e4e9; background: #fff; color: var(--ink-1);
+  border: 1px solid var(--border-subtle); background: var(--surface); color: var(--ink-1);
   text-align: center; letter-spacing: 0.1em;
 }
 #auth-gate input:focus { outline: none; border-color: var(--ink-2); }
@@ -95,7 +95,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: var(--ink-1);
-  background: #f7f8fa;
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -112,7 +112,7 @@ body {
   justify-content: space-between;
   align-items: baseline;
   padding: 1.2rem 0 0.8rem 0;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
   margin-bottom: 1rem;
 }
 
@@ -152,8 +152,8 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
-  background: #ffffff;
-  border: 1px solid #e2e4e9;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
   padding: 1.2rem 1.5rem;
 }
 
@@ -224,16 +224,16 @@ body {
   gap: 1.4rem;
   padding: 0.7rem 1rem;
   margin-top: 0.6rem;
-  background: #f5f7fa;
-  border: 1px solid #e2e4e9;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
-#stack-strip:hover { background: #ecf0f5; }
+#stack-strip:hover { background: var(--raised); }
 #stack-strip.active {
   background: var(--ink-1);
-  color: #f7f8fa;
+  color: var(--bg);
   border-color: var(--ink-1);
 }
 .stack-strip-left {
@@ -294,7 +294,7 @@ body {
 .es-row {
   display: flex; align-items: center; gap: 0.9rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--raised);
 }
 .es-row:last-child { border-bottom: 0; }
 .es-pill {
@@ -315,7 +315,7 @@ body {
   cursor: pointer;
   font-size: 12px;
 }
-.es-check.done { background: #10b981; border-color: #10b981; color: #fff; }
+.es-check.done { background: #10b981; border-color: #10b981; color: var(--surface); }
 .es-check.miss { background: transparent; border-color: #ef4444; color: #ef4444; }
 .es-name { font-weight: 600; min-width: 200px; }
 .es-dose { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
@@ -324,12 +324,12 @@ body {
   display: grid;
   grid-template-columns: 1.4fr 0.9fr 0.7fr 0.7fr 0.8fr 0.7fr;
   gap: 0.6rem; padding: 0.4rem 0; font-size: 0.75rem;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--raised);
 }
 .es-table-row.head {
   color: var(--ink-3); text-transform: uppercase;
   letter-spacing: 0.06em; font-size: 0.65rem; font-weight: 600;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
 }
 .es-miss-row { padding: 0.3rem 0; font-size: 0.78rem; color: var(--ink-2); }
 .es-date {
@@ -338,8 +338,8 @@ body {
 }
 
 .domain-card {
-  background: #ffffff;
-  border: 1px solid #e2e4e9;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
   padding: 1rem 1.2rem;
   cursor: pointer;
   transition: border-color 0.15s;
@@ -359,7 +359,7 @@ body {
 
 .domain-card.active {
   border-color: var(--ink-2);
-  border-bottom-color: #ffffff;
+  border-bottom-color: var(--surface);
   z-index: 2;
   position: relative;
 }
@@ -464,8 +464,8 @@ body {
 
 /* ── Expanded Card ── */
 #expanded-card {
-  background: #ffffff;
-  border: 1px solid #e2e4e9;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
   border-top: 2px solid var(--ink-2);
   margin-top: -1px;
   padding: 1.5rem;
@@ -499,7 +499,7 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 0.3rem 0;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .stat-row:last-child {
@@ -527,7 +527,7 @@ body {
   margin-top: 1rem;
   margin-bottom: 0.4rem;
   padding-bottom: 0.3rem;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .stat-section-title:first-child {
@@ -539,7 +539,7 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
   color: var(--ink-3);
-  border-top: 1px solid #e2e4e9;
+  border-top: 1px solid var(--border-subtle);
   padding-top: 0.6rem;
 }
 
@@ -568,12 +568,12 @@ table.bloodwork-table th {
   text-transform: uppercase;
   color: var(--ink-3);
   padding: 0.3rem 0.5rem;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 table.bloodwork-table td {
   padding: 0.25rem 0.5rem;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
 }
 
@@ -612,12 +612,12 @@ table.workout-table th {
   text-transform: uppercase;
   color: var(--ink-3);
   padding: 0.25rem 0.4rem;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 table.workout-table td {
   padding: 0.2rem 0.4rem;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.78rem;
 }
@@ -628,8 +628,8 @@ table.workout-table td {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #ffffff;
-  border-top: 1px solid #e2e4e9;
+  background: var(--surface);
+  border-top: 1px solid var(--border-subtle);
   padding: 0.5rem 1rem;
   z-index: 100;
   cursor: pointer;
@@ -645,7 +645,7 @@ table.workout-table td {
 
 #console-hint .key {
   display: inline-block;
-  background: #e2e4e9;
+  background: var(--border-subtle);
   padding: 0.1rem 0.4rem;
   font-size: 0.7rem;
   color: var(--ink-2);
@@ -656,7 +656,7 @@ table.workout-table td {
   bottom: 2.2rem;
   left: 0;
   right: 0;
-  background: #ffffff;
+  background: var(--surface);
   border-top: 2px solid var(--ink-2);
   padding: 1rem;
   z-index: 99;
@@ -677,8 +677,8 @@ table.workout-table td {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.82rem;
   padding: 0.5rem 0.6rem;
-  border: 1px solid #e2e4e9;
-  background: #f7f8fa;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg);
   color: var(--ink-1);
   resize: vertical;
   line-height: 1.5;
@@ -698,7 +698,7 @@ table.workout-table td {
   text-transform: uppercase;
   padding: 0.4rem 1rem;
   background: var(--ink-2);
-  color: #ffffff;
+  color: var(--surface);
   border: none;
   cursor: pointer;
 }
@@ -713,7 +713,7 @@ table.workout-table td {
   padding: 0.3rem 0.8rem;
   background: transparent;
   color: var(--ink-3);
-  border: 1px solid #e2e4e9;
+  border: 1px solid var(--border-subtle);
   cursor: pointer;
 }
 
@@ -758,12 +758,12 @@ table.workout-table td {
   text-transform: uppercase;
   color: var(--ink-3);
   padding: 0.3rem 0.5rem;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 #query-result td {
   padding: 0.25rem 0.5rem;
-  border-bottom: 1px solid #e2e4e9;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 /* ── Chart Styles ── */
@@ -778,7 +778,7 @@ table.workout-table td {
 }
 
 .target-line {
-  stroke: #e2e4e9;
+  stroke: var(--border-subtle);
   stroke-width: 0.8;
   stroke-dasharray: 3,3;
 }
@@ -817,8 +817,8 @@ table.workout-table td {
   font-size: 0.72rem;
   line-height: 1.4;
   color: var(--ink-1);
-  background: #ffffff;
-  border: 1px solid #e2e4e9;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
   padding: 3px 7px;
   pointer-events: none;
   z-index: 100;
@@ -851,7 +851,7 @@ table.workout-table td {
 
 @media print {
   #console-bar, #query-console, #profile-panel { display: none; }
-  body { background: #fff; }
+  body { background: var(--surface); }
 }
 
 /* ── Profile Panel ── */
@@ -870,14 +870,14 @@ table.workout-table td {
 #import-toggle:hover { color: var(--ink-2); }
 
 #import-panel {
-  display: none; background: #fff;
-  border-bottom: 1px solid #e2e4e9;
+  display: none; background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 1.5rem 2rem;
 }
 #import-panel.open { display: block; }
 
 #import-dropzone {
-  border: 2px dashed #e2e4e9;
+  border: 2px dashed var(--border-subtle);
   padding: 2rem;
   text-align: center;
   cursor: pointer;
@@ -885,7 +885,7 @@ table.workout-table td {
 }
 #import-dropzone.dragover {
   border-color: var(--ink-2);
-  background: #f0f1f3;
+  background: var(--raised);
 }
 .dropzone-icon {
   font-size: 1.8rem; color: var(--ink-3); margin-bottom: 0.4rem;
@@ -904,7 +904,7 @@ table.workout-table td {
   font-size: 0.7rem; letter-spacing: 0.08em;
   text-transform: uppercase; padding: 0.35rem 1rem;
   background: transparent; color: var(--ink-3);
-  border: 1px solid #e2e4e9; cursor: pointer;
+  border: 1px solid var(--border-subtle); cursor: pointer;
 }
 #import-browse:hover { color: var(--ink-2); border-color: var(--ink-2); }
 
@@ -929,15 +929,15 @@ table.workout-table td {
 #stack-toggle:hover { color: var(--ink-2); }
 
 #plan-panel {
-  display: none; background: #fff;
-  border-bottom: 1px solid #e2e4e9;
+  display: none; background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 1.5rem 2rem;
 }
 #plan-panel.open { display: block; }
 
 #stack-panel {
-  display: none; background: #fff;
-  border-bottom: 1px solid #e2e4e9;
+  display: none; background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 1.5rem 2rem;
 }
 #stack-panel.open { display: block; }
@@ -959,7 +959,7 @@ table.workout-table td {
 .block-row input, .block-row select {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; padding: 0.3rem 0.4rem;
-  border: 1px solid #e2e4e9; background: #f7f8fa; color: var(--ink-1);
+  border: 1px solid var(--border-subtle); background: var(--bg); color: var(--ink-1);
 }
 .block-row input:focus, .block-row select:focus {
   outline: none; border-color: var(--ink-2);
@@ -987,7 +987,7 @@ table.workout-table td {
 .regimen-row select {
   font-size: 0.7rem;
   padding: 0.2rem 0.3rem;
-  border: 1px solid #d4d8de;
+  border: 1px solid var(--border-subtle);
   border-radius: 3px;
 }
 
@@ -1000,7 +1000,7 @@ table.workout-table td {
 .goal-row input, .goal-row select {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem; padding: 0.3rem 0.4rem;
-  border: 1px solid #e2e4e9; background: #f7f8fa; color: var(--ink-1);
+  border: 1px solid var(--border-subtle); background: var(--bg); color: var(--ink-1);
 }
 .goal-row input:focus, .goal-row select:focus {
   outline: none; border-color: var(--ink-2);
@@ -1014,7 +1014,7 @@ table.workout-table td {
 .add-row-btn {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem; color: var(--ink-3); cursor: pointer;
-  background: none; border: 1px dashed #e2e4e9;
+  background: none; border: 1px dashed var(--border-subtle);
   padding: 0.3rem 0.8rem; margin-top: 0.3rem;
 }
 .add-row-btn:hover { color: var(--ink-2); border-color: var(--ink-2); }
@@ -1022,14 +1022,14 @@ table.workout-table td {
 .current-block-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.55rem; color: var(--ink-2);
-  background: #f0f1f3; padding: 0.15rem 0.4rem;
+  background: var(--raised); padding: 0.15rem 0.4rem;
   display: inline-block; margin-top: 0.3rem;
   letter-spacing: 0.03em;
 }
 
 .goals-bar {
   display: flex; gap: 1.2rem; padding: 0.5rem 1.5rem;
-  background: #fff; border-bottom: 1px solid #e2e4e9;
+  background: var(--surface); border-bottom: 1px solid var(--border-subtle);
   font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
   color: var(--ink-3); overflow-x: auto;
 }
@@ -1048,8 +1048,8 @@ table.workout-table td {
 #logout-btn:hover { color: #ef4444; }
 
 #profile-panel {
-  display: none; background: #fff;
-  border-bottom: 1px solid #e2e4e9;
+  display: none; background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 1.5rem 2rem;
 }
 #profile-panel.open { display: block; }
@@ -1080,7 +1080,7 @@ table.workout-table td {
 .profile-field textarea {
   width: 100%; font-family: 'JetBrains Mono', monospace;
   font-size: 0.78rem; padding: 0.4rem 0.5rem;
-  border: 1px solid #e2e4e9; background: #f7f8fa;
+  border: 1px solid var(--border-subtle); background: var(--bg);
   color: var(--ink-1);
 }
 .profile-field textarea {
@@ -1103,7 +1103,7 @@ table.workout-table td {
   cursor: pointer; border: none;
 }
 .profile-actions .btn-save {
-  background: var(--accent); color: #f7f8fa;
+  background: var(--accent); color: var(--bg);
 }
 .profile-actions .btn-save:hover { background: var(--ink-1); }
 .profile-actions .save-status {
@@ -1176,7 +1176,7 @@ table.workout-table td {
     <button class="add-row-btn" id="add-goal">+ add goal</button>
 
     <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center">
-      <button class="btn-save" id="plan-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:var(--accent);color:#f7f8fa;border:none;cursor:pointer">Save</button>
+      <button class="btn-save" id="plan-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:var(--accent);color:var(--bg);border:none;cursor:pointer">Save</button>
       <span id="plan-status" style="font-size:0.7rem;color:var(--ink-3)"></span>
     </div>
   </div>
@@ -1307,7 +1307,7 @@ table.workout-table td {
     <button class="add-row-btn" id="add-regimen">+ add regimen</button>
 
     <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center">
-      <button class="btn-save" id="stack-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:var(--accent);color:#f7f8fa;border:none;cursor:pointer">Save</button>
+      <button class="btn-save" id="stack-save" style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.4rem 1.2rem;background:var(--accent);color:var(--bg);border:none;cursor:pointer">Save</button>
       <span id="stack-status" style="font-size:0.7rem;color:var(--ink-3)"></span>
     </div>
   </div>
@@ -1512,7 +1512,7 @@ function bulletSVG(value, target, min, max, lowerBetter) {
   const x = d3.scaleLinear().domain([min, max]).range([0, w]).clamp(true);
 
   let svg = `<svg width="${w}" height="${h}" style="vertical-align:middle">`;
-  svg += `<rect x="0" y="${h/2-2}" width="${w}" height="4" fill="#e2e4e9" rx="0"/>`;
+  svg += `<rect x="0" y="${h/2-2}" width="${w}" height="4" fill="var(--border-subtle)" rx="0"/>`;
   const tx = x(target);
   svg += `<line x1="${tx}" x2="${tx}" y1="${h/2-6}" y2="${h/2+6}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2,1"/>`;
   const vx = x(value);
@@ -2245,7 +2245,7 @@ function buildExpandedRecovery(el, data) {
       const lightH = ih - yLeft(d.light);
       const lightY = yLeft(d.light + d.rem + d.deep);
       g.append("rect").attr("x", xPos).attr("y", lightY).attr("width", barW).attr("height", lightH)
-        .attr("fill", "#e2e4e9");
+        .attr("fill", "var(--border-subtle)");
       // REM
       const remH = ih - yLeft(d.rem);
       const remY = yLeft(d.rem + d.deep);
@@ -2290,7 +2290,7 @@ function buildExpandedRecovery(el, data) {
 
     // Legend
     const leg = g.append("g").attr("transform", `translate(0, -2)`);
-    [{ label: "Deep", color: "var(--ink-2)" }, { label: "REM", color: "var(--ink-3)" }, { label: "Light", color: "#e2e4e9" }].forEach((l, i) => {
+    [{ label: "Deep", color: "var(--ink-2)" }, { label: "REM", color: "var(--ink-3)" }, { label: "Light", color: "var(--border-subtle)" }].forEach((l, i) => {
       leg.append("rect").attr("x", i * 55).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
       leg.append("text").attr("class", "annotation-text").attr("x", i * 55 + 14).attr("y", 7)
         .style("fill", "var(--ink-2)").text(l.label);
@@ -2399,7 +2399,7 @@ function buildExpandedTraining(el, data) {
         const barH = ih - y(d.other);
         yPos -= barH;
         g.append("rect").attr("x", xPos).attr("y", yPos).attr("width", barW).attr("height", barH)
-          .attr("fill", "#e2e4e9");
+          .attr("fill", "var(--border-subtle)");
       }
       if (d.z2 > 0) {
         const barH = ih - y(d.z2);
@@ -2431,7 +2431,7 @@ function buildExpandedTraining(el, data) {
 
     // Legend
     const leg = g.append("g").attr("transform", `translate(${iw - 150}, 0)`);
-    [{ label: "Zone 4+", color: "var(--ink-2)" }, { label: "Zone 2", color: "var(--ink-3)" }, { label: "Other", color: "#e2e4e9" }].forEach((l, i) => {
+    [{ label: "Zone 4+", color: "var(--ink-2)" }, { label: "Zone 2", color: "var(--ink-3)" }, { label: "Other", color: "var(--border-subtle)" }].forEach((l, i) => {
       leg.append("rect").attr("x", i * 55).attr("y", 0).attr("width", 10).attr("height", 8).attr("fill", l.color);
       leg.append("text").attr("class", "annotation-text").attr("x", i * 55 + 14).attr("y", 7)
         .style("fill", "var(--ink-2)").text(l.label);
@@ -2833,7 +2833,7 @@ function initQueryConsole() {
 
     const x = d3.scaleTime().domain(d3.extent(parsed, d => d._d)).range([0, iw]);
 
-    const colors = ["var(--ink-2)", "#d97706", "#ef4444", "var(--ink-3)", "var(--ink-1)", "#e2e4e9"];
+    const colors = ["var(--ink-2)", "#d97706", "#ef4444", "var(--ink-3)", "var(--ink-1)", "var(--border-subtle)"];
     for (let i = 0; i < Math.min(numCols.length, 6); i++) {
       const col = numCols[i];
       const vals = parsed.filter(d => d[col] != null);
