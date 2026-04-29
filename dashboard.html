@@ -9,6 +9,57 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+:root {
+  /* Ink — 4 text levels, ~12 OKLCH L points apart */
+  --ink-1:  oklch(20% 0.02 250);
+  --ink-2:  oklch(32% 0.02 250);
+  --ink-3:  oklch(48% 0.02 250);
+  --ink-4:  oklch(65% 0.015 250);
+
+  /* Surface — 3 layers, ~3 L points apart */
+  --bg:       oklch(98% 0.005 250);
+  --surface:  oklch(95% 0.006 250);
+  --raised:   oklch(92% 0.008 250);
+
+  /* Border — 2 weights */
+  --border-subtle: oklch(90% 0.008 250);
+  --border-strong: oklch(82% 0.010 250);
+
+  /* Accent — teal */
+  --accent:        oklch(58% 0.13 195);
+  --accent-hover:  oklch(52% 0.13 195);
+  --accent-soft:   oklch(94% 0.04 195);
+  --accent-ink:    oklch(40% 0.13 195);
+
+  /* Status — saturated standard */
+  --good:        oklch(58% 0.13 145);
+  --good-soft:   oklch(94% 0.04 145);
+  --good-ink:    oklch(40% 0.10 145);
+
+  --mod:         oklch(70% 0.14 75);
+  --mod-on:      oklch(20% 0.02 75);
+  --mod-soft:    oklch(95% 0.05 75);
+  --mod-ink:     oklch(45% 0.13 60);
+
+  --alert:       oklch(55% 0.17 25);
+  --alert-soft:  oklch(94% 0.04 25);
+  --alert-ink:   oklch(45% 0.14 25);
+
+  --none:        oklch(60% 0.02 250);
+
+  /* AM/PM pill tokens (used by Stack strip + expanded view) */
+  --am-soft:  oklch(92% 0.04 250);
+  --am-ink:   oklch(35% 0.13 250);
+  --pm-soft:  oklch(92% 0.04 295);
+  --pm-ink:   oklch(35% 0.13 295);
+
+  /* Chart series — 4 categorical, lower chroma than status */
+  --chart-1: oklch(55% 0.10 195);
+  --chart-2: oklch(55% 0.10 145);
+  --chart-3: oklch(60% 0.10 75);
+  --chart-4: oklch(55% 0.10 25);
+}
+
 /* ── Reset ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
